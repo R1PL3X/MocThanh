@@ -1,16 +1,15 @@
 /**
  * CẤU HÌNH KẾT NỐI SUPABASE CLOUD (MỘC THỊNH FURNITURE)
  * -------------------------------------------------------------
- * Bạn có thể dán trực tiếp SUPABASE_URL và SUPABASE_ANON_KEY vào đây,
- * hoặc chỉnh sửa trực tiếp từ nút "Cài đặt Supabase" trên giao diện web!
+ * ĐÃ KẾT NỐI THÀNH CÔNG VỚI DỰ ÁN SUPABASE TRỰC TUYẾN
  */
 
 const DEFAULT_CONFIG = {
-    // Thay thế bằng Project URL của bạn từ https://supabase.com
-    url: "https://your-project-id.supabase.co",
+    // Project URL chính thức
+    url: "https://vkhgbegximfhecwgfyow.supabase.co",
 
-    // Khóa công khai anon (public key) - An toàn khi dùng ở client
-    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-anon-key-here"
+    // Khóa công khai anon (public key)
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZraGdiZWd4aW1maGVjd2dmeW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyNTI2MzgsImV4cCI6MjEwODgyODYzOH0.2I9pGf1a1NoCoaxnJElWSCO41NGoP6MNMDWLoOHaaJo"
 };
 
 const STORAGE_KEY_URL = "mocthinh_supabase_url";
@@ -18,11 +17,11 @@ const STORAGE_KEY_ANON = "mocthinh_supabase_anon_key";
 
 export const SupabaseConfig = {
     getUrl() {
-        return localStorage.getItem(STORAGE_KEY_URL) || localStorage.getItem("muji_supabase_url") || DEFAULT_CONFIG.url;
+        return localStorage.getItem(STORAGE_KEY_URL) || DEFAULT_CONFIG.url;
     },
 
     getAnonKey() {
-        return localStorage.getItem(STORAGE_KEY_ANON) || localStorage.getItem("muji_supabase_anon_key") || DEFAULT_CONFIG.anonKey;
+        return localStorage.getItem(STORAGE_KEY_ANON) || DEFAULT_CONFIG.anonKey;
     },
 
     setCredentials(url, anonKey) {
