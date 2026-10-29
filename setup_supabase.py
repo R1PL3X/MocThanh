@@ -9,7 +9,7 @@ def update_config(url, anon_key):
     anon_key = anon_key.strip()
     
     content = f"""/**
- * CẤU HÌNH KẾT NỐI SUPABASE CLOUD (MỘC THỊNH FURNITURE)
+ * CẤU HÌNH KẾT NỐI SUPABASE CLOUD (MORIOO FURNITURE)
  * -------------------------------------------------------------
  * Đã được cập nhật tự động qua setup_supabase.py
  */
@@ -19,8 +19,8 @@ const DEFAULT_CONFIG = {{
     anonKey: "{anon_key}"
 }};
 
-const STORAGE_KEY_URL = "mocthinh_supabase_url";
-const STORAGE_KEY_ANON = "mocthinh_supabase_anon_key";
+const STORAGE_KEY_URL = "morioo_supabase_url";
+const STORAGE_KEY_ANON = "morioo_supabase_anon_key";
 
 export const SupabaseConfig = {{
     getUrl() {{
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         update_config(sys.argv[1], sys.argv[2])
     else:
         print("=" * 60)
-        print("  CÀI ĐẶT NHANH KẾT NỐI SUPABASE CHO MỘC THỊNH")
+        print("  CÀI ĐẶT NHANH KẾT NỐI SUPABASE CHO MORIOO")
         print("=" * 60)
         url_input = input("Nhập Supabase Project URL (VD: https://xxxx.supabase.co): ").strip()
         key_input = input("Nhập Supabase Anon Key (khóa public): ").strip()

@@ -1,9 +1,9 @@
 /**
- * QUẢN LÝ GIỎ HÀNG (SHOPPING CART) MỘC THỊNH
+ * QUẢN LÝ GIỎ HÀNG (SHOPPING CART) MORIOO
  * Tự động tính miễn phí vận chuyển từ 499.000đ như trên thanh thông báo
  */
 
-const CART_STORAGE_KEY = "mocthinh_furniture_cart";
+const CART_STORAGE_KEY = "morioo_furniture_cart";
 const FREE_SHIPPING_THRESHOLD = 499000; // Miễn phí vận chuyển từ 499.000 VNĐ
 const STANDARD_SHIPPING_FEE = 45000;
 
@@ -105,9 +105,9 @@ class CartService {
 
     applyCoupon(code) {
         const clean = (code || "").trim().toUpperCase();
-        if (clean === "MOCTHINH10" || clean === "MUJI10") {
-            this.appliedCoupon = { code: "MOCTHINH10", discountPercent: 10 };
-            return { success: true, message: "Áp dụng thành công mã MOCTHINH10 (Giảm 10%)" };
+        if (clean === "MORIOO10" || clean === "MUJI10") {
+            this.appliedCoupon = { code: "MORIOO10", discountPercent: 10 };
+            return { success: true, message: "Áp dụng thành công mã MORIOO10 (Giảm 10%)" };
         } else if (clean === "GOXANH") {
             this.appliedCoupon = { code: "GOXANH", discountAmount: 100000 };
             return { success: true, message: "Áp dụng thành công mã GOXANH (Giảm 100.000đ)" };

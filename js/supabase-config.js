@@ -1,5 +1,5 @@
 /**
- * CẤU HÌNH KẾT NỐI SUPABASE CLOUD (MỘC THỊNH FURNITURE)
+ * CẤU HÌNH KẾT NỐI SUPABASE CLOUD (MORIOO FURNITURE)
  * -------------------------------------------------------------
  * ĐÃ KẾT NỐI THÀNH CÔNG VỚI DỰ ÁN SUPABASE TRỰC TUYẾN
  */
@@ -12,8 +12,8 @@ const DEFAULT_CONFIG = {
     anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZraGdiZWd4aW1maGVjd2dmeW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyNTI2MzgsImV4cCI6MjEwODgyODYzOH0.2I9pGf1a1NoCoaxnJElWSCO41NGoP6MNMDWLoOHaaJo"
 };
 
-const STORAGE_KEY_URL = "mocthinh_supabase_url";
-const STORAGE_KEY_ANON = "mocthinh_supabase_anon_key";
+const STORAGE_KEY_URL = "morioo_supabase_url";
+const STORAGE_KEY_ANON = "morioo_supabase_anon_key";
 
 export const SupabaseConfig = {
     getUrl() {

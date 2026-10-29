@@ -1,5 +1,5 @@
 /**
- * CLIENT QUẢN LÝ DỮ LIỆU SUPABASE CHO NỘI THẤT GỖ MỘC THỊNH
+ * CLIENT QUẢN LÝ DỮ LIỆU SUPABASE CHO NỘI THẤT GỖ MORIOO
  * Kết nối Database trực tuyến trên Cloud Supabase (Ai cũng xem được)
  */
 
@@ -25,7 +25,7 @@ class SupabaseDataService {
                 this.client = window.supabase.createClient(url, anonKey, {
                     auth: { persistSession: false }
                 });
-                console.log("[Supabase] Đã khởi tạo Supabase Client cho Mộc Thịnh với URL:", url);
+                console.log("[Supabase] Đã khởi tạo Supabase Client cho MORIOO với URL:", url);
             } else {
                 this.client = null;
                 console.log("[Supabase] Chưa cấu hình URL/Key. Sử dụng dữ liệu mộc mạc tích hợp.");
@@ -83,7 +83,7 @@ class SupabaseDataService {
             this.lastError = null;
             return {
                 success: true,
-                message: "Kết nối Supabase Cloud THÀNH CÔNG! Bất kỳ ai trên internet đều có thể xem sản phẩm Mộc Thịnh và đặt hàng.",
+                message: "Kết nối Supabase Cloud THÀNH CÔNG! Bất kỳ ai trên internet đều có thể xem sản phẩm MORIOO và đặt hàng.",
                 data
             };
         } catch (err) {
@@ -125,7 +125,7 @@ class SupabaseDataService {
                     this.isOnline = true;
                     return data;
                 } else if (error) {
-                    console.warn("[Supabase] Lỗi khi truy vấn products Mộc Thịnh, chuyển sang dữ liệu dự phòng:", error.message);
+                    console.warn("[Supabase] Lỗi khi truy vấn products MORIOO, chuyển sang dữ liệu dự phòng:", error.message);
                 }
             } catch (err) {
                 console.warn("[Supabase] Exception khi đọc dữ liệu:", err);
@@ -184,10 +184,10 @@ class SupabaseDataService {
     }
 
     /**
-     * Tạo đơn hàng mới Mộc Thịnh (Lưu trực tiếp vào Supabase Cloud hoặc Local Storage)
+     * Tạo đơn hàng mới MORIOO (Lưu trực tiếp vào Supabase Cloud hoặc Local Storage)
      */
     async createOrder(orderPayload) {
-        const orderCode = "MT-" + Math.floor(100000 + Math.random() * 900000);
+        const orderCode = "MR-" + Math.floor(100000 + Math.random() * 900000);
         const orderData = {
             order_code: orderCode,
             customer_name: orderPayload.name,
@@ -228,7 +228,7 @@ class SupabaseDataService {
 
                         await this.client.from("order_items").insert(itemsData);
                     }
-                    console.log("[Supabase] Đã lưu đơn hàng Mộc Thịnh thành công vào Supabase Cloud:", newOrder.order_code);
+                    console.log("[Supabase] Đã lưu đơn hàng MORIOO thành công vào Supabase Cloud:", newOrder.order_code);
                 } else {
                     console.warn("[Supabase] Không thể ghi order vào cloud:", orderErr?.message);
                 }
@@ -276,7 +276,7 @@ class SupabaseDataService {
     }
 
     /**
-     * Thêm sản phẩm mới Mộc Thịnh
+     * Thêm sản phẩm mới MORIOO
      */
     async addProduct(product) {
         const slug = (product.name || "san-pham")
@@ -332,7 +332,7 @@ class SupabaseDataService {
     }
 
     loadLocalProducts() {
-        const saved = localStorage.getItem("mocthinh_products") || localStorage.getItem("muji_products");
+        const saved = localStorage.getItem("morioo_products") || localStorage.getItem("muji_products");
         if (saved) {
             try { return JSON.parse(saved); } catch (e) {}
         }
@@ -340,11 +340,11 @@ class SupabaseDataService {
     }
 
     saveLocalProducts() {
-        localStorage.setItem("mocthinh_products", JSON.stringify(this.localProducts));
+        localStorage.setItem("morioo_products", JSON.stringify(this.localProducts));
     }
 
     loadLocalOrders() {
-        const saved = localStorage.getItem("mocthinh_orders") || localStorage.getItem("muji_orders");
+        const saved = localStorage.getItem("morioo_orders") || localStorage.getItem("muji_orders");
         if (saved) {
             try { return JSON.parse(saved); } catch (e) {}
         }
@@ -352,7 +352,7 @@ class SupabaseDataService {
     }
 
     saveLocalOrders() {
-        localStorage.setItem("mocthinh_orders", JSON.stringify(this.localOrders));
+        localStorage.setItem("morioo_orders", JSON.stringify(this.localOrders));
     }
 
     resetDefaultData() {

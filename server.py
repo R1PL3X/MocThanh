@@ -26,7 +26,7 @@ if __name__ == "__main__":
         with socketserver.TCPServer(("", PORT), Handler) as httpd:
             url = f"http://localhost:{PORT}"
             print("=" * 60)
-            print("  MỘC THỊNH WOODEN FURNITURE - WEB SERVER RUNNING")
+            print("  MORIOO WOODEN FURNITURE - WEB SERVER RUNNING")
             print(f"  URL: {url}")
             print(f"  Directory: {DIRECTORY}")
             print("=" * 60)

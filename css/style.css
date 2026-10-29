@@ -170,28 +170,51 @@ img {
 .nav-menu {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.nav-menu li a {
-    color: #ffffff;
-    font-size: 13.5px;
-    font-weight: 500;
-    padding: 8px 6px;
+.nav-menu li {
+    position: relative;
+}
+
+.nav-menu li a,
+.nav-link-item {
+    color: #ffffff !important;
+    background: transparent !important;
+    border: none !important;
+    font-size: 14.5px;
+    font-weight: 600;
+    padding: 8px 12px;
     border-radius: 4px;
     transition: var(--transition);
     white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 .nav-menu li a:hover,
-.nav-menu li a.active {
-    background-color: rgba(255, 255, 255, 0.16);
+.nav-menu li a.active,
+.nav-link-item:hover,
+.nav-link-item.active {
+    background-color: rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+}
+
+.nav-menu .caret {
+    font-size: 10px;
+    opacity: 0.85;
+    margin-left: 2px;
+    transition: transform 0.2s ease;
+}
+
+.nav-menu li a:hover .caret {
+    transform: translateY(2px);
 }
 
 .nav-menu .badge-hot {
@@ -514,17 +537,9 @@ img {
     font-weight: 700;
 }
 
-/* Supabase Notice Banner */
+/* Supabase Notice Banner (Đã ẩn theo yêu cầu người dùng) */
 .supabase-banner {
-    background: linear-gradient(90deg, #fdf6ec, #faf2e4);
-    border: 1px solid #ebd8bd;
-    border-radius: 8px;
-    padding: 12px 18px;
-    margin: 20px 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    display: none !important;
 }
 
 .supabase-banner-text {

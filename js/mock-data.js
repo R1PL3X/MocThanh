@@ -1,6 +1,6 @@
 /**
- * DỮ LIỆU NỘI THẤT GỖ MẪU MỘC THỊNH (STANDALONE / FALLBACK MODE)
- * Được thiết kế chuẩn xác theo không gian mẫu trong ảnh đính kèm (Zen / Mộc Thịnh Aesthetic)
+ * DỮ LIỆU NỘI THẤT GỖ MẪU MORIOO (STANDALONE / FALLBACK MODE)
+ * Được thiết kế chuẩn xác theo không gian mẫu trong ảnh đính kèm (Zen / MORIOO Aesthetic)
  */
 
 export const INITIAL_CATEGORIES = [
@@ -16,7 +16,7 @@ export const INITIAL_PRODUCTS = [
     {
         id: "prod-1",
         slug: "giuong-ngu-go-soi-tatami-co-hoc-keo",
-        name: "Giường Ngủ Gỗ Sồi Tự Nhiên Tatami Kèm 4 Hộc Kéo Mộc Thịnh",
+        name: "Giường Ngủ Gỗ Sồi Tự Nhiên Tatami Kèm 4 Hộc Kéo MORIOO",
         category_slug: "phong-ngu",
         wood_type: "Gỗ Sồi Trắng Bắc Mỹ",
         price: 8990000,
@@ -25,7 +25,7 @@ export const INITIAL_PRODUCTS = [
         reviews_count: 48,
         dimensions: "180 x 200 x 32 cm",
         short_desc: "Mẫu giường ngủ gỗ sồi gầm phản thấp giống phòng mẫu trong ảnh, tích hợp 4 ngăn kéo chứa chăn ga đệm gọn gàng.",
-        description: "Chế tác từ 100% gỗ sồi trắng nhập khẩu Bắc Mỹ tuyển chọn loại FAS cao cấp của Mộc Thịnh. Bề mặt hoàn thiện lau dầu thực vật Osmo tự nhiên an toàn tuyệt đối cho sức khỏe, giữ nguyên đường vân gỗ tự nhiên ấm áp. Kết cấu mộng gỗ truyền thống vững chãi, chống cong vênh mối mọt.",
+        description: "Chế tác từ 100% gỗ sồi trắng nhập khẩu Bắc Mỹ tuyển chọn loại FAS cao cấp của MORIOO. Bề mặt hoàn thiện lau dầu thực vật Osmo tự nhiên an toàn tuyệt đối cho sức khỏe, giữ nguyên đường vân gỗ tự nhiên ấm áp. Kết cấu mộng gỗ truyền thống vững chãi, chống cong vênh mối mọt.",
         in_stock: true,
         stock_quantity: 15,
         is_featured: true,
@@ -41,7 +41,7 @@ export const INITIAL_PRODUCTS = [
     {
         id: "prod-2",
         slug: "ghe-sofa-thu-gian-dieu-chinh-nhat-ban",
-        name: "Ghế Sofa Thư Giãn Điều Chỉnh Đa Nấc Mộc Thịnh",
+        name: "Ghế Sofa Thư Giãn Điều Chỉnh Đa Nấc MORIOO",
         category_slug: "phong-khach",
         wood_type: "Gỗ Tần Bì & Vải Linen Thô",
         price: 3450000,
@@ -50,7 +50,7 @@ export const INITIAL_PRODUCTS = [
         reviews_count: 62,
         dimensions: "72 x 85 x 90 cm",
         short_desc: "Ghế bành thư giãn bọc nệm vải linen thô tự nhiên, gập ngả 14 nấc lưng và tựa đầu êm ái như ảnh phòng mẫu.",
-        description: "Sản phẩm biểu tượng của phong cách nội thất thư giãn tối giản Mộc Thịnh. Khung thép chịu lực bọc đệm bông hữu cơ dày dặn êm ái, bọc ngoài lớp vải linen dệt thô thoáng mát mùa hè, ấm mùa đông. Chân ghế gỗ sồi tự nhiên chắc chắn.",
+        description: "Sản phẩm biểu tượng của phong cách nội thất thư giãn tối giản MORIOO. Khung thép chịu lực bọc đệm bông hữu cơ dày dặn êm ái, bọc ngoài lớp vải linen dệt thô thoáng mát mùa hè, ấm mùa đông. Chân ghế gỗ sồi tự nhiên chắc chắn.",
         in_stock: true,
         stock_quantity: 25,
         is_featured: true,
@@ -65,7 +65,7 @@ export const INITIAL_PRODUCTS = [
     {
         id: "prod-3",
         slug: "don-goi-luoi-hat-xop-moc-thinh-style",
-        name: "Đôn Gối Lười Hạt Xốp Đa Năng Mộc Thịnh Style",
+        name: "Đôn Gối Lười Hạt Xốp Đa Năng MORIOO Style",
         category_slug: "phong-khach",
         wood_type: "Hạt Micro-bead & Vải Cotton Thô",
         price: 1250000,
@@ -74,7 +74,7 @@ export const INITIAL_PRODUCTS = [
         reviews_count: 115,
         dimensions: "65 x 65 x 43 cm",
         short_desc: "Gối lười hạt xốp ôm trọn đường cong cơ thể, vải bọc tháo giặt dễ dàng, tone xám be hài hòa với sàn gỗ.",
-        description: "Sử dụng hạt xốp siêu mịn micro-bead 0.5mm êm ái, biến hình linh hoạt thành ghế tựa hoặc đôn gác chân tiện lợi bên cạnh bàn trà Mộc Thịnh.",
+        description: "Sử dụng hạt xốp siêu mịn micro-bead 0.5mm êm ái, biến hình linh hoạt thành ghế tựa hoặc đôn gác chân tiện lợi bên cạnh bàn trà MORIOO.",
         in_stock: true,
         stock_quantity: 40,
         is_featured: true,
@@ -87,7 +87,7 @@ export const INITIAL_PRODUCTS = [
     {
         id: "prod-4",
         slug: "ban-tra-go-soi-chan-thap-kieu-nhat",
-        name: "Bàn Trà Gỗ Sồi Bo Tròn Chân Thấp Kiểu Nhật Mộc Thịnh",
+        name: "Bàn Trà Gỗ Sồi Bo Tròn Chân Thấp Kiểu Nhật MORIOO",
         category_slug: "phong-khach",
         wood_type: "Gỗ Sồi Trắng Bắc Mỹ",
         price: 2490000,
@@ -111,7 +111,7 @@ export const INITIAL_PRODUCTS = [
     {
         id: "prod-5",
         slug: "ke-tivi-go-soi-ngan-keo-toi-gian",
-        name: "Kệ Tivi Gỗ Sồi Tự Nhiên 3 Ngăn Kéo Mộc Thịnh",
+        name: "Kệ Tivi Gỗ Sồi Tự Nhiên 3 Ngăn Kéo MORIOO",
         category_slug: "phong-khach",
         wood_type: "Gỗ Sồi Trắng Bắc Mỹ",
         price: 5200000,
@@ -133,7 +133,7 @@ export const INITIAL_PRODUCTS = [
     {
         id: "prod-6",
         slug: "bo-ban-an-go-soi-4-ghe-minimalist",
-        name: "Bộ Bàn Ăn Gỗ Sồi Tự Nhiên Kèm 4 Ghế Tiện Tròn Mộc Thịnh",
+        name: "Bộ Bàn Ăn Gỗ Sồi Tự Nhiên Kèm 4 Ghế Tiện Tròn MORIOO",
         category_slug: "phong-an",
         wood_type: "Gỗ Sồi Nga Nguyên Tấm",
         price: 9800000,
@@ -154,7 +154,7 @@ export const INITIAL_PRODUCTS = [
     {
         id: "prod-7",
         slug: "ban-lam-viec-go-soi-co-ngan-keo",
-        name: "Bàn Làm Việc Gỗ Sồi Nhỏ Gọn Có Ngăn Kéo Mộc Thịnh",
+        name: "Bàn Làm Việc Gỗ Sồi Nhỏ Gọn Có Ngăn Kéo MORIOO",
         category_slug: "lam-viec",
         wood_type: "Gỗ Sồi Trắng Bắc Mỹ",
         price: 4150000,
@@ -175,7 +175,7 @@ export const INITIAL_PRODUCTS = [
     {
         id: "prod-8",
         slug: "ke-sach-go-tu-nhien-4-tang-modul",
-        name: "Kệ Sách Gỗ Tự Nhiên 4 Tầng Ghép Khối Modul Mộc Thịnh",
+        name: "Kệ Sách Gỗ Tự Nhiên 4 Tầng Ghép Khối Modul MORIOO",
         category_slug: "lam-viec",
         wood_type: "Gỗ Tần Bì Ash",
         price: 3200000,
@@ -260,7 +260,7 @@ export const INITIAL_PRODUCTS = [
     {
         id: "prod-12",
         slug: "den-cay-go-soi-chieu-sang-phong-khach",
-        name: "Đèn Đứng Gỗ Sồi Chao Vải Linen Tự Nhiên Mộc Thịnh",
+        name: "Đèn Đứng Gỗ Sồi Chao Vải Linen Tự Nhiên MORIOO",
         category_slug: "decor",
         wood_type: "Gỗ Sồi & Vải Linen",
         price: 1890000,

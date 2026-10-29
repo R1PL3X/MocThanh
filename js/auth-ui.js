@@ -312,7 +312,7 @@ async function renderCustomerOrders() {
         container.innerHTML = `
             <div class="cart-empty" style="padding:40px 20px;">
                 <h4>Bạn chưa có đơn hàng nào</h4>
-                <p>Khám phá các sản phẩm nội thất gỗ sồi Mộc Thịnh và đặt hàng ngay!</p>
+                <p>Khám phá các sản phẩm nội thất gỗ sồi MORIOO và đặt hàng ngay!</p>
             </div>
         `;
         return;

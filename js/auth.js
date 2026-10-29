@@ -5,17 +5,17 @@
 
 import { db } from "./supabase-client.js";
 
-const CURRENT_USER_KEY = "mocthinh_current_user";
-const LOCAL_ACCOUNTS_KEY = "mocthinh_accounts";
+const CURRENT_USER_KEY = "morioo_current_user";
+const LOCAL_ACCOUNTS_KEY = "morioo_accounts";
 
 // Mã bảo mật bắt buộc khi đăng ký quyền Quản Trị Viên (Admin)
-export const ADMIN_SECRET_KEY = "MOCTHINH@ADMIN2026";
+export const ADMIN_SECRET_KEY = "MORIOO@ADMIN2026";
 
 // Tài khoản mẫu tạo sẵn để thử nghiệm ngay lập tức
 const SEED_ACCOUNTS = [
     {
         id: "acc-admin-1",
-        email: "admin@mocthinh.vn",
+        email: "admin@morioo.vn",
         password: "Admin123!",
         full_name: "Nguyễn Quản Trị",
         phone: "0901234567",

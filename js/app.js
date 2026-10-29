@@ -1,5 +1,5 @@
 /**
- * ỨNG DỤNG WEB NỘI THẤT GỖ MỘC THỊNH & SUPABASE
+ * ỨNG DỤNG WEB NỘI THẤT GỖ MORIOO & SUPABASE
  */
 
 import { db } from "./supabase-client.js";
@@ -51,7 +51,7 @@ async function loadProducts() {
     grid.innerHTML = `
         <div class="loading-state">
             <div class="loader-circle"></div>
-            <p>Đang tải bộ sưu tập nội thất gỗ Mộc Thịnh...</p>
+            <p>Đang tải bộ sưu tập nội thất gỗ MORIOO...</p>
         </div>
     `;
 
@@ -86,7 +86,7 @@ function renderProductGrid() {
                 </svg>
                 <h3>Không tìm thấy sản phẩm nào</h3>
                 <p>Vui lòng thử chọn danh mục hoặc từ khóa tìm kiếm khác.</p>
-                <button class="btn-brand-outline" id="btnResetFilters">Xem tất cả sản phẩm Mộc Thịnh</button>
+                <button class="btn-brand-outline" id="btnResetFilters">Xem tất cả sản phẩm MORIOO</button>
             </div>
         `;
         document.getElementById("btnResetFilters")?.addEventListener("click", () => {
@@ -298,7 +298,7 @@ function renderCartDrawerItems() {
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <path d="M16 10a4 4 0 0 1-8 0"></path>
                 </svg>
-                <h4>Giỏ hàng Mộc Thịnh đang trống</h4>
+                <h4>Giỏ hàng MORIOO đang trống</h4>
                 <p>Hãy khám phá những món nội thất gỗ sồi mộc mạc và thêm vào giỏ.</p>
             </div>
         `;
@@ -356,7 +356,7 @@ window.viewProductDetail = async function (productId) {
     if (!modal || !body) return;
 
     modal.classList.add("active");
-    body.innerHTML = `<div class="loading-state"><div class="loader-circle"></div><p>Đang tải chi tiết sản phẩm Mộc Thịnh...</p></div>`;
+    body.innerHTML = `<div class="loading-state"><div class="loader-circle"></div><p>Đang tải chi tiết sản phẩm MORIOO...</p></div>`;
 
     const product = await db.getProduct(productId);
     if (!product) {
@@ -411,7 +411,7 @@ window.viewProductDetail = async function (productId) {
                     </div>
                     <div class="spec-row">
                         <span class="spec-label">Bảo hành:</span>
-                        <span class="spec-val">36 tháng kết cấu gỗ chính hãng Mộc Thịnh</span>
+                        <span class="spec-val">36 tháng kết cấu gỗ chính hãng MORIOO</span>
                     </div>
                     <div class="spec-row">
                         <span class="spec-label">Tình trạng:</span>
@@ -437,7 +437,7 @@ window.viewProductDetail = async function (productId) {
                     </div>
                     <div class="guarantee-item">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                        <span>100% gỗ tự nhiên Mộc Thịnh, hoàn thiện dầu thực vật Osmo an toàn</span>
+                        <span>100% gỗ tự nhiên MORIOO, hoàn thiện dầu thực vật Osmo an toàn</span>
                     </div>
                 </div>
             </div>
@@ -564,7 +564,7 @@ function renderCheckoutSummary() {
     const qrImg = document.getElementById("vietQrImage");
     if (qrImg) {
         const total = cart.getTotal();
-        qrImg.src = `https://api.vietqr.io/image/970422-0988888888-q8U3XvD.jpg?amount=${total}&addInfo=MOCTHINH%20NOI%20THAT`;
+        qrImg.src = `https://api.vietqr.io/image/970422-0988888888-q8U3XvD.jpg?amount=${total}&addInfo=MORIOO%20NOI%20THAT`;
     }
 }
 
@@ -579,7 +579,7 @@ function showOrderSuccessModal(code, isCloud, payload) {
     const cloudNote = document.getElementById("successCloudNote");
     if (cloudNote) {
         cloudNote.innerHTML = isCloud
-            ? `<span class="badge-cloud-ok">✓ Đã đồng bộ lên cơ sở dữ liệu Supabase Cloud của Mộc Thịnh</span>`
+            ? `<span class="badge-cloud-ok">✓ Đã đồng bộ lên cơ sở dữ liệu Supabase Cloud của MORIOO</span>`
             : `<span class="badge-cloud-local">✓ Đã lưu đơn hàng cục bộ (Kết nối Supabase Cloud để lưu online)</span>`;
     }
 
@@ -597,10 +597,10 @@ function initHeroHotspots() {
     if (!container) return;
 
     const hotspots = [
-        { id: "giuong-ngu-go-soi-tatami-co-hoc-keo", x: 18, y: 48, title: "Giường ngủ gầm thấp hộc kéo Mộc Thịnh", price: "8.990.000 VNĐ" },
+        { id: "giuong-ngu-go-soi-tatami-co-hoc-keo", x: 18, y: 48, title: "Giường ngủ gầm thấp hộc kéo MORIOO", price: "8.990.000 VNĐ" },
         { id: "ghe-sofa-thu-gian-dieu-chinh-nhat-ban", x: 38, y: 48, title: "Ghế sofa thư giãn kiểu Nhật", price: "3.450.000 VNĐ" },
         { id: "don-goi-luoi-hat-xop-moc-thinh-style", x: 44, y: 78, title: "Đôn gối lười hạt xốp", price: "1.250.000 VNĐ" },
-        { id: "ban-tra-go-soi-chan-thap-kieu-nhat", x: 67, y: 66, title: "Bàn trà gỗ sồi bo tròn Mộc Thịnh", price: "2.490.000 VNĐ" },
+        { id: "ban-tra-go-soi-chan-thap-kieu-nhat", x: 67, y: 66, title: "Bàn trà gỗ sồi bo tròn MORIOO", price: "2.490.000 VNĐ" },
         { id: "ke-tivi-go-soi-ngan-keo-toi-gian", x: 88, y: 62, title: "Kệ Tivi gỗ sồi tối giản", price: "5.200.000 VNĐ" }
     ];
 
@@ -618,7 +618,7 @@ function initHeroHotspots() {
 }
 
 /**
- * Các widget nổi (Live & Hỗ trợ Chat Mộc Thịnh)
+ * Các widget nổi (Live & Hỗ trợ Chat MORIOO)
  */
 function initFloatingWidgets() {
     const liveBtn = document.getElementById("floatingLiveBtn");
@@ -627,7 +627,7 @@ function initFloatingWidgets() {
     const closeChat = document.getElementById("closeSupportChat");
 
     liveBtn?.addEventListener("click", () => {
-        alert("🔴 Phiên phát sóng trực tiếp (LIVE) giới thiệu xưởng chế tác nội thất gỗ sồi tự nhiên Mộc Thịnh đang diễn ra. Chào mừng bạn ghé thăm!");
+        alert("🔴 Phiên phát sóng trực tiếp (LIVE) giới thiệu xưởng chế tác nội thất gỗ sồi tự nhiên MORIOO đang diễn ra. Chào mừng bạn ghé thăm!");
     });
 
     chatBtn?.addEventListener("click", () => {
@@ -657,7 +657,7 @@ function initFloatingWidgets() {
         setTimeout(() => {
             chatLog.innerHTML += `
                 <div class="chat-msg bot">
-                    <div class="msg-bubble">Chào bạn! Chuyên viên tư vấn nội thất gỗ sồi tự nhiên của <strong>Mộc Thịnh</strong> đã nhận được câu hỏi. Chúng tôi sẽ phản hồi bạn trong giây lát hoặc bạn có thể gọi hotline <strong>1900 255 579</strong> để được giao hàng ngay hôm nay!</div>
+                    <div class="msg-bubble">Chào bạn! Chuyên viên tư vấn nội thất gỗ sồi tự nhiên của <strong>MORIOO</strong> đã nhận được câu hỏi. Chúng tôi sẽ phản hồi bạn trong giây lát hoặc bạn có thể gọi hotline <strong>1900 255 579</strong> để được giao hàng ngay hôm nay!</div>
                 </div>
             `;
             chatLog.scrollTop = chatLog.scrollHeight;

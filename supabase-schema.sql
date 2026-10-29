@@ -1,5 +1,5 @@
 -- ==============================================================================
--- MỘC THỊNH WOODEN FURNITURE - DATABASE SCHEMA FOR SUPABASE
+-- MORIOO WOODEN FURNITURE - DATABASE SCHEMA FOR SUPABASE
 -- Cấu hình để AI CŨNG XEM ĐƯỢC TRÊN TOÀN CẦU (Public Access via Row Level Security)
 -- ==============================================================================
 
@@ -125,12 +125,12 @@ CREATE POLICY "Public Update Accounts" ON accounts FOR UPDATE USING (true);
 
 -- Tài khoản mẫu sẵn trong database
 INSERT INTO accounts (email, password_hash, full_name, phone, role) VALUES
-('admin@mocthinh.vn', 'Admin123!', 'Nguyễn Quản Trị Mộc Thịnh', '0901234567', 'admin'),
+('admin@morioo.vn', 'Admin123!', 'Nguyễn Quản Trị MORIOO', '0901234567', 'admin'),
 ('khachhang@gmail.com', 'Khach123!', 'Trần Văn Khách', '0987654321', 'customer')
 ON CONFLICT (email) DO NOTHING;
 
 -- ==============================================================================
--- DỮ LIỆU MẪU NỘI THẤT GỖ MỘC THỊNH CHUẨN THIẾT KẾ THEO ẢNH ĐÍNH KÈM
+-- DỮ LIỆU MẪU NỘI THẤT GỖ MORIOO CHUẨN THIẾT KẾ THEO ẢNH ĐÍNH KÈM
 -- ==============================================================================
 
 INSERT INTO categories (slug, name, icon, description, display_order) VALUES
@@ -144,7 +144,7 @@ ON CONFLICT (slug) DO NOTHING;
 INSERT INTO products (slug, name, category_slug, wood_type, price, original_price, rating, reviews_count, dimensions, short_desc, description, in_stock, stock_quantity, is_featured, is_new, is_bestseller, image_url) VALUES
 (
     'giuong-ngu-go-soi-tatami-co-hoc-keo',
-    'Giường Ngủ Gỗ Sồi Tự Nhiên Tatami Kèm 4 Hộc Kéo Mộc Thịnh',
+    'Giường Ngủ Gỗ Sồi Tự Nhiên Tatami Kèm 4 Hộc Kéo MORIOO',
     'phong-ngu',
     'Gỗ Sồi Trắng Bắc Mỹ',
     8990000,
@@ -153,7 +153,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
     48,
     '180 x 200 x 32 cm',
     'Mẫu giường gỗ sồi gầm phản thấp phong cách Zen tối giản giống ảnh phòng mẫu, tích hợp 4 ngăn kéo chứa chăn ga đệm gọn gàng.',
-    'Chế tác từ 100% gỗ sồi trắng nhập khẩu Bắc Mỹ tuyển chọn loại FAS cao cấp của Mộc Thịnh. Bề mặt hoàn thiện lau dầu thực vật Osmo tự nhiên an toàn tuyệt đối cho sức khỏe, giữ nguyên đường vân gỗ tự nhiên ấm áp. Kết cấu mộng gỗ truyền thống vững chãi, chống cong vênh mối mọt.',
+    'Chế tác từ 100% gỗ sồi trắng nhập khẩu Bắc Mỹ tuyển chọn loại FAS cao cấp của MORIOO. Bề mặt hoàn thiện lau dầu thực vật Osmo tự nhiên an toàn tuyệt đối cho sức khỏe, giữ nguyên đường vân gỗ tự nhiên ấm áp. Kết cấu mộng gỗ truyền thống vững chãi, chống cong vênh mối mọt.',
     true,
     15,
     true,
@@ -163,7 +163,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
 ),
 (
     'ghe-sofa-thu-gian-dieu-chinh-nhat-ban',
-    'Ghế Sofa Thư Giãn Điều Chỉnh Đa Nấc Kiểu Nhật Mộc Thịnh',
+    'Ghế Sofa Thư Giãn Điều Chỉnh Đa Nấc Kiểu Nhật MORIOO',
     'phong-khach',
     'Gỗ Tần Bì & Vải Linen Thô',
     3450000,
@@ -172,7 +172,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
     62,
     '72 x 85 x 90 cm',
     'Ghế bành thư giãn bọc nệm vải linen thô tự nhiên, gập ngả 14 nấc lưng và tựa đầu êm ái như ảnh phòng mẫu.',
-    'Sản phẩm biểu tượng của phong cách nội thất thư giãn tối giản Mộc Thịnh. Khung thép chịu lực bọc đệm bông hữu cơ dày dặn êm ái, bọc ngoài lớp vải linen dệt thô thoáng mát mùa hè, ấm mùa đông. Chân ghế gỗ sồi tự nhiên chắc chắn.',
+    'Sản phẩm biểu tượng của phong cách nội thất thư giãn tối giản MORIOO. Khung thép chịu lực bọc đệm bông hữu cơ dày dặn êm ái, bọc ngoài lớp vải linen dệt thô thoáng mát mùa hè, ấm mùa đông. Chân ghế gỗ sồi tự nhiên chắc chắn.',
     true,
     25,
     true,
@@ -182,7 +182,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
 ),
 (
     'don-goi-luoi-hat-xop-moc-thinh-style',
-    'Đôn Gối Lười Hạt Xốp Đa Năng Mộc Thịnh Style',
+    'Đôn Gối Lười Hạt Xốp Đa Năng MORIOO Style',
     'phong-khach',
     'Hạt Micro-bead & Vải Cotton Thô',
     1250000,
@@ -191,7 +191,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
     115,
     '65 x 65 x 43 cm',
     'Gối lười hạt xốp ôm trọn đường cong cơ thể, vải bọc tháo giặt dễ dàng, tone xám be hài hòa với sàn gỗ.',
-    'Sử dụng hạt xốp siêu mịn micro-bead 0.5mm êm ái, biến hình linh hoạt thành ghế tựa hoặc đôn gác chân tiện lợi bên cạnh bàn trà Mộc Thịnh.',
+    'Sử dụng hạt xốp siêu mịn micro-bead 0.5mm êm ái, biến hình linh hoạt thành ghế tựa hoặc đôn gác chân tiện lợi bên cạnh bàn trà MORIOO.',
     true,
     40,
     true,
@@ -201,7 +201,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
 ),
 (
     'ban-tra-go-soi-chan-thap-kieu-nhat',
-    'Bàn Trà Gỗ Sồi Bo Tròn Chân Thấp Kiểu Nhật Mộc Thịnh',
+    'Bàn Trà Gỗ Sồi Bo Tròn Chân Thấp Kiểu Nhật MORIOO',
     'phong-khach',
     'Gỗ Sồi Trắng Bắc Mỹ',
     2490000,
@@ -220,7 +220,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
 ),
 (
     'ke-tivi-go-soi-ngan-keo-toi-gian',
-    'Kệ Tivi Gỗ Sồi Tự Nhiên 3 Ngăn Kéo Mộc Thịnh',
+    'Kệ Tivi Gỗ Sồi Tự Nhiên 3 Ngăn Kéo MORIOO',
     'phong-khach',
     'Gỗ Sồi Trắng Bắc Mỹ',
     5200000,
@@ -239,7 +239,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
 ),
 (
     'bo-ban-an-go-soi-4-ghe-minimalist',
-    'Bộ Bàn Ăn Gỗ Sồi Tự Nhiên Kèm 4 Ghế Mộc Thịnh',
+    'Bộ Bàn Ăn Gỗ Sồi Tự Nhiên Kèm 4 Ghế MORIOO',
     'phong-an',
     'Gỗ Sồi Nga Nguyên Tấm',
     9800000,
@@ -258,7 +258,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
 ),
 (
     'ban-lam-viec-go-soi-co-ngan-keo',
-    'Bàn Làm Việc Gỗ Sồi Nhỏ Gọn Có Ngăn Kéo Mộc Thịnh',
+    'Bàn Làm Việc Gỗ Sồi Nhỏ Gọn Có Ngăn Kéo MORIOO',
     'lam-viec',
     'Gỗ Sồi Trắng Bắc Mỹ',
     4150000,
@@ -277,7 +277,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
 ),
 (
     'ke-sach-go-tu-nhien-4-tang-modul',
-    'Kệ Sách Gỗ Tự Nhiên 4 Tầng Ghép Khối Modul Mộc Thịnh',
+    'Kệ Sách Gỗ Tự Nhiên 4 Tầng Ghép Khối Modul MORIOO',
     'lam-viec',
     'Gỗ Tần Bì Ash',
     3200000,
@@ -296,7 +296,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
 ),
 (
     'tu-quan-ao-go-soi-cua-lua-wabi-sabi',
-    'Tủ Quần Áo Gỗ Sồi Cửa Lùa Phong Cách Wabi-Sabi Mộc Thịnh',
+    'Tủ Quần Áo Gỗ Sồi Cửa Lùa Phong Cách Wabi-Sabi MORIOO',
     'phong-ngu',
     'Gỗ Sồi Trắng & Nan Gỗ Thông',
     14500000,
@@ -334,7 +334,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
 ),
 (
     'tab-dau-giuong-go-soi-1-ngan-keo',
-    'Tủ Kệ Đầu Giường Gỗ Sồi 1 Ngăn Kéo Nhỏ Gọn Mộc Thịnh',
+    'Tủ Kệ Đầu Giường Gỗ Sồi 1 Ngăn Kéo Nhỏ Gọn MORIOO',
     'phong-ngu',
     'Gỗ Sồi Trắng Bắc Mỹ',
     1650000,
@@ -353,7 +353,7 @@ INSERT INTO products (slug, name, category_slug, wood_type, price, original_pric
 ),
 (
     'den-cay-go-soi-chieu-sang-phong-khach',
-    'Đèn Đứng Gỗ Sồi Chao Vải Linen Tự Nhiên Mộc Thịnh',
+    'Đèn Đứng Gỗ Sồi Chao Vải Linen Tự Nhiên MORIOO',
     'decor',
     'Gỗ Sồi & Vải Linen',
     1890000,
@@ -374,16 +374,16 @@ ON CONFLICT (slug) DO NOTHING;
 
 -- Đánh giá mẫu
 INSERT INTO reviews (product_id, author_name, rating, comment)
-SELECT id, 'Nguyễn Minh Anh', 5, 'Giường Mộc Thịnh đẹp y chang ảnh showroom! Gỗ sồi thơm nhẹ mùi mộc, hộc kéo kéo ra vào cực êm. Rất hài lòng!'
+SELECT id, 'Nguyễn Minh Anh', 5, 'Giường MORIOO đẹp y chang ảnh showroom! Gỗ sồi thơm nhẹ mùi mộc, hộc kéo kéo ra vào cực êm. Rất hài lòng!'
 FROM products WHERE slug = 'giuong-ngu-go-soi-tatami-co-hoc-keo'
 LIMIT 1;
 
 INSERT INTO reviews (product_id, author_name, rating, comment)
-SELECT id, 'Trần Đức Toàn', 5, 'Ghế thư giãn ngồi ngả lưng xem phim cực đã. Vải thô dày dặn chuẩn xịn phong cách Mộc Thịnh.'
+SELECT id, 'Trần Đức Toàn', 5, 'Ghế thư giãn ngồi ngả lưng xem phim cực đã. Vải thô dày dặn chuẩn xịn phong cách MORIOO.'
 FROM products WHERE slug = 'ghe-sofa-thu-gian-dieu-chinh-nhat-ban'
 LIMIT 1;
 
 INSERT INTO reviews (product_id, author_name, rating, comment)
-SELECT id, 'Lê Hoàng Yến', 5, 'Bàn trà nhỏ gọn, bo tròn 4 góc an toàn cho bé nhà mình chạy nhảy. Cảm ơn shop Mộc Thịnh đóng gói cẩn thận.'
+SELECT id, 'Lê Hoàng Yến', 5, 'Bàn trà nhỏ gọn, bo tròn 4 góc an toàn cho bé nhà mình chạy nhảy. Cảm ơn shop MORIOO đóng gói cẩn thận.'
 FROM products WHERE slug = 'ban-tra-go-soi-chan-thap-kieu-nhat'
 LIMIT 1;
