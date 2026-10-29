@@ -716,3 +716,127 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==============================================================================
+   THÊM MỚI: TẢI ẢNH TỪ MÁY TÍNH (FILE UPLOAD DROPZONE)
+   ============================================================================== */
+.image-upload-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+}
+
+.image-upload-zone:hover, .image-upload-zone.dragover {
+    border-color: var(--brand-staff);
+    background: #f0f9ff;
+}
+
+.image-preview-wrapper {
+    margin-top: 12px;
+    position: relative;
+    display: inline-block;
+}
+
+.image-preview-img {
+    width: 140px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-remove-preview {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ef4444;
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ==============================================================================
+   THÊM MỚI: ĐIỀU CHỈNH TỒN KHO 1 CHẠM (STOCK STEPPER)
+   ============================================================================== */
+.stock-stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f1f5f9;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 2px 4px;
+}
+
+.btn-stock-step {
+    width: 28px;
+    height: 28px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    color: var(--text-main);
+}
+
+.btn-stock-step:hover {
+    background: #e2e8f0;
+    color: var(--brand-red);
+}
+
+.input-stock-val {
+    width: 50px;
+    text-align: center;
+    border: none;
+    background: transparent;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--text-main);
+    outline: none;
+}
+
+/* ==============================================================================
+   KPI THẺ NHÂN VIÊN
+   ============================================================================== */
+.kpi-score-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.kpi-excellent {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.kpi-good {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.kpi-average {
+    background: #fef3c7;
+    color: #b45309;
+}

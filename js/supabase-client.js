@@ -1,6 +1,7 @@
 /**
  * CLIENT QUẢN LÝ DỮ LIỆU SUPABASE CHO NỘI THẤT GỖ MORIOO
  * Kết nối Database trực tuyến trên Cloud Supabase (Ai cũng xem được)
+ * Luôn luôn ưu tiên kết nối Online thời gian thực qua REST API & Supabase JS
  */
 
 import { SupabaseConfig } from "./supabase-config.js";
@@ -9,7 +10,7 @@ import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from "./mock-data.js";
 class SupabaseDataService {
     constructor() {
         this.client = null;
-        this.isOnline = false;
+        this.isOnline = true; // Mặc định hướng tới Online Supabase
         this.lastError = null;
         this.localProducts = this.loadLocalProducts();
         this.localOrders = this.loadLocalOrders();
@@ -25,10 +26,9 @@ class SupabaseDataService {
                 this.client = window.supabase.createClient(url, anonKey, {
                     auth: { persistSession: false }
                 });
-                console.log("[Supabase] Đã khởi tạo Supabase Client cho MORIOO với URL:", url);
+                console.log("[Supabase] Đã khởi tạo Supabase Client với URL:", url);
             } else {
                 this.client = null;
-                console.log("[Supabase] Chưa cấu hình URL/Key. Sử dụng dữ liệu mộc mạc tích hợp.");
             }
         } catch (e) {
             console.error("[Supabase] Lỗi khởi tạo client:", e);
@@ -38,210 +38,244 @@ class SupabaseDataService {
     }
 
     /**
+     * Gửi yêu cầu REST API trực tiếp tới Supabase (Không phụ thuộc thư viện bên ngoài)
+     */
+    async restFetch(endpoint, options = {}) {
+        const url = `${SupabaseConfig.getUrl()}/rest/v1/${endpoint}`;
+        const key = SupabaseConfig.getAnonKey();
+
+        const headers = {
+            "apikey": key,
+            "Authorization": `Bearer ${key}`,
+            "Content-Type": "application/json",
+            "Prefer": options.prefer || "return=representation",
+            ...(options.headers || {})
+        };
+
+        const res = await fetch(url, {
+            ...options,
+            headers
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`HTTP ${res.status}: ${text}`);
+        }
+
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            return await res.json();
+        }
+        return null;
+    }
+
+    /**
      * Kiểm tra trạng thái kết nối tới Supabase Cloud
      */
     async testConnection(customUrl = null, customKey = null) {
+        const testUrl = customUrl || SupabaseConfig.getUrl();
+        const testKey = customKey || SupabaseConfig.getAnonKey();
+
+        if (!testUrl || testUrl.includes("your-project-id") || !testKey) {
+            return {
+                success: false,
+                message: "Chưa cấu hình Supabase URL hoặc Anon Key hợp lệ."
+            };
+        }
+
         try {
-            const testUrl = customUrl || SupabaseConfig.getUrl();
-            const testKey = customKey || SupabaseConfig.getAnonKey();
-
-            if (!testUrl || testUrl.includes("your-project-id")) {
-                return {
-                    success: false,
-                    message: "Chưa nhập Supabase Project URL hợp lệ."
-                };
-            }
-
-            if (!window.supabase) {
-                return {
-                    success: false,
-                    message: "Thư viện Supabase JS chưa được tải."
-                };
-            }
-
-            const tempClient = window.supabase.createClient(testUrl, testKey, {
-                auth: { persistSession: false }
+            // Thử kết nối REST API trực tiếp
+            const endpoint = `${testUrl}/rest/v1/products?select=id,name&limit=1`;
+            const resp = await fetch(endpoint, {
+                headers: {
+                    "apikey": testKey,
+                    "Authorization": `Bearer ${testKey}`
+                }
             });
 
-            const { data, error } = await tempClient
-                .from("products")
-                .select("id, name")
-                .limit(1);
-
-            if (error) {
-                if (error.code === "42P01" || error.message?.includes("does not exist")) {
-                    return {
-                        success: false,
-                        tableMissing: true,
-                        message: "Kết nối thành công tới Supabase, nhưng chưa có bảng 'products'! Vui lòng chạy file 'supabase-schema.sql' trong mục SQL Editor của Supabase."
-                    };
+            if (resp.ok) {
+                this.isOnline = true;
+                this.lastError = null;
+                // Nếu window.supabase có sẵn nhưng chưa tạo client thì tạo ngay
+                if (window.supabase && !this.client) {
+                    this.initClient();
                 }
-                throw error;
+                return {
+                    success: true,
+                    message: "Kết nối Supabase Cloud THÀNH CÔNG! Trực tuyến toàn cầu."
+                };
+            } else {
+                const errText = await resp.text();
+                throw new Error(`HTTP ${resp.status}: ${errText}`);
             }
-
-            this.isOnline = true;
-            this.lastError = null;
-            return {
-                success: true,
-                message: "Kết nối Supabase Cloud THÀNH CÔNG! Bất kỳ ai trên internet đều có thể xem sản phẩm MORIOO và đặt hàng.",
-                data
-            };
         } catch (err) {
+            console.warn("[Supabase] Lỗi testConnection:", err);
             this.isOnline = false;
             this.lastError = err.message;
             return {
                 success: false,
-                message: "Không thể kết nối Supabase: " + (err.message || "Lỗi cấu hình URL hoặc Anon Key.")
+                message: "Không thể kết nối Supabase Cloud: " + (err.message || "Lỗi mạng hoặc CORS")
             };
         }
     }
 
     /**
-     * Lấy danh sách sản phẩm (từ Supabase Cloud hoặc Fallback)
+     * Lấy danh sách sản phẩm từ Supabase Cloud
      */
     async getProducts(filters = {}) {
-        if (this.client) {
-            try {
-                let query = this.client.from("products").select("*");
+        // 1. Thử lấy qua Client hoặc REST
+        try {
+            let products = null;
 
-                if (filters.category && filters.category !== "all") {
-                    query = query.eq("category_slug", filters.category);
-                }
-
-                if (filters.woodType && filters.woodType !== "all") {
-                    query = query.ilike("wood_type", `%${filters.woodType}%`);
-                }
-
-                if (filters.sort) {
-                    if (filters.sort === "price-asc") query = query.order("price", { ascending: true });
-                    else if (filters.sort === "price-desc") query = query.order("price", { ascending: false });
-                    else if (filters.sort === "rating") query = query.order("rating", { ascending: false });
-                    else query = query.order("created_at", { ascending: false });
-                }
-
-                const { data, error } = await query;
-
+            if (this.client) {
+                const { data, error } = await this.client
+                    .from("products")
+                    .select("*")
+                    .order("created_at", { ascending: false });
                 if (!error && data && data.length > 0) {
-                    this.isOnline = true;
-                    return data;
-                } else if (error) {
-                    console.warn("[Supabase] Lỗi khi truy vấn products MORIOO, chuyển sang dữ liệu dự phòng:", error.message);
+                    products = data;
                 }
-            } catch (err) {
-                console.warn("[Supabase] Exception khi đọc dữ liệu:", err);
             }
+
+            if (!products) {
+                // Thử REST API trực tiếp
+                products = await this.restFetch("products?select=*&order=created_at.desc");
+            }
+
+            if (products && products.length > 0) {
+                this.isOnline = true;
+                this.localProducts = products;
+                this.saveLocalProducts();
+
+                // Lọc sản phẩm nếu có yêu cầu
+                let list = [...products];
+                if (filters.category && filters.category !== "all") {
+                    list = list.filter(p => p.category_slug === filters.category);
+                }
+                if (filters.woodType && filters.woodType !== "all") {
+                    list = list.filter(p => p.wood_type && p.wood_type.toLowerCase().includes(filters.woodType.toLowerCase()));
+                }
+                if (filters.search) {
+                    const q = filters.search.toLowerCase().trim();
+                    list = list.filter(p =>
+                        (p.name && p.name.toLowerCase().includes(q)) ||
+                        (p.wood_type && p.wood_type.toLowerCase().includes(q)) ||
+                        (p.short_desc && p.short_desc.toLowerCase().includes(q))
+                    );
+                }
+                return list;
+            }
+        } catch (err) {
+            console.warn("[Supabase] Lỗi getProducts online, dùng bộ nhớ đệm:", err);
         }
 
-        // Chế độ dữ liệu mẫu / Fallback (Hoạt động mượt mà 100%)
+        // Fallback bộ nhớ nếu đứt mạng
         let list = [...this.localProducts];
-
         if (filters.category && filters.category !== "all") {
             list = list.filter(p => p.category_slug === filters.category);
         }
-
         if (filters.woodType && filters.woodType !== "all") {
-            list = list.filter(p => p.wood_type.toLowerCase().includes(filters.woodType.toLowerCase()));
+            list = list.filter(p => p.wood_type && p.wood_type.toLowerCase().includes(filters.woodType.toLowerCase()));
         }
-
-        if (filters.search) {
-            const q = filters.search.toLowerCase().trim();
-            list = list.filter(p =>
-                p.name.toLowerCase().includes(q) ||
-                p.wood_type.toLowerCase().includes(q) ||
-                (p.short_desc && p.short_desc.toLowerCase().includes(q))
-            );
-        }
-
-        if (filters.sort) {
-            if (filters.sort === "price-asc") list.sort((a, b) => a.price - b.price);
-            else if (filters.sort === "price-desc") list.sort((a, b) => b.price - a.price);
-            else if (filters.sort === "rating") list.sort((a, b) => b.rating - a.rating);
-            else if (filters.sort === "bestseller") list.sort((a, b) => (b.is_bestseller ? 1 : 0) - (a.is_bestseller ? 1 : 0));
-        }
-
         return list;
     }
 
     /**
-     * Lấy chi tiết 1 sản phẩm theo ID hoặc Slug
+     * Lấy chi tiết 1 sản phẩm
      */
     async getProduct(idOrSlug) {
-        if (this.client) {
-            try {
-                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(idOrSlug);
-                const query = this.client.from("products").select("*");
-                const { data, error } = isUuid
-                    ? await query.eq("id", idOrSlug).single()
-                    : await query.eq("slug", idOrSlug).single();
-
-                if (!error && data) return data;
-            } catch (e) {
-                console.warn("[Supabase] Lỗi getProduct:", e);
-            }
+        try {
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(idOrSlug);
+            const queryField = isUuid ? "id" : "slug";
+            const data = await this.restFetch(`products?${queryField}=eq.${encodeURIComponent(idOrSlug)}&limit=1`);
+            if (data && data.length > 0) return data[0];
+        } catch (e) {
+            console.warn("[Supabase] Lỗi getProduct online:", e);
         }
-
         return this.localProducts.find(p => p.id === idOrSlug || p.slug === idOrSlug) || null;
     }
 
     /**
-     * Tạo đơn hàng mới MORIOO (Lưu trực tiếp vào Supabase Cloud hoặc Local Storage)
+     * Lấy danh sách danh mục
+     */
+    async getCategories() {
+        try {
+            const data = await this.restFetch("categories?select=*&order=order_index.asc");
+            if (data && data.length > 0) return data;
+        } catch (e) {
+            console.warn("[Supabase] Lỗi getCategories:", e);
+        }
+        return INITIAL_CATEGORIES;
+    }
+
+    /**
+     * Tạo đơn hàng mới (Từ khách hàng hoặc nhân viên bán hàng)
      */
     async createOrder(orderPayload) {
         const orderCode = "MR-" + Math.floor(100000 + Math.random() * 900000);
         const orderData = {
             order_code: orderCode,
-            customer_name: orderPayload.name,
-            customer_phone: orderPayload.phone,
-            customer_email: orderPayload.email || "",
-            shipping_address: orderPayload.address,
-            city: orderPayload.city || "Việt Nam",
+            customer_name: orderPayload.customerName,
+            customer_email: orderPayload.customerEmail || "",
+            customer_phone: orderPayload.customerPhone,
+            shipping_address: orderPayload.shippingAddress,
             payment_method: orderPayload.paymentMethod || "cod",
-            shipping_fee: orderPayload.shippingFee || 0,
-            total_amount: orderPayload.totalAmount,
+            subtotal_amount: Number(orderPayload.subtotal || 0),
+            shipping_fee: Number(orderPayload.shippingFee || 0),
+            discount_amount: Number(orderPayload.discount || 0),
+            total_amount: Number(orderPayload.total || 0),
             note: orderPayload.note || "",
-            status: "pending",
-            created_at: new Date().toISOString()
+            status: "pending"
         };
 
         let savedToCloud = false;
 
-        if (this.client) {
-            try {
-                const { data: newOrder, error: orderErr } = await this.client
-                    .from("orders")
-                    .insert([orderData])
-                    .select()
-                    .single();
+        // Lưu đơn hàng vào Supabase Cloud
+        try {
+            const inserted = await this.restFetch("orders", {
+                method: "POST",
+                body: JSON.stringify(orderData),
+                prefer: "return=representation"
+            });
 
-                if (!orderErr && newOrder) {
-                    savedToCloud = true;
-                    if (orderPayload.items && orderPayload.items.length > 0) {
-                        const itemsData = orderPayload.items.map(it => ({
-                            order_id: newOrder.id,
-                            product_id: /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(it.id) ? it.id : null,
-                            product_name: it.name,
-                            product_price: it.price,
-                            quantity: it.quantity,
-                            subtotal: it.price * it.quantity,
-                            image_url: it.image_url
-                        }));
+            if (inserted && inserted.length > 0) {
+                savedToCloud = true;
+                const newOrder = inserted[0];
 
-                        await this.client.from("order_items").insert(itemsData);
+                // Lưu các mặt hàng kèm theo (nếu có)
+                if (orderPayload.items && orderPayload.items.length > 0) {
+                    const itemsPayload = orderPayload.items.map(item => ({
+                        order_id: newOrder.id,
+                        product_id: item.productId || null,
+                        product_name: item.name,
+                        product_image: item.image,
+                        wood_type: item.woodType || "Gỗ Tự Nhiên",
+                        price: item.price,
+                        quantity: item.quantity,
+                        subtotal: item.price * item.quantity
+                    }));
+
+                    try {
+                        await this.restFetch("order_items", {
+                            method: "POST",
+                            body: JSON.stringify(itemsPayload)
+                        });
+                    } catch (e) {
+                        console.warn("[Supabase] Ghi order_items:", e);
                     }
-                    console.log("[Supabase] Đã lưu đơn hàng MORIOO thành công vào Supabase Cloud:", newOrder.order_code);
-                } else {
-                    console.warn("[Supabase] Không thể ghi order vào cloud:", orderErr?.message);
                 }
-            } catch (err) {
-                console.warn("[Supabase] Exception khi tạo đơn hàng cloud:", err);
+                console.log("[Supabase] Đã ghi nhận đơn hàng Online:", orderCode);
             }
+        } catch (err) {
+            console.warn("[Supabase] Lỗi ghi đơn hàng online:", err);
         }
 
         const localRecord = {
             ...orderData,
             id: "ord-" + Date.now(),
-            items: orderPayload.items,
-            savedToCloud
+            items: orderPayload.items || [],
+            savedToCloud,
+            created_at: new Date().toISOString()
         };
         this.localOrders.unshift(localRecord);
         this.saveLocalOrders();
@@ -255,22 +289,19 @@ class SupabaseDataService {
     }
 
     /**
-     * Lấy danh sách đơn hàng cho mục quản trị
+     * Lấy danh sách đơn hàng cho Admin & Nhân viên
      */
     async getOrders() {
-        if (this.client) {
-            try {
-                const { data, error } = await this.client
-                    .from("orders")
-                    .select("*, order_items(*)")
-                    .order("created_at", { ascending: false });
-
-                if (!error && data) {
-                    return data;
-                }
-            } catch (e) {
-                console.warn("[Supabase] Lỗi getOrders:", e);
+        try {
+            const data = await this.restFetch("orders?select=*,order_items(*)&order=created_at.desc");
+            if (data && Array.isArray(data)) {
+                this.isOnline = true;
+                this.localOrders = data;
+                this.saveLocalOrders();
+                return data;
             }
+        } catch (e) {
+            console.warn("[Supabase] Lỗi getOrders online, dùng local:", e);
         }
         return this.localOrders;
     }
@@ -278,21 +309,29 @@ class SupabaseDataService {
     /**
      * Cập nhật trạng thái đơn hàng (Dành cho Quản trị viên & Nhân viên)
      */
-    async updateOrderStatus(orderIdOrCode, newStatus) {
+    async updateOrderStatus(orderIdOrCode, newStatus, processedBy = null) {
         let updated = false;
 
-        if (this.client) {
-            try {
-                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(orderIdOrCode);
-                const query = this.client.from("orders").update({ status: newStatus });
-                const { error } = isUuid
-                    ? await query.eq("id", orderIdOrCode)
-                    : await query.eq("order_code", orderIdOrCode);
-
-                if (!error) updated = true;
-            } catch (e) {
-                console.warn("[Supabase] Lỗi updateOrderStatus:", e);
+        try {
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(orderIdOrCode);
+            const queryField = isUuid ? "id" : "order_code";
+            
+            const payload = { 
+                status: newStatus,
+                updated_at: new Date().toISOString()
+            };
+            if (processedBy) {
+                payload.note = `[${processedBy}]: cập nhật trạng thái`;
             }
+
+            await this.restFetch(`orders?${queryField}=eq.${encodeURIComponent(orderIdOrCode)}`, {
+                method: "PATCH",
+                body: JSON.stringify(payload)
+            });
+            updated = true;
+            this.isOnline = true;
+        } catch (e) {
+            console.warn("[Supabase] Lỗi updateOrderStatus online:", e);
         }
 
         const local = this.localOrders.find(o => o.id === orderIdOrCode || o.order_code === orderIdOrCode);
@@ -306,16 +345,52 @@ class SupabaseDataService {
     }
 
     /**
-     * Xóa sản phẩm (Chỉ dành cho Admin)
+     * Cập nhật số lượng tồn kho sản phẩm (Dành cho Admin & Nhân viên)
+     */
+    async updateProductStock(productIdOrSlug, newQuantity) {
+        let updated = false;
+        const qty = Math.max(0, Number(newQuantity) || 0);
+
+        try {
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(productIdOrSlug);
+            const queryField = isUuid ? "id" : "slug";
+
+            await this.restFetch(`products?${queryField}=eq.${encodeURIComponent(productIdOrSlug)}`, {
+                method: "PATCH",
+                body: JSON.stringify({
+                    stock_quantity: qty,
+                    in_stock: qty > 0
+                })
+            });
+            updated = true;
+            this.isOnline = true;
+        } catch (e) {
+            console.warn("[Supabase] Lỗi updateProductStock online:", e);
+        }
+
+        const local = this.localProducts.find(p => p.id === productIdOrSlug || p.slug === productIdOrSlug);
+        if (local) {
+            local.stock_quantity = qty;
+            local.in_stock = qty > 0;
+            this.saveLocalProducts();
+            updated = true;
+        }
+
+        return { success: updated, newQuantity: qty };
+    }
+
+    /**
+     * Xóa sản phẩm khỏi Supabase
      */
     async deleteProduct(productId) {
-        if (this.client) {
-            try {
-                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(productId);
-                const query = this.client.from("products").delete();
-                if (isUuid) await query.eq("id", productId);
-                else await query.eq("slug", productId);
-            } catch (e) {}
+        try {
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(productId);
+            const queryField = isUuid ? "id" : "slug";
+            await this.restFetch(`products?${queryField}=eq.${encodeURIComponent(productId)}`, {
+                method: "DELETE"
+            });
+        } catch (e) {
+            console.warn("[Supabase] Lỗi deleteProduct online:", e);
         }
         this.localProducts = this.localProducts.filter(p => p.id !== productId && p.slug !== productId);
         this.saveLocalProducts();
@@ -323,7 +398,7 @@ class SupabaseDataService {
     }
 
     /**
-     * Thêm sản phẩm mới MORIOO
+     * Thêm sản phẩm mới (Nhân viên thêm sản phẩm, hỗ trợ ảnh Base64 từ máy)
      */
     async addProduct(product) {
         const slug = (product.name || "san-pham")
@@ -332,7 +407,7 @@ class SupabaseDataService {
             .replace(/[\u0300-\u036f]/g, "")
             .replace(/đ/g, "d")
             .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-+|-+$/g, "") + "-" + Math.floor(Math.random() * 1000);
+            .replace(/^-+|-+$/g, "") + "-" + Math.floor(Math.random() * 10000);
 
         const newProd = {
             slug,
@@ -351,60 +426,68 @@ class SupabaseDataService {
             is_featured: !!product.is_featured,
             is_new: true,
             is_bestseller: false,
-            image_url: product.image_url || "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=1000&q=80"
+            image_url: product.image_url || "assets/images/hero-room-banner.png"
         };
 
-        if (this.client) {
-            try {
-                const { data, error } = await this.client
-                    .from("products")
-                    .insert([newProd])
-                    .select()
-                    .single();
+        let savedToCloud = false;
 
-                if (!error && data) {
-                    this.localProducts.unshift(data);
-                    this.saveLocalProducts();
-                    return { success: true, product: data, cloud: true };
-                }
-            } catch (e) {
-                console.warn("[Supabase] Lỗi addProduct cloud:", e);
+        try {
+            const inserted = await this.restFetch("products", {
+                method: "POST",
+                body: JSON.stringify(newProd),
+                prefer: "return=representation"
+            });
+
+            if (inserted && inserted.length > 0) {
+                savedToCloud = true;
+                this.isOnline = true;
+                console.log("[Supabase] Đã thêm sản phẩm thành công lên Cloud:", newProd.name);
             }
+        } catch (err) {
+            console.warn("[Supabase] Lỗi addProduct online:", err);
         }
 
-        newProd.id = "prod-" + Date.now();
-        this.localProducts.unshift(newProd);
+        const localRecord = {
+            ...newProd,
+            id: "prod-" + Date.now(),
+            savedToCloud
+        };
+        this.localProducts.unshift(localRecord);
         this.saveLocalProducts();
-        return { success: true, product: newProd, cloud: false };
+
+        return {
+            success: true,
+            cloud: savedToCloud,
+            product: localRecord
+        };
     }
 
     loadLocalProducts() {
-        const saved = localStorage.getItem("morioo_products") || localStorage.getItem("muji_products");
-        if (saved) {
-            try { return JSON.parse(saved); } catch (e) {}
+        const s = localStorage.getItem("morioo_products");
+        if (s) {
+            try { return JSON.parse(s); } catch(e){}
         }
         return [...INITIAL_PRODUCTS];
     }
 
     saveLocalProducts() {
-        localStorage.setItem("morioo_products", JSON.stringify(this.localProducts));
+        try {
+            localStorage.setItem("morioo_products", JSON.stringify(this.localProducts));
+        } catch(e) {}
     }
 
     loadLocalOrders() {
-        const saved = localStorage.getItem("morioo_orders") || localStorage.getItem("muji_orders");
-        if (saved) {
-            try { return JSON.parse(saved); } catch (e) {}
+        const s = localStorage.getItem("morioo_orders");
+        if (s) {
+            try { return JSON.parse(s); } catch(e){}
         }
         return [];
     }
 
     saveLocalOrders() {
-        localStorage.setItem("morioo_orders", JSON.stringify(this.localOrders));
-    }
-
-    resetDefaultData() {
-        this.localProducts = [...INITIAL_PRODUCTS];
-        this.saveLocalProducts();
+        try {
+            localStorage.setItem("morioo_orders", JSON.stringify(this.localOrders));
+        } catch(e) {}
     }
 }
 

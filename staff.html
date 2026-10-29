@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cổng Tác Nghiệp Nhân Viên | MORIOO - Nội Thất Gỗ Tự Nhiên</title>
+    <title>Cổng Tác Nghiệp Nhân Viên | MORIOO - Bán Hàng, Kho & Sản Phẩm</title>
     <link rel="icon" type="image/svg+xml" href="assets/images/logo-morioo.svg">
+    <!-- Supabase JS Library (Chính thức qua CDN để kết nối Database Cloud) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/portal.css">
     <style>
         .staff-filter-pills-bar {
@@ -64,7 +66,7 @@
                 <div class="portal-user-pill">
                     <span>💼</span>
                     <span id="topStaffName">Lê Văn Nhân Viên</span>
-                    <small style="color:var(--text-muted); margin-left:4px;">(<span id="topStaffDept">Kho & Đơn Hàng</span>)</small>
+                    <small style="color:var(--text-muted); margin-left:4px;">(<span id="topStaffDept">Tư Vấn & Bán Hàng</span>)</small>
                 </div>
                 <button class="portal-btn-logout btn-staff-logout" title="Đăng xuất khỏi ca trực">
                     Đăng xuất
@@ -75,14 +77,21 @@
 
     <!-- ==============================================================================
          2. SUB NAVIGATION TABS
+         (Nhân viên phụ trách: Sale & Bán hàng, Xác nhận đơn, Kho & Thêm sản phẩm tải ảnh từ máy)
          ============================================================================== -->
     <nav class="portal-nav-bar" id="staffNavBar">
         <div class="portal-nav-inner">
-            <button class="portal-tab-btn staff-tab active" data-target="tabStaffOrders">
-                📦 Xử Lý Đơn Hàng Mới
+            <button class="portal-tab-btn staff-tab active" data-target="tabStaffPos">
+                🛍️ Sale, Tư Vấn & Tạo Đơn Bán Hàng
+            </button>
+            <button class="portal-tab-btn staff-tab" data-target="tabStaffOrders">
+                📞 Xác Nhận Trạng Thái Đơn Hàng
             </button>
             <button class="portal-tab-btn staff-tab" data-target="tabStaffInventory">
-                🪑 Tra Cứu Tồn Kho & Kích Thước
+                🪑 Quản Lý Kho & Kiểm Kê
+            </button>
+            <button class="portal-tab-btn staff-tab" data-target="tabStaffAddProduct">
+                ➕ Thêm Sản Phẩm Mới (Tải Ảnh Từ Máy)
             </button>
         </div>
     </nav>
@@ -112,12 +121,100 @@
             </div>
         </div>
 
-        <!-- TAB 1: XỬ LÝ ĐƠN HÀNG -->
-        <div class="portal-tab-pane active" id="tabStaffOrders">
+        <!-- TAB 1: SALE & TƯ VẤN & TẠO ĐƠN BÁN HÀNG -->
+        <div class="portal-tab-pane active" id="tabStaffPos">
+            <div style="display:grid; grid-template-columns: 1.2fr 1.8fr; gap:20px;">
+                <!-- Form Tạo Đơn Hàng Nhanh (POS Bán Hàng) -->
+                <div class="portal-card">
+                    <div class="portal-card-header">
+                        <div>
+                            <h2 class="portal-card-title">🛍️ Tạo Đơn Bán Hàng (Hotline / Tại Quầy)</h2>
+                            <p class="portal-card-subtitle">Chốt đơn cho khách gọi điện hoặc mua trực tiếp - Lưu thẳng vào Supabase</p>
+                        </div>
+                    </div>
+
+                    <form id="formStaffPosOrder">
+                        <div class="form-group">
+                            <label>Chọn sản phẩm nội thất gỗ *</label>
+                            <select id="posSelectProduct" class="form-control" required>
+                                <option value="">-- Chọn mẫu gỗ trong kho --</option>
+                            </select>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                            <div class="form-group">
+                                <label>Số lượng mua *</label>
+                                <input type="number" id="posQuantity" class="form-control" value="1" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Hình thức thanh toán *</label>
+                                <select id="posPayment" class="form-control" required>
+                                    <option value="cod">💵 Thu tiền khi nhận (COD)</option>
+                                    <option value="banking">💳 Quét mã VietQR chuyển khoản</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Họ và tên khách hàng *</label>
+                            <input type="text" id="posCustName" class="form-control" placeholder="Nguyễn Văn A" required>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                            <div class="form-group">
+                                <label>Số điện thoại khách *</label>
+                                <input type="tel" id="posCustPhone" class="form-control" placeholder="0912 345 678" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email nhận hóa đơn</label>
+                                <input type="email" id="posCustEmail" class="form-control" placeholder="khach@gmail.com">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Địa chỉ giao hàng tận nhà *</label>
+                            <input type="text" id="posCustAddress" class="form-control" placeholder="Số nhà, đường, quận/huyện, tỉnh thành" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ghi chú tư vấn / Yêu cầu lắp đặt</label>
+                            <input type="text" id="posOrderNote" class="form-control" placeholder="Ví dụ: Khách dặn giao sau 18h tối...">
+                        </div>
+
+                        <div id="posPreviewTotal" style="background:#f8fafc; border:1px solid var(--border-color); border-radius:6px; padding:12px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:13px; font-weight:600; color:var(--text-muted);">Thành tiền tạm tính:</span>
+                            <strong id="posTotalPriceVal" style="font-size:17px; color:var(--brand-red);">0 VNĐ</strong>
+                        </div>
+
+                        <button type="submit" id="btnSubmitPosOrder" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:15px; background:var(--brand-staff);">
+                            🚀 Tạo Đơn Hàng & Đưa Lên Hệ Thống
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Bảng Tra Cứu Thông Số Đồ Gỗ Để Báo Giá & Tư Vấn -->
+                <div class="portal-card">
+                    <div class="portal-card-header">
+                        <div>
+                            <h2 class="portal-card-title">📖 Sổ Tay Tra Cứu Thông Số & Báo Giá Khách</h2>
+                            <p class="portal-card-subtitle">Xem quy cách kích thước, loại gỗ và số lượng kho để tư vấn nhanh khi nghe hotline</p>
+                        </div>
+                        <input type="text" id="posConsultSearch" class="form-control" placeholder="🔍 Tra cứu tên gỗ, kích thước..." style="width:240px;">
+                    </div>
+
+                    <div id="staffConsultTableContainer">
+                        <!-- Bảng tra cứu tư vấn -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: XÁC NHẬN TRẠNG THÁI ĐƠN HÀNG -->
+        <div class="portal-tab-pane" id="tabStaffOrders">
             <div class="portal-card">
                 <div class="portal-card-header">
                     <div>
-                        <h2 class="portal-card-title">📦 Danh Sách Đơn Hàng Cần Tác Nghiệp</h2>
+                        <h2 class="portal-card-title">📦 Danh Sách Đơn Hàng Cần Xử Lý</h2>
                         <p class="portal-card-subtitle">Bấm số điện thoại để gọi ngay cho khách - Bấm nút 1 chạm để cập nhật tiến độ giao</p>
                     </div>
                     <div style="display:flex; gap:12px; align-items:center;">
@@ -142,13 +239,13 @@
             </div>
         </div>
 
-        <!-- TAB 2: TRA CỨU TỒN KHO -->
+        <!-- TAB 3: QUẢN LÝ KHO & KIỂM KÊ -->
         <div class="portal-tab-pane" id="tabStaffInventory">
             <div class="portal-card">
                 <div class="portal-card-header">
                     <div>
-                        <h2 class="portal-card-title">🪑 Tra Cứu Tồn Kho & Thông Số Kỹ Thuật Đồ Gỗ</h2>
-                        <p class="portal-card-subtitle">Xem nhanh kích thước, loại gỗ và số lượng còn lại trong kho để báo khách khi nghe máy</p>
+                        <h2 class="portal-card-title">🪑 Quản Lý Kho & Kiểm Kê Hàng Sẵn</h2>
+                        <p class="portal-card-subtitle">Kiểm tra tồn kho và cập nhật số lượng khi xuất hàng trực tiếp</p>
                     </div>
                     <div>
                         <input type="text" id="staffInventorySearch" class="form-control" placeholder="🔍 Tìm tên sản phẩm, loại gỗ..." style="width:280px;">
@@ -158,6 +255,115 @@
                 <div id="staffInventoryTableContainer">
                     <!-- Bảng tồn kho nạp tự động -->
                 </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: THÊM SẢN PHẨM MỚI (TẢI ẢNH TỪ MÁY LÊN WEB) -->
+        <div class="portal-tab-pane" id="tabStaffAddProduct">
+            <div class="portal-card" style="max-width: 860px; margin: 0 auto;">
+                <div class="portal-card-header">
+                    <div>
+                        <h2 class="portal-card-title">➕ Thêm Mẫu Đồ Gỗ Mới Vào Website</h2>
+                        <p class="portal-card-subtitle">Nhân viên nhập thông tin sản phẩm và tải ảnh từ máy tính hoặc điện thoại lên web</p>
+                    </div>
+                </div>
+
+                <form id="formStaffAddProduct">
+                    <!-- KHUNG TẢI ẢNH TỪ TRONG MÁY LÊN WEB -->
+                    <div class="form-group">
+                        <label style="font-size:14px; font-weight:700; color:var(--brand-staff);">
+                            🖼️ Hình Ảnh Sản Phẩm (Tải ảnh từ máy tính hoặc dán URL) *
+                        </label>
+                        
+                        <!-- File Upload Input ẩn -->
+                        <input type="file" id="staffProductFileInput" accept="image/*" style="display:none;">
+
+                        <!-- Vùng bấm chọn file / kéo thả -->
+                        <div class="image-upload-zone" id="staffDropzone" onclick="document.getElementById('staffProductFileInput').click()">
+                            <div style="font-size:36px; margin-bottom:6px;">📁</div>
+                            <strong style="font-size:14.5px; color:var(--text-main);">Bấm vào đây để chọn tệp ảnh từ máy tính / điện thoại</strong>
+                            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">
+                                Hỗ trợ JPG, PNG, WEBP, GIF. Ảnh sẽ được xử lý tự động và lưu lên hệ thống.
+                            </p>
+                        </div>
+
+                        <!-- Khung xem trước ảnh đã tải lên -->
+                        <div id="staffImagePreviewContainer" style="display:none; text-align:center; margin-bottom:14px;">
+                            <div class="image-preview-wrapper">
+                                <img id="staffImagePreview" class="image-preview-img" src="" alt="Xem trước ảnh">
+                                <button type="button" class="btn-remove-preview" id="btnRemoveStaffImage" title="Hủy ảnh này">&times;</button>
+                            </div>
+                            <div style="font-size:12px; color:#15803d; font-weight:600; margin-top:4px;">
+                                ✅ Đã tải ảnh từ máy tính thành công!
+                            </div>
+                        </div>
+
+                        <!-- Lựa chọn phụ: Dán URL ngoài -->
+                        <div style="margin-top:8px;">
+                            <label style="font-size:12px; color:var(--text-muted);">Hoặc dán link ảnh URL từ internet:</label>
+                            <input type="url" id="staffImageUrlInput" class="form-control" placeholder="https://images.unsplash.com/photo-...">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px;">
+                        <div class="form-group">
+                            <label>Tên sản phẩm gỗ *</label>
+                            <input type="text" id="staffNewProdName" class="form-control" required placeholder="Ví dụ: Bàn Trà Gỗ Sồi Nhật Bản">
+                        </div>
+                        <div class="form-group">
+                            <label>Danh mục nội thất *</label>
+                            <select id="staffNewProdCategory" class="form-control" required>
+                                <option value="phong-khach">Phòng Khách</option>
+                                <option value="phong-ngu">Phòng Ngủ</option>
+                                <option value="phong-an">Phòng Ăn & Bếp</option>
+                                <option value="lam-viec">Làm Việc & Học Tập</option>
+                                <option value="decor">Trang Trí & Decor</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px;">
+                        <div class="form-group">
+                            <label>Chất liệu gỗ tự nhiên *</label>
+                            <input type="text" id="staffNewProdWood" class="form-control" required placeholder="Gỗ Sồi Nga, Teak, Óc Chó...">
+                        </div>
+                        <div class="form-group">
+                            <label>Giá bán niêm yết (VNĐ) *</label>
+                            <input type="number" id="staffNewProdPrice" class="form-control" required placeholder="2450000">
+                        </div>
+                        <div class="form-group">
+                            <label>Giá gốc / Khuyến mãi (VNĐ)</label>
+                            <input type="number" id="staffNewProdOriginalPrice" class="form-control" placeholder="2950000">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px;">
+                        <div class="form-group">
+                            <label>Kích thước quy cách (DxRxC) *</label>
+                            <input type="text" id="staffNewProdDimensions" class="form-control" required placeholder="100 x 50 x 38 cm">
+                        </div>
+                        <div class="form-group">
+                            <label>Số lượng tồn kho ban đầu *</label>
+                            <input type="number" id="staffNewProdStock" class="form-control" required value="20">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả ngắn hiển thị ở danh mục</label>
+                        <input type="text" id="staffNewProdShortDesc" class="form-control" placeholder="Mặt bàn gỗ sồi bo góc tròn an toàn, phong cách tối giản">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả chi tiết và kỹ thuật chế tác gỗ</label>
+                        <textarea id="staffNewProdDesc" class="form-control" rows="3" placeholder="Sản phẩm mộng gỗ truyền thống, sơn lót an toàn gốc nước, chống cong vênh mối mọt..."></textarea>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
+                        <button type="submit" id="btnSubmitStaffAddProduct" class="btn-primary" style="background:var(--brand-staff); padding:12px 24px; font-size:15px;">
+                            🚀 Lưu Sản Phẩm Lên Website Khách Hàng (Supabase)
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 

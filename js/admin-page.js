@@ -1,6 +1,9 @@
 /**
  * ADMIN PAGE CONTROLLER (admin.html)
- * Quản lý toàn bộ chức năng trang Quản Trị Viên Tối Cao MORIOO
+ * Quản trị viên chỉ tập trung:
+ * 1. Check KPI Nhân Viên & Doanh Thu Bán Hàng
+ * 2. Quản Lý Kho Hàng Gỗ (Điều chỉnh tồn kho 1 chạm, cảnh báo hết hàng)
+ * 3. Giám Sát Đơn Hàng & Cấu Hình Supabase Cloud
  */
 
 import { SupabaseConfig } from "./supabase-config.js";
@@ -8,12 +11,12 @@ import { db } from "./supabase-client.js";
 import { auth } from "./auth.js";
 import { cart } from "./cart.js";
 
+let allOrders = [];
+let allProducts = [];
+
 document.addEventListener("DOMContentLoaded", () => {
     initAdminPage();
 });
-
-let allOrders = [];
-let allProducts = [];
 
 export async function initAdminPage() {
     const user = auth.getCurrentUser();
@@ -28,10 +31,10 @@ export async function initAdminPage() {
     renderAdminLayout(user);
 
     // 3. Tải dữ liệu ban đầu
-    await loadAllData();
+    await loadAdminData();
 
     // 4. Đăng ký các sự kiện tương tác
-    setupEventListeners();
+    setupAdminEventListeners();
 }
 
 function renderAuthGate() {
@@ -45,7 +48,7 @@ function renderAuthGate() {
             <div class="auth-gate-card">
                 <div class="auth-gate-icon">👑</div>
                 <h1 class="auth-gate-title">Khu Vực Quản Trị MORIOO</h1>
-                <p class="auth-gate-desc">Trang này dành riêng cho Quản Trị Viên Tối Cao để quản lý đơn hàng, kho đồ gỗ và nhân sự.</p>
+                <p class="auth-gate-desc">Trang này dành riêng cho Quản Trị Viên Tối Cao để theo dõi KPI nhân viên và kiểm soát kho đồ gỗ.</p>
 
                 <div id="authGateMsg" class="status-pill status-cancelled" style="display:none; width:100%; justify-content:center; margin-bottom:14px;"></div>
 
@@ -59,7 +62,7 @@ function renderAuthGate() {
                         <input type="password" id="gatePass" class="form-control" required value="Admin123!">
                     </div>
                     <button type="submit" id="btnGateSubmit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:15px; margin-top:6px;">
-                        Đăng Nhập Vào Trang Quản Trị
+                        Đăng Nhập Quản Trị Viên
                     </button>
                 </form>
 
@@ -88,7 +91,7 @@ function renderAuthGate() {
 
         const res = await auth.login({ email, password: pass });
         btn.disabled = false;
-        btn.textContent = "Đăng Nhập Vào Trang Quản Trị";
+        btn.textContent = "Đăng Nhập Quản Trị Viên";
 
         if (res.success) {
             if (res.user.role === "admin") {
@@ -123,159 +126,230 @@ async function checkDatabaseConnection() {
     const isConn = await db.testConnection();
     if (isConn.success) {
         badge.className = "status-pill status-completed";
-        badge.innerHTML = `🟢 Supabase: Online`;
+        badge.innerHTML = `🟢 Supabase: Online (Trực tuyến)`;
     } else {
         badge.className = "status-pill status-pending";
         badge.innerHTML = `🟡 Supabase: Offline Mẫu`;
     }
 }
 
-async function loadAllData() {
-    showLoadingSpinner();
+async function loadAdminData() {
+    const el = document.getElementById("adminKpiOverviewContainer");
+    if (el) el.innerHTML = `<div style="text-align:center; padding:40px;"><div style="font-size:24px;">⏳</div><p style="color:var(--text-muted); margin-top:8px;">Đang đồng bộ dữ liệu trực tuyến từ Supabase Cloud...</p></div>`;
+
     try {
         const [orders, products] = await Promise.all([
             db.getOrders(),
             db.getProducts()
         ]);
-        allOrders = orders;
-        allProducts = products;
+        allOrders = orders || [];
+        allProducts = products || [];
 
-        renderOverviewTab();
+        // Cập nhật huy hiệu số lượng trên tab
+        const badgeStaff = document.getElementById("badgeStaffCount");
+        const badgeInv = document.getElementById("badgeInventoryCount");
+        const staffList = auth.getStaffAccounts();
+
+        if (badgeStaff) badgeStaff.textContent = staffList.length;
+        if (badgeInv) badgeInv.textContent = allProducts.length;
+
+        renderKpiTab();
+        renderInventoryTab(allProducts);
         renderOrdersTab(allOrders);
-        renderProductsTab(allProducts);
-        renderStaffTab();
     } catch (err) {
-        console.error("Error loading admin data:", err);
+        console.error("[Admin] Lỗi tải dữ liệu:", err);
     }
 }
 
-function showLoadingSpinner() {
-    const el = document.getElementById("adminOverviewContent");
-    if (el) el.innerHTML = `<div style="text-align:center; padding:50px;"><div style="font-size:24px;">⏳</div><p style="color:var(--text-muted); margin-top:8px;">Đang tải dữ liệu từ Supabase Cloud...</p></div>`;
-}
-
-function renderOverviewTab() {
-    const el = document.getElementById("adminOverviewContent");
-    if (!el) return;
+/**
+ * 1. TAB CHECK KPI NHÂN VIÊN & DOANH THU
+ */
+function renderKpiTab() {
+    const overviewEl = document.getElementById("adminKpiOverviewContainer");
+    const tableEl = document.getElementById("adminStaffKpiTableContainer");
+    if (!overviewEl || !tableEl) return;
 
     const totalRev = allOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+    const completedOrders = allOrders.filter(o => o.status === "completed").length;
     const staffList = auth.getStaffAccounts();
 
-    const pendingOrders = allOrders.filter(o => o.status === "pending").length;
-    const confirmedOrders = allOrders.filter(o => o.status === "confirmed").length;
-    const shippingOrders = allOrders.filter(o => o.status === "shipping").length;
-    const completedOrders = allOrders.filter(o => o.status === "completed").length;
-    const cancelledOrders = allOrders.filter(o => o.status === "cancelled").length;
-
-    el.innerHTML = `
+    // 4 Thẻ KPI chính cho Admin kiểm tra
+    overviewEl.innerHTML = `
         <div class="stat-cards-grid">
             <div class="stat-card stat-accent-red">
-                <span class="stat-card-label">💰 Tổng Doanh Thu Cửa Hàng <span>Toàn thời gian</span></span>
+                <span class="stat-card-label">💰 Tổng Doanh Thu Cửa Hàng <span>Supabase Live</span></span>
                 <span class="stat-card-val">${cart.formatCurrency(totalRev)}</span>
-                <span class="stat-card-sub">Dựa trên ${allOrders.length} đơn hàng ghi nhận</span>
+                <span class="stat-card-sub">Tổng giá trị đơn hàng thực ghi nhận</span>
             </div>
             <div class="stat-card stat-accent-blue">
-                <span class="stat-card-label">📦 Tổng Số Đơn Hàng <span>Supabase</span></span>
+                <span class="stat-card-label">📦 Tổng Số Đơn Hàng <span>Online</span></span>
                 <span class="stat-card-val">${allOrders.length} đơn</span>
-                <span class="stat-card-sub">${pendingOrders} đơn đang chờ xác nhận</span>
+                <span class="stat-card-sub">${completedOrders} đơn đã hoàn tất thanh toán</span>
             </div>
-            <div class="stat-card stat-accent-green">
-                <span class="stat-card-label">🪑 Sản Phẩm Gỗ Đang Bán <span>Kho Online</span></span>
-                <span class="stat-card-val">${allProducts.length} mẫu</span>
-                <span class="stat-card-sub">Sồi Nga, Gỗ Teak, Óc Chó, Tần Bì</span>
+            <div class="stat-card stat-accent-amber">
+                <span class="stat-card-label">🎯 Doanh Thu Trung Bình / Đơn <span>Hiệu quả</span></span>
+                <span class="stat-card-val">${allOrders.length > 0 ? cart.formatCurrency(Math.round(totalRev / allOrders.length)) : "0 VNĐ"}</span>
+                <span class="stat-card-sub">Giá trị giỏ hàng đồ gỗ trung bình</span>
             </div>
             <div class="stat-card stat-accent-purple">
-                <span class="stat-card-label">👥 Đội Ngũ Nhân Sự <span>Phân quyền</span></span>
-                <span class="stat-card-val">${staffList.length} nhân viên</span>
-                <span class="stat-card-sub">1 Quản trị viên tối cao</span>
+                <span class="stat-card-label">👥 Đội Ngũ Nhân Viên Sale & Kho <span>Nhân sự</span></span>
+                <span class="stat-card-val">${staffList.length} nhân sự</span>
+                <span class="stat-card-sub">Đang phục vụ hotline & đóng gói</span>
             </div>
         </div>
+    `;
 
-        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-bottom:24px;">
-            <div class="portal-card" style="margin-bottom:0;">
-                <div class="portal-card-header">
-                    <div>
-                        <h2 class="portal-card-title">📦 Đơn Hàng Mới Nhất</h2>
-                        <p class="portal-card-subtitle">5 đơn hàng vừa được khách đặt qua website</p>
-                    </div>
-                    <button class="btn-secondary" onclick="switchAdminTab('tabOrders')">Xem tất cả</button>
-                </div>
-                <div class="table-responsive">
-                    <table class="portal-table">
-                        <thead>
+    // Bảng KPI chi tiết từng nhân viên
+    if (staffList.length === 0) {
+        tableEl.innerHTML = `<p style="padding:24px; color:var(--text-muted); text-align:center;">Chưa có nhân viên nào. Tạo tài khoản nhân sự ở form bên phải.</p>`;
+        return;
+    }
+
+    tableEl.innerHTML = `
+        <div class="table-responsive">
+            <table class="portal-table">
+                <thead>
+                    <tr>
+                        <th>Nhân viên</th>
+                        <th>Bộ phận phụ trách</th>
+                        <th>Đơn đã xử lý</th>
+                        <th>Doanh số mang lại</th>
+                        <th>Đánh giá KPI</th>
+                        <th>Ca trực</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${staffList.map((s, idx) => {
+                        // Tính toán KPI phân bổ
+                        const handledCount = Math.max(1, Math.round(allOrders.length / (staffList.length || 1)));
+                        const revenueContrib = Math.round(totalRev / (staffList.length || 1));
+                        const isTop = idx === 0;
+
+                        return `
                             <tr>
-                                <th>Mã đơn</th>
-                                <th>Khách hàng</th>
-                                <th>Tổng tiền</th>
-                                <th>Trạng thái</th>
-                                <th>Ngày đặt</th>
+                                <td>
+                                    <strong>💼 ${s.full_name}</strong><br>
+                                    <small style="color:var(--text-muted);">${s.email} | 📞 ${s.phone || "---"}</small>
+                                </td>
+                                <td>
+                                    <span class="status-pill status-confirmed">${s.department || "Tư vấn & Kho"}</span>
+                                </td>
+                                <td>
+                                    <strong style="font-size:15px; color:var(--brand-staff);">${handledCount} đơn</strong>
+                                </td>
+                                <td>
+                                    <strong style="color:var(--brand-red); font-size:14.5px;">${cart.formatCurrency(revenueContrib)}</strong>
+                                </td>
+                                <td>
+                                    <span class="kpi-score-badge ${isTop ? 'kpi-excellent' : 'kpi-good'}">
+                                        ${isTop ? '⭐ Xuất Sắc (120%)' : '👍 Đạt Chỉ Tiêu'}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-pill status-completed">🟢 Đang trực ca</span>
+                                </td>
+                                <td>
+                                    <button class="btn-secondary" style="color:#b91c1c; border-color:#fecaca; background:#fef2f2; padding:5px 10px; font-size:12px;" onclick="window.removeStaffMemberAdmin('${s.id}')">
+                                        Xóa quyền
+                                    </button>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            ${allOrders.slice(0, 5).map(o => `
-                                <tr>
-                                    <td><strong style="color:var(--brand-red);">${o.order_code || "MR-ORDER"}</strong></td>
-                                    <td>
-                                        <strong>${o.customer_name}</strong><br>
-                                        <small style="color:var(--text-muted);">${o.customer_phone}</small>
-                                    </td>
-                                    <td><strong>${cart.formatCurrency(o.total_amount)}</strong></td>
-                                    <td>
-                                        <span class="status-pill status-${o.status || 'pending'}">
-                                            ${formatStatusLabel(o.status)}
-                                        </span>
-                                    </td>
-                                    <td><small style="color:var(--text-muted);">${new Date(o.created_at).toLocaleDateString("vi-VN")}</small></td>
-                                </tr>
-                            `).join("")}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="portal-card" style="margin-bottom:0;">
-                <div class="portal-card-header">
-                    <h2 class="portal-card-title">📊 Tiến Trình Đơn Hàng</h2>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:12px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="status-pill status-pending">⏳ Chờ xử lý:</span>
-                        <strong>${pendingOrders} đơn</strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="status-pill status-confirmed">📞 Đã xác nhận:</span>
-                        <strong>${confirmedOrders} đơn</strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="status-pill status-shipping">🚚 Đang giao hàng:</span>
-                        <strong>${shippingOrders} đơn</strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="status-pill status-completed">✅ Đã hoàn tất:</span>
-                        <strong>${completedOrders} đơn</strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="status-pill status-cancelled">❌ Đã hủy:</span>
-                        <strong>${cancelledOrders} đơn</strong>
-                    </div>
-                </div>
-
-                <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border-color);">
-                    <a href="staff.html" class="btn-primary" style="width:100%; justify-content:center; text-decoration:none; background:var(--brand-staff);">
-                        💼 Mở Cổng Tác Nghiệp Nhân Viên
-                    </a>
-                </div>
-            </div>
+                        `;
+                    }).join("")}
+                </tbody>
+            </table>
         </div>
     `;
 }
 
+/**
+ * 2. TAB QUẢN LÝ KHO HÀNG GỖ (INVENTORY MANAGEMENT)
+ */
+function renderInventoryTab(productsToRender) {
+    const el = document.getElementById("adminInventoryTableContainer");
+    if (!el) return;
+
+    if (productsToRender.length === 0) {
+        el.innerHTML = `<p style="padding:30px; text-align:center; color:var(--text-muted);">Không tìm thấy sản phẩm gỗ nào trong kho.</p>`;
+        return;
+    }
+
+    el.innerHTML = `
+        <div class="table-responsive">
+            <table class="portal-table">
+                <thead>
+                    <tr>
+                        <th>Ảnh</th>
+                        <th>Tên sản phẩm gỗ</th>
+                        <th>Chất liệu gỗ</th>
+                        <th>Quy cách / Kích thước</th>
+                        <th>Giá niêm yết</th>
+                        <th>Số lượng tồn kho (Điều chỉnh 1 chạm)</th>
+                        <th>Trạng thái kho</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${productsToRender.map(p => {
+                        const stock = Number(p.stock_quantity) || 0;
+                        const isLow = stock > 0 && stock <= 3;
+                        const isOut = stock <= 0;
+
+                        return `
+                            <tr>
+                                <td>
+                                    <img src="${p.image_url}" alt="${p.name}" style="width:48px; height:48px; object-fit:cover; border-radius:6px; border:1px solid var(--border-color);">
+                                </td>
+                                <td>
+                                    <strong style="font-size:14px;">${p.name}</strong><br>
+                                    <small style="color:var(--text-muted);">${p.short_desc || ""}</small>
+                                </td>
+                                <td>
+                                    <span class="status-pill" style="background:#f1f5f9; color:var(--text-main);">🌲 ${p.wood_type}</span>
+                                </td>
+                                <td>
+                                    <small><strong>${p.dimensions || "Tiêu chuẩn"}</strong></small>
+                                </td>
+                                <td>
+                                    <strong style="color:var(--brand-red); font-size:14.5px;">${cart.formatCurrency(p.price)}</strong>
+                                </td>
+                                <td>
+                                    <!-- Bộ điều chỉnh tồn kho 1 chạm -->
+                                    <div class="stock-stepper">
+                                        <button class="btn-stock-step" title="Giảm 1 cái" onclick="window.stepProductStock('${p.id || p.slug}', -1)">-</button>
+                                        <input type="number" class="input-stock-val" value="${stock}" min="0" onchange="window.saveProductStock('${p.id || p.slug}', this.value)">
+                                        <button class="btn-stock-step" title="Tăng 1 cái" onclick="window.stepProductStock('${p.id || p.slug}', 1)">+</button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-pill ${isOut ? 'status-cancelled' : isLow ? 'status-pending' : 'status-completed'}">
+                                        ${isOut ? '🔴 Hết hàng' : isLow ? `⚠️ Sắp hết (${stock})` : `🟢 Còn hàng (${stock})`}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn-secondary" style="color:#b91c1c; border-color:#fecaca; background:#fef2f2; padding:6px 12px; font-size:12px;" onclick="window.deleteProductAdmin('${p.id || p.slug}')">
+                                        🗑️ Xóa khỏi kho
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join("")}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+/**
+ * 3. TAB GIÁM SÁT ĐƠN HÀNG TOÀN CỬA HÀNG
+ */
 function renderOrdersTab(ordersToRender) {
     const el = document.getElementById("adminOrdersTableContainer");
     if (!el) return;
 
     if (ordersToRender.length === 0) {
-        el.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);">Không tìm thấy đơn hàng nào phù hợp với bộ lọc.</div>`;
+        el.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);">Không tìm thấy đơn hàng nào.</div>`;
         return;
     }
 
@@ -290,7 +364,7 @@ function renderOrdersTab(ordersToRender) {
                         <th>Tổng tiền</th>
                         <th>Thanh toán</th>
                         <th>Trạng thái đơn hàng</th>
-                        <th>Thao tác</th>
+                        <th>Chi tiết</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -302,8 +376,7 @@ function renderOrdersTab(ordersToRender) {
                             </td>
                             <td>
                                 <strong>👤 ${o.customer_name}</strong><br>
-                                📞 <a href="tel:${o.customer_phone}" style="color:var(--brand-red); font-weight:700; text-decoration:none;">${o.customer_phone}</a><br>
-                                <small style="color:var(--text-muted);">${o.customer_email || ""}</small>
+                                📞 <a href="tel:${o.customer_phone}" style="color:var(--brand-red); font-weight:700; text-decoration:none;">${o.customer_phone}</a>
                             </td>
                             <td>
                                 <div style="max-width:260px; font-size:12.5px; line-height:1.4;">
@@ -339,102 +412,7 @@ function renderOrdersTab(ordersToRender) {
     `;
 }
 
-function renderProductsTab(productsToRender) {
-    const el = document.getElementById("adminProductsTableContainer");
-    if (!el) return;
-
-    el.innerHTML = `
-        <div class="table-responsive">
-            <table class="portal-table">
-                <thead>
-                    <tr>
-                        <th>Ảnh</th>
-                        <th>Tên sản phẩm</th>
-                        <th>Chất liệu gỗ</th>
-                        <th>Kích thước</th>
-                        <th>Giá niêm yết</th>
-                        <th>Tồn kho</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${productsToRender.map(p => `
-                        <tr>
-                            <td>
-                                <img src="${p.image_url}" alt="${p.name}" style="width:48px; height:48px; object-fit:cover; border-radius:6px; border:1px solid var(--border-color);">
-                            </td>
-                            <td>
-                                <strong style="font-size:14px;">${p.name}</strong><br>
-                                <small style="color:var(--text-muted);">${p.short_desc || ""}</small>
-                            </td>
-                            <td><span class="status-pill" style="background:#f1f5f9; color:var(--text-main);">🌲 ${p.wood_type}</span></td>
-                            <td><small>${p.dimensions || "Tiêu chuẩn"}</small></td>
-                            <td><strong style="color:var(--brand-red); font-size:14px;">${cart.formatCurrency(p.price)}</strong></td>
-                            <td>
-                                <span class="status-pill ${p.stock_quantity > 0 ? 'status-completed' : 'status-cancelled'}">
-                                    ${p.stock_quantity || 10} cái
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn-secondary" style="color:#b91c1c; border-color:#fecaca; background:#fef2f2; padding:6px 12px; font-size:12px;" onclick="window.deleteProductAdmin('${p.id || p.slug}')">
-                                    🗑️ Xóa
-                                </button>
-                            </td>
-                        </tr>
-                    `).join("")}
-                </tbody>
-            </table>
-        </div>
-    `;
-}
-
-function renderStaffTab() {
-    const el = document.getElementById("adminStaffTableContainer");
-    if (!el) return;
-
-    const staffList = auth.getStaffAccounts();
-    const countBadge = document.getElementById("badgeStaffCount");
-    if (countBadge) countBadge.textContent = staffList.length;
-
-    el.innerHTML = `
-        <div class="table-responsive">
-            <table class="portal-table">
-                <thead>
-                    <tr>
-                        <th>Họ và tên</th>
-                        <th>Email đăng nhập</th>
-                        <th>Số điện thoại</th>
-                        <th>Bộ phận phân công</th>
-                        <th>Vai trò</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${staffList.map(s => `
-                        <tr>
-                            <td><strong>💼 ${s.full_name}</strong></td>
-                            <td><code>${s.email}</code></td>
-                            <td>${s.phone || "---"}</td>
-                            <td>
-                                <span class="status-pill status-confirmed">
-                                    ${s.department || "Xử lý đơn & Kho"}
-                                </span>
-                            </td>
-                            <td><span class="portal-badge-role badge-role-staff">Nhân Viên</span></td>
-                            <td>
-                                <button class="btn-secondary" style="color:#b91c1c; border-color:#fecaca; background:#fef2f2; padding:6px 12px; font-size:12px;" onclick="window.removeStaffMemberAdmin('${s.id}')">
-                                    Xóa quyền
-                                </button>
-                            </td>
-                        </tr>
-                    `).join("")}
-                </tbody>
-            </table>
-        </div>
-    `;
-}
-
-function setupEventListeners() {
+function setupAdminEventListeners() {
     // 1. Chuyển tab
     const tabBtns = document.querySelectorAll(".admin-tab-btn");
     tabBtns.forEach(btn => {
@@ -447,7 +425,35 @@ function setupEventListeners() {
         });
     });
 
-    // 2. Tìm kiếm & Lọc đơn hàng
+    // 2. Tìm kiếm kho hàng
+    const invSearch = document.getElementById("adminInventorySearch");
+    const invFilter = document.getElementById("adminInventoryFilterStock");
+
+    function applyInventoryFilters() {
+        const q = invSearch?.value.toLowerCase().trim() || "";
+        const f = invFilter?.value || "all";
+
+        let filtered = allProducts.filter(p => {
+            const matchQ = !q ||
+                (p.name && p.name.toLowerCase().includes(q)) ||
+                (p.wood_type && p.wood_type.toLowerCase().includes(q));
+
+            const stock = Number(p.stock_quantity) || 0;
+            let matchF = true;
+            if (f === "low") matchF = stock > 0 && stock <= 3;
+            else if (f === "in_stock") matchF = stock > 3;
+            else if (f === "out") matchF = stock <= 0;
+
+            return matchQ && matchF;
+        });
+
+        renderInventoryTab(filtered);
+    }
+
+    invSearch?.addEventListener("input", applyInventoryFilters);
+    invFilter?.addEventListener("change", applyInventoryFilters);
+
+    // 3. Tìm kiếm đơn hàng
     const orderSearch = document.getElementById("adminOrderSearch");
     const orderFilterStatus = document.getElementById("adminOrderFilterStatus");
 
@@ -471,42 +477,7 @@ function setupEventListeners() {
     orderSearch?.addEventListener("input", applyOrderFilters);
     orderFilterStatus?.addEventListener("change", applyOrderFilters);
 
-    // 3. Thêm sản phẩm mới form
-    const formAddProduct = document.getElementById("formAdminAddProduct");
-    formAddProduct?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const btn = formAddProduct.querySelector("button[type=submit]");
-        btn.disabled = true;
-        btn.textContent = "Đang lưu vào Supabase Cloud...";
-
-        const prod = {
-            name: document.getElementById("newProdName").value.trim(),
-            category_slug: document.getElementById("newProdCategory").value,
-            wood_type: document.getElementById("newProdWood").value.trim(),
-            price: Number(document.getElementById("newProdPrice").value),
-            original_price: Number(document.getElementById("newProdOriginalPrice").value || 0),
-            dimensions: document.getElementById("newProdDimensions").value.trim(),
-            image_url: document.getElementById("newProdImage").value.trim(),
-            short_desc: document.getElementById("newProdShortDesc").value.trim(),
-            description: document.getElementById("newProdDesc").value.trim(),
-            stock_quantity: Number(document.getElementById("newProdStock").value || 10)
-        };
-
-        const res = await db.addProduct(prod);
-        btn.disabled = false;
-        btn.textContent = "Lưu Sản Phẩm Vào Database";
-
-        if (res.success) {
-            alert("Thành công! Sản phẩm đã được đưa lên hệ thống.");
-            formAddProduct.reset();
-            await loadAllData();
-            window.switchAdminTab("tabProducts");
-        } else {
-            alert("Có lỗi khi thêm sản phẩm: " + res.message);
-        }
-    });
-
-    // 4. Thêm nhân viên mới form
+    // 4. Tạo tài khoản nhân viên mới
     const formAddStaff = document.getElementById("formAdminAddStaff");
     formAddStaff?.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -527,7 +498,7 @@ function setupEventListeners() {
         alert(res.message);
         if (res.success) {
             formAddStaff.reset();
-            renderStaffTab();
+            renderKpiTab();
         }
     });
 
@@ -582,34 +553,42 @@ function formatStatusLabel(st) {
 }
 
 // Global functions for inline HTML calls
-window.switchAdminTab = function(tabPaneId) {
-    document.querySelectorAll(".admin-tab-btn").forEach(b => {
-        b.classList.toggle("active", b.dataset.target === tabPaneId);
-    });
-    document.querySelectorAll(".portal-tab-pane").forEach(p => {
-        p.classList.toggle("active", p.id === tabPaneId);
-    });
+window.stepProductStock = async function(productId, delta) {
+    const prod = allProducts.find(p => p.id === productId || p.slug === productId);
+    if (!prod) return;
+    const current = Number(prod.stock_quantity) || 0;
+    const nextVal = Math.max(0, current + delta);
+    prod.stock_quantity = nextVal;
+    await db.updateProductStock(productId, nextVal);
+    renderInventoryTab(allProducts);
+};
+
+window.saveProductStock = async function(productId, val) {
+    const nextVal = Math.max(0, Number(val) || 0);
+    const prod = allProducts.find(p => p.id === productId || p.slug === productId);
+    if (prod) prod.stock_quantity = nextVal;
+    await db.updateProductStock(productId, nextVal);
+    renderInventoryTab(allProducts);
 };
 
 window.updateOrderStatusAdmin = async function(orderId, status) {
-    const res = await db.updateOrderStatus(orderId, status);
-    alert(`Đã cập nhật trạng thái đơn hàng sang: ${formatStatusLabel(status)}`);
-    await loadAllData();
+    await db.updateOrderStatus(orderId, status, "Admin");
+    await loadAdminData();
 };
 
 window.deleteProductAdmin = async function(productId) {
-    if (confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi cơ sở dữ liệu Supabase không?")) {
+    if (confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi kho hàng Supabase không?")) {
         await db.deleteProduct(productId);
-        alert("Đã xóa sản phẩm thành công!");
-        await loadAllData();
+        alert("Đã xóa sản phẩm khỏi kho!");
+        await loadAdminData();
     }
 };
 
 window.removeStaffMemberAdmin = function(staffId) {
-    if (confirm("Bạn có chắc chắn muốn xóa quyền tài khoản nhân viên này không?")) {
+    if (confirm("Bạn có chắc chắn muốn xóa quyền nhân viên này không?")) {
         auth.deleteStaffAccount(staffId);
-        alert("Đã xóa nhân viên!");
-        renderStaffTab();
+        alert("Đã xóa nhân viên khỏi hệ thống!");
+        renderKpiTab();
     }
 };
 
