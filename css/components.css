@@ -1116,3 +1116,208 @@
     margin-bottom: 8px;
     font-size: 12.5px;
 }
+
+/* ==============================================================================
+   STAFF PORTAL & UNIFIED AUTH STYLES
+   ============================================================================== */
+
+.user-badge.badge-staff {
+    background-color: #0284c7; /* Xanh dương chuyên nghiệp */
+}
+
+/* Unified Auth Tabs */
+.unified-auth-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border-light);
+    margin-bottom: 22px;
+}
+
+.unified-auth-tab {
+    flex: 1;
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: var(--transition);
+}
+
+.unified-auth-tab.active {
+    color: var(--brand-red);
+    border-bottom-color: var(--brand-red);
+}
+
+/* Stat Cards for Admin & Staff */
+.admin-stat-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: #fbf9f6;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-card .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.stat-card .stat-val {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.stat-card.stat-primary .stat-val {
+    color: var(--brand-red);
+}
+
+/* Staff Workspace Orders Cards */
+.staff-orders-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 480px;
+    overflow-y: auto;
+}
+
+.staff-order-card {
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s ease;
+}
+
+.staff-order-card:hover {
+    box-shadow: var(--shadow-sm);
+}
+
+.staff-order-card.highlight-pending {
+    border-left: 4px solid #f59e0b; /* Màu cam cảnh báo đơn mới */
+}
+
+.staff-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f0eae1;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.badge-status-pill {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+}
+
+.badge-status-pill.status-pending { background: #fef3c7; color: #b45309; }
+.badge-status-pill.status-confirmed { background: #e0f2fe; color: #0369a1; }
+.badge-status-pill.status-shipping { background: #ede9fe; color: #6d28d9; }
+.badge-status-pill.status-completed { background: #dcfce7; color: #15803d; }
+.badge-status-pill.status-cancelled { background: #fee2e2; color: #b91c1c; }
+
+.staff-card-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.staff-card-body .cust-info {
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.staff-card-body .cust-total {
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.staff-card-body .cust-total strong {
+    display: block;
+    font-size: 16px;
+    color: var(--brand-red);
+}
+
+.staff-card-actions {
+    background: #fbf9f6;
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-staff-act {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: var(--transition);
+}
+
+.btn-staff-act.act-confirm { background: #e0f2fe; color: #0284c7; border-color: #bae6fd; }
+.btn-staff-act.act-ship { background: #ede9fe; color: #7c3aed; border-color: #ddd6fe; }
+.btn-staff-act.act-done { background: #dcfce7; color: #16a34a; border-color: #bbf7d0; }
+.btn-staff-act.act-cancel { background: #fee2e2; color: #dc2626; border-color: #fecaca; }
+
+.btn-staff-act:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.btn-sm-action {
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 3px;
+    border: 1px solid var(--border-dark);
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.btn-sm-action.text-red {
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.btn-sm-action.text-red:hover {
+    background: #fee2e2;
+}
+
+.status-select {
+    padding: 4px 6px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border-dark);
+    background: #ffffff;
+    outline: none;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .admin-stat-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

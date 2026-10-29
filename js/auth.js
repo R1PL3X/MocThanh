@@ -1,6 +1,9 @@
 /**
- * DỊCH VỤ XÁC THỰC & PHÂN QUYỀN (AUTH SERVICE)
- * Tách biệt hoàn toàn luồng Khách Hàng (Customer) và Quản Trị Viên (Admin)
+ * DỊCH VỤ XÁC THỰC & PHÂN QUYỀN MORIOO (AUTH SERVICE)
+ * ---------------------------------------------------------------------
+ * 1. Admin Tối Cao duy nhất: Toàn quyền quản trị hệ thống, sản phẩm & nhân viên
+ * 2. Nhân viên (Staff): Xử lý đơn hàng, đổi trạng thái, tra cứu tồn kho (do Admin tạo)
+ * 3. Khách hàng (Customer): Đăng ký tự do, mua hàng, xem đơn hàng của tôi
  */
 
 import { db } from "./supabase-client.js";
@@ -8,18 +11,26 @@ import { db } from "./supabase-client.js";
 const CURRENT_USER_KEY = "morioo_current_user";
 const LOCAL_ACCOUNTS_KEY = "morioo_accounts";
 
-// Mã bảo mật bắt buộc khi đăng ký quyền Quản Trị Viên (Admin)
-export const ADMIN_SECRET_KEY = "MORIOO@ADMIN2026";
-
-// Tài khoản mẫu tạo sẵn để thử nghiệm ngay lập tức
-const SEED_ACCOUNTS = [
+// Duy nhất 1 tài khoản Admin tối cao và các tài khoản mẫu ban đầu
+const INITIAL_ACCOUNTS = [
     {
-        id: "acc-admin-1",
+        id: "acc-admin-supreme",
         email: "admin@morioo.vn",
         password: "Admin123!",
-        full_name: "Nguyễn Quản Trị",
+        full_name: "Admin MORIOO Tối Cao",
         phone: "0901234567",
         role: "admin",
+        department: "Ban Quản Trị Tối Cao",
+        created_at: new Date().toISOString()
+    },
+    {
+        id: "acc-staff-1",
+        email: "nhanvien@morioo.vn",
+        password: "Staff123!",
+        full_name: "Lê Văn Nhân Viên",
+        phone: "0912345678",
+        role: "staff",
+        department: "Xử lý đơn hàng & Kho",
         created_at: new Date().toISOString()
     },
     {
@@ -29,6 +40,7 @@ const SEED_ACCOUNTS = [
         full_name: "Trần Khách Hàng",
         phone: "0987654321",
         role: "customer",
+        department: "Khách hàng thân thiết",
         created_at: new Date().toISOString()
     }
 ];
@@ -51,10 +63,17 @@ class AuthService {
     loadLocalAccounts() {
         try {
             const raw = localStorage.getItem(LOCAL_ACCOUNTS_KEY);
-            if (raw) return JSON.parse(raw);
+            if (raw) {
+                const list = JSON.parse(raw);
+                // Đảm bảo luôn có tài khoản Admin tối cao duy nhất
+                if (!list.some(a => a.role === "admin" && a.email === "admin@morioo.vn")) {
+                    list.unshift(INITIAL_ACCOUNTS[0]);
+                }
+                return list;
+            }
         } catch (e) {}
-        localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(SEED_ACCOUNTS));
-        return [...SEED_ACCOUNTS];
+        localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(INITIAL_ACCOUNTS));
+        return [...INITIAL_ACCOUNTS];
     }
 
     saveLocalAccounts() {
@@ -73,17 +92,85 @@ class AuthService {
         return this.currentUser && this.currentUser.role === "admin";
     }
 
+    isStaff() {
+        return this.currentUser && this.currentUser.role === "staff";
+    }
+
     isCustomer() {
         return this.currentUser && this.currentUser.role === "customer";
     }
 
+    canManageOrders() {
+        return this.isAdmin() || this.isStaff();
+    }
+
+    canManageProducts() {
+        return this.isAdmin();
+    }
+
+    canManageStaff() {
+        return this.isAdmin();
+    }
+
     /**
-     * Đăng ký tài khoản KHÁCH HÀNG
+     * ĐĂNG NHẬP GỘP LÀM 1 (Hệ thống tự động nhận diện Admin / Nhân viên / Khách hàng)
+     */
+    async login({ email, password }) {
+        const cleanEmail = (email || "").trim().toLowerCase();
+
+        // 1. Thử xác thực với bảng accounts trong Supabase nếu có
+        if (db.client) {
+            try {
+                const { data, error } = await db.client
+                    .from("accounts")
+                    .select("*")
+                    .eq("email", cleanEmail)
+                    .single();
+
+                if (!error && data && data.password_hash === password) {
+                    this.setCurrentUser(data);
+                    return {
+                        success: true,
+                        user: data,
+                        message: `Đăng nhập thành công! Xin chào ${data.full_name}.`
+                    };
+                }
+            } catch (e) {}
+        }
+
+        // 2. Xác thực với bộ tài khoản hệ thống
+        const account = this.localAccounts.find(acc => acc.email === cleanEmail && acc.password === password);
+
+        if (!account) {
+            return {
+                success: false,
+                message: "Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại!"
+            };
+        }
+
+        this.setCurrentUser(account);
+
+        let roleLabel = "Khách Hàng";
+        if (account.role === "admin") roleLabel = "👑 Quản Trị Viên";
+        else if (account.role === "staff") roleLabel = "💼 Nhân Viên";
+
+        return {
+            success: true,
+            user: account,
+            message: `Đăng nhập thành công với vai trò ${roleLabel}!`
+        };
+    }
+
+    /**
+     * ĐĂNG KÝ TÀI KHOẢN KHÁCH HÀNG (Tự do dành cho khách mua sắm)
      */
     async registerCustomer({ fullName, email, phone, password }) {
-        const cleanEmail = email.trim().toLowerCase();
+        const cleanEmail = (email || "").trim().toLowerCase();
 
-        // 1. Kiểm tra trùng email
+        if (cleanEmail === "admin@morioo.vn") {
+            return { success: false, message: "Email này là tài khoản Quản trị viên tối cao, không thể đăng ký!" };
+        }
+
         const exists = this.localAccounts.some(acc => acc.email === cleanEmail);
         if (exists) {
             return { success: false, message: "Email này đã được sử dụng. Vui lòng đăng nhập hoặc dùng email khác!" };
@@ -99,10 +186,8 @@ class AuthService {
             created_at: new Date().toISOString()
         };
 
-        // Thử đồng bộ lên Supabase nếu có bảng accounts hoặc auth
         if (db.client) {
             try {
-                // Thử lưu vào bảng accounts trong Supabase nếu có
                 await db.client.from("accounts").insert([{
                     email: newUser.email,
                     password_hash: newUser.password,
@@ -110,22 +195,11 @@ class AuthService {
                     phone: newUser.phone,
                     role: "customer"
                 }]);
-
-                // Thử đăng ký Supabase Auth
-                await db.client.auth.signUp({
-                    email: cleanEmail,
-                    password: password,
-                    options: { data: { full_name: newUser.full_name, phone: newUser.phone, role: "customer" } }
-                });
-            } catch (e) {
-                console.log("[Auth] Supabase sync info:", e.message);
-            }
+            } catch (e) {}
         }
 
         this.localAccounts.push(newUser);
         this.saveLocalAccounts();
-
-        // Tự động đăng nhập
         this.setCurrentUser(newUser);
 
         return {
@@ -136,123 +210,68 @@ class AuthService {
     }
 
     /**
-     * Đăng ký tài khoản QUẢN TRỊ VIÊN (Cần mã bảo mật Admin)
+     * TẠO TÀI KHOẢN NHÂN VIÊN MỚI (CHỈ ADMIN MỚI CÓ QUYỀN TẠO)
      */
-    async registerAdmin({ fullName, email, phone, password, adminKey }) {
-        const cleanEmail = email.trim().toLowerCase();
-
-        // Xác thực mã bảo mật quản trị
-        if (!adminKey || adminKey.trim() !== ADMIN_SECRET_KEY) {
-            return {
-                success: false,
-                message: "Mã bí mật xác thực quản trị (Admin Secret Key) không chính xác! Bạn không có quyền tạo tài khoản Admin."
-            };
+    async createStaffAccount({ fullName, email, phone, password, department }) {
+        if (!this.isAdmin()) {
+            return { success: false, message: "Chỉ Quản Trị Viên tối cao mới có quyền tạo tài khoản nhân viên!" };
         }
 
+        const cleanEmail = (email || "").trim().toLowerCase();
         const exists = this.localAccounts.some(acc => acc.email === cleanEmail);
         if (exists) {
-            return { success: false, message: "Email này đã được đăng ký trong hệ thống!" };
+            return { success: false, message: "Email nhân viên này đã tồn tại trong hệ thống!" };
         }
 
-        const newAdmin = {
-            id: "admin-" + Date.now(),
+        const newStaff = {
+            id: "staff-" + Date.now(),
             email: cleanEmail,
-            password: password,
+            password: password || "Staff123!",
             full_name: fullName.trim(),
             phone: phone ? phone.trim() : "",
-            role: "admin",
+            role: "staff",
+            department: department || "Xử lý đơn hàng & Kho",
             created_at: new Date().toISOString()
         };
 
         if (db.client) {
             try {
                 await db.client.from("accounts").insert([{
-                    email: newAdmin.email,
-                    password_hash: newAdmin.password,
-                    full_name: newAdmin.full_name,
-                    phone: newAdmin.phone,
-                    role: "admin"
+                    email: newStaff.email,
+                    password_hash: newStaff.password,
+                    full_name: newStaff.full_name,
+                    phone: newStaff.phone,
+                    role: "staff"
                 }]);
-
-                await db.client.auth.signUp({
-                    email: cleanEmail,
-                    password: password,
-                    options: { data: { full_name: newAdmin.full_name, role: "admin" } }
-                });
-            } catch (e) {
-                console.log("[Auth] Supabase admin sync info:", e.message);
-            }
+            } catch (e) {}
         }
 
-        this.localAccounts.push(newAdmin);
+        this.localAccounts.push(newStaff);
         this.saveLocalAccounts();
-
-        this.setCurrentUser(newAdmin);
 
         return {
             success: true,
-            user: newAdmin,
-            message: `Xác thực thành công! Quyền Quản trị viên (Admin) đã được cấp cho ${newAdmin.full_name}.`
+            staff: newStaff,
+            message: `Đã cấp tài khoản nhân viên thành công cho ${newStaff.full_name}!`
         };
     }
 
     /**
-     * Đăng nhập (Kiểm tra đúng vai trò mong đợi)
+     * LẤY DANH SÁCH NHÂN VIÊN (Dành cho Admin)
      */
-    async login({ email, password, requiredRole = null }) {
-        const cleanEmail = email.trim().toLowerCase();
+    getStaffAccounts() {
+        return this.localAccounts.filter(a => a.role === "staff");
+    }
 
-        // 1. Thử tìm trong bảng accounts Supabase nếu có
-        if (db.client) {
-            try {
-                const { data, error } = await db.client
-                    .from("accounts")
-                    .select("*")
-                    .eq("email", cleanEmail)
-                    .single();
+    /**
+     * XÓA TÀI KHOẢN NHÂN VIÊN (Dành cho Admin)
+     */
+    deleteStaffAccount(staffId) {
+        if (!this.isAdmin()) return { success: false, message: "Từ chối quyền truy cập." };
 
-                if (!error && data && data.password_hash === password) {
-                    if (requiredRole && data.role !== requiredRole) {
-                        return {
-                            success: false,
-                            message: requiredRole === "admin"
-                                ? "Tài khoản này là tài khoản Khách Hàng, không có quyền truy cập Quản trị viên!"
-                                : "Tài khoản này là Quản Trị Viên, vui lòng đăng nhập ở tab Quản Trị!"
-                        };
-                    }
-                    this.setCurrentUser(data);
-                    return { success: true, user: data, message: "Đăng nhập thành công!" };
-                }
-            } catch (e) {}
-        }
-
-        // 2. Tìm trong danh sách tài khoản
-        const account = this.localAccounts.find(acc => acc.email === cleanEmail && acc.password === password);
-
-        if (!account) {
-            return {
-                success: false,
-                message: "Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại!"
-            };
-        }
-
-        // Kiểm tra đúng vai trò
-        if (requiredRole && account.role !== requiredRole) {
-            return {
-                success: false,
-                message: requiredRole === "admin"
-                    ? "Tài khoản này là Khách Hàng, không có quyền đăng nhập vào mục Quản trị!"
-                    : "Đây là tài khoản Quản trị, vui lòng đăng nhập tại tab Quản Trị Viên!"
-            };
-        }
-
-        this.setCurrentUser(account);
-
-        return {
-            success: true,
-            user: account,
-            message: `Chào mừng ${account.full_name} (${account.role === "admin" ? "Quản trị viên" : "Khách hàng"}) trở lại!`
-        };
+        this.localAccounts = this.localAccounts.filter(a => a.id !== staffId && a.role === "staff");
+        this.saveLocalAccounts();
+        return { success: true, message: "Đã xóa tài khoản nhân viên thành công." };
     }
 
     setCurrentUser(user) {

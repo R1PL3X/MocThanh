@@ -1,8 +1,9 @@
 /**
- * GIAO DIỆN & SỰ KIỆN XÁC THỰC KHÁCH HÀNG / QUẢN TRỊ VIÊN
+ * GIAO DIỆN XÁC THỰC GỘP LÀM 1 (UNIFIED AUTH UI)
+ * Tự động nhận diện quyền Admin, Nhân Viên, Khách Hàng
  */
 
-import { auth, ADMIN_SECRET_KEY } from "./auth.js";
+import { auth } from "./auth.js";
 import { db } from "./supabase-client.js";
 import { cart } from "./cart.js";
 
@@ -16,11 +17,11 @@ export function initAuthUI() {
     const closeCustOrdersBtn = document.getElementById("closeCustomerOrdersModal");
     const btnOpenCustOrders = document.getElementById("btnOpenCustomerOrders");
 
-    // Mở Modal Auth
+    // Mở Auth Modal
     openAuthBtns.forEach(btn => {
         btn.addEventListener("click", () => {
-            const defaultRole = btn.dataset.role || "customer";
-            openAuth(defaultRole);
+            const mode = btn.dataset.mode || "login";
+            openAuthModal(mode);
         });
     });
 
@@ -32,120 +33,76 @@ export function initAuthUI() {
         customerOrdersModal?.classList.remove("active");
     });
 
-    // Chuyển đổi giữa 2 tab: Khách Hàng vs Quản Trị Viên
-    const roleTabs = document.querySelectorAll(".auth-role-tab");
-    roleTabs.forEach(tab => {
+    // Chuyển tab giữa Đăng Nhập & Đăng Ký (Gộp làm 1)
+    const modeTabs = document.querySelectorAll(".unified-auth-tab");
+    modeTabs.forEach(tab => {
         tab.addEventListener("click", () => {
-            roleTabs.forEach(t => t.classList.remove("active"));
+            modeTabs.forEach(t => t.classList.remove("active"));
             tab.classList.add("active");
-            const role = tab.dataset.role;
+            const mode = tab.dataset.mode; // 'login' | 'register'
 
-            document.getElementById("roleSectionCustomer").style.display = role === "customer" ? "block" : "none";
-            document.getElementById("roleSectionAdmin").style.display = role === "admin" ? "block" : "none";
+            document.getElementById("paneAuthLogin").style.display = mode === "login" ? "block" : "none";
+            document.getElementById("paneAuthRegister").style.display = mode === "register" ? "block" : "none";
             clearAuthMessages();
         });
     });
 
-    // Chuyển đổi giữa Đăng Nhập & Đăng Ký cho Khách Hàng
-    setupModeSwitch("customer");
-    // Chuyển đổi giữa Đăng Nhập & Đăng Ký cho Quản Trị Viên
-    setupModeSwitch("admin");
-
-    // Xử lý các Form:
-    // 1. Đăng nhập Khách Hàng
-    const formLoginCustomer = document.getElementById("formLoginCustomer");
-    formLoginCustomer?.addEventListener("submit", async (e) => {
+    // 1. Form Đăng Nhập Chung (Gộp làm 1 - Hệ thống tự nhận diện Admin / Nhân viên / Khách)
+    const formLogin = document.getElementById("formUnifiedLogin");
+    formLogin?.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const email = document.getElementById("loginCustEmail").value;
-        const pass = document.getElementById("loginCustPass").value;
-        const msgEl = document.getElementById("msgLoginCustomer");
+        const email = document.getElementById("unifiedLoginEmail").value;
+        const pass = document.getElementById("unifiedLoginPass").value;
+        const msgEl = document.getElementById("msgUnifiedLogin");
 
-        setButtonLoading("btnLoginCustomer", true);
-        const res = await auth.login({ email, password: pass, requiredRole: "customer" });
-        setButtonLoading("btnLoginCustomer", false);
+        setButtonLoading("btnSubmitUnifiedLogin", true);
+        const res = await auth.login({ email, password: pass });
+        setButtonLoading("btnSubmitUnifiedLogin", false);
 
         showAuthMessage(msgEl, res.success, res.message);
+
         if (res.success) {
             setTimeout(() => {
                 authModal?.classList.remove("active");
-                formLoginCustomer.reset();
+                formLogin.reset();
+
+                // Tự động mở trang tác nghiệp theo đúng vai trò
+                if (res.user.role === "admin") {
+                    document.getElementById("adminModal")?.classList.add("active");
+                    window.dispatchEvent(new CustomEvent("open-admin-dashboard"));
+                } else if (res.user.role === "staff") {
+                    document.getElementById("staffModal")?.classList.add("active");
+                    window.dispatchEvent(new CustomEvent("open-staff-dashboard"));
+                }
             }, 600);
         }
     });
 
-    // 2. Đăng ký Khách Hàng
-    const formRegCustomer = document.getElementById("formRegisterCustomer");
-    formRegCustomer?.addEventListener("submit", async (e) => {
+    // 2. Form Đăng Ký Khách Hàng Mới
+    const formRegister = document.getElementById("formUnifiedRegister");
+    formRegister?.addEventListener("submit", async (e) => {
         e.preventDefault();
         const name = document.getElementById("regCustName").value;
         const phone = document.getElementById("regCustPhone").value;
         const email = document.getElementById("regCustEmail").value;
         const pass = document.getElementById("regCustPass").value;
         const confirm = document.getElementById("regCustPassConfirm").value;
-        const msgEl = document.getElementById("msgRegCustomer");
+        const msgEl = document.getElementById("msgUnifiedRegister");
 
         if (pass !== confirm) {
             showAuthMessage(msgEl, false, "Mật khẩu xác nhận không khớp!");
             return;
         }
 
-        setButtonLoading("btnRegCustomer", true);
+        setButtonLoading("btnSubmitUnifiedRegister", true);
         const res = await auth.registerCustomer({ fullName: name, email, phone, password: pass });
-        setButtonLoading("btnRegCustomer", false);
+        setButtonLoading("btnSubmitUnifiedRegister", false);
 
         showAuthMessage(msgEl, res.success, res.message);
         if (res.success) {
             setTimeout(() => {
                 authModal?.classList.remove("active");
-                formRegCustomer.reset();
-            }, 800);
-        }
-    });
-
-    // 3. Đăng nhập Quản Trị Viên
-    const formLoginAdmin = document.getElementById("formLoginAdmin");
-    formLoginAdmin?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const email = document.getElementById("loginAdminEmail").value;
-        const pass = document.getElementById("loginAdminPass").value;
-        const msgEl = document.getElementById("msgLoginAdmin");
-
-        setButtonLoading("btnLoginAdmin", true);
-        const res = await auth.login({ email, password: pass, requiredRole: "admin" });
-        setButtonLoading("btnLoginAdmin", false);
-
-        showAuthMessage(msgEl, res.success, res.message);
-        if (res.success) {
-            setTimeout(() => {
-                authModal?.classList.remove("active");
-                formLoginAdmin.reset();
-                // Mở ngay trang Quản trị sau khi đăng nhập thành công
-                document.getElementById("adminModal")?.classList.add("active");
-            }, 600);
-        }
-    });
-
-    // 4. Đăng ký Quản Trị Viên
-    const formRegAdmin = document.getElementById("formRegisterAdmin");
-    formRegAdmin?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const name = document.getElementById("regAdminName").value;
-        const email = document.getElementById("regAdminEmail").value;
-        const phone = document.getElementById("regAdminPhone")?.value || "";
-        const pass = document.getElementById("regAdminPass").value;
-        const key = document.getElementById("regAdminKey").value;
-        const msgEl = document.getElementById("msgRegAdmin");
-
-        setButtonLoading("btnRegAdmin", true);
-        const res = await auth.registerAdmin({ fullName: name, email, phone, password: pass, adminKey: key });
-        setButtonLoading("btnRegAdmin", false);
-
-        showAuthMessage(msgEl, res.success, res.message);
-        if (res.success) {
-            setTimeout(() => {
-                authModal?.classList.remove("active");
-                formRegAdmin.reset();
-                document.getElementById("adminModal")?.classList.add("active");
+                formRegister.reset();
             }, 800);
         }
     });
@@ -168,24 +125,12 @@ export function initAuthUI() {
         auth.logout();
     });
 
-    // Nút Xem đơn hàng của tôi
+    // Nút Xem đơn hàng của khách
     btnOpenCustOrders?.addEventListener("click", (e) => {
         e.preventDefault();
         userDropdownMenu?.classList.remove("active");
         renderCustomerOrders();
         customerOrdersModal?.classList.add("active");
-    });
-
-    // Bảo vệ quyền Admin: Khi bấm nút Admin ở menu hoặc trang web
-    const adminActionBtns = document.querySelectorAll(".btn-open-admin, .btn-open-admin-add");
-    adminActionBtns.forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            if (!auth.isAdmin()) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                openAuth("admin", "Vui lòng đăng nhập tài khoản Quản Trị Viên để truy cập bảng điều khiển!");
-            }
-        });
     });
 
     // Lắng nghe thay đổi trạng thái đăng nhập
@@ -194,46 +139,29 @@ export function initAuthUI() {
         autofillCheckoutUser();
     });
 
-    // Cập nhật giao diện ban đầu
     updateTopBarUserUI();
     autofillCheckoutUser();
 }
 
-function openAuth(role = "customer", customMessage = null) {
+export function openAuthModal(mode = "login", customMessage = null) {
     const authModal = document.getElementById("authModal");
     if (!authModal) return;
 
-    // Kích hoạt tab tương ứng
-    document.querySelectorAll(".auth-role-tab").forEach(t => {
-        t.classList.toggle("active", t.dataset.role === role);
+    document.querySelectorAll(".unified-auth-tab").forEach(t => {
+        t.classList.toggle("active", t.dataset.mode === mode);
     });
 
-    document.getElementById("roleSectionCustomer").style.display = role === "customer" ? "block" : "none";
-    document.getElementById("roleSectionAdmin").style.display = role === "admin" ? "block" : "none";
+    document.getElementById("paneAuthLogin").style.display = mode === "login" ? "block" : "none";
+    document.getElementById("paneAuthRegister").style.display = mode === "register" ? "block" : "none";
 
     clearAuthMessages();
 
     if (customMessage) {
-        const msgEl = role === "admin" ? document.getElementById("msgLoginAdmin") : document.getElementById("msgLoginCustomer");
+        const msgEl = document.getElementById("msgUnifiedLogin");
         if (msgEl) showAuthMessage(msgEl, false, customMessage);
     }
 
     authModal.classList.add("active");
-}
-
-function setupModeSwitch(prefix) {
-    const btns = document.querySelectorAll(`.mode-switch-${prefix} .auth-mode-btn`);
-    btns.forEach(btn => {
-        btn.addEventListener("click", () => {
-            btns.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            const mode = btn.dataset.mode; // 'login' | 'register'
-
-            document.getElementById(`pane-${prefix}-login`).style.display = mode === "login" ? "block" : "none";
-            document.getElementById(`pane-${prefix}-register`).style.display = mode === "register" ? "block" : "none";
-            clearAuthMessages();
-        });
-    });
 }
 
 function updateTopBarUserUI() {
@@ -244,6 +172,7 @@ function updateTopBarUserUI() {
     const iconEl = document.getElementById("userRoleIcon");
     const customerLinks = document.getElementById("customerMenuLinks");
     const adminLinks = document.getElementById("adminMenuLinks");
+    const staffLinks = document.getElementById("staffMenuLinks");
 
     const user = auth.getCurrentUser();
 
@@ -255,12 +184,22 @@ function updateTopBarUserUI() {
 
         if (user.role === "admin") {
             if (badgeEl) {
-                badgeEl.textContent = "Quản Trị";
+                badgeEl.textContent = "Admin";
                 badgeEl.className = "user-badge badge-admin";
             }
             if (iconEl) iconEl.textContent = "👑";
             if (customerLinks) customerLinks.style.display = "none";
             if (adminLinks) adminLinks.style.display = "block";
+            if (staffLinks) staffLinks.style.display = "none";
+        } else if (user.role === "staff") {
+            if (badgeEl) {
+                badgeEl.textContent = "Nhân Viên";
+                badgeEl.className = "user-badge badge-staff";
+            }
+            if (iconEl) iconEl.textContent = "💼";
+            if (customerLinks) customerLinks.style.display = "none";
+            if (adminLinks) adminLinks.style.display = "none";
+            if (staffLinks) staffLinks.style.display = "block";
         } else {
             if (badgeEl) {
                 badgeEl.textContent = "Khách Hàng";
@@ -269,6 +208,7 @@ function updateTopBarUserUI() {
             if (iconEl) iconEl.textContent = "👤";
             if (customerLinks) customerLinks.style.display = "block";
             if (adminLinks) adminLinks.style.display = "none";
+            if (staffLinks) staffLinks.style.display = "none";
         }
     } else {
         if (notLoggedInBtn) notLoggedInBtn.style.display = "inline-flex";
@@ -302,7 +242,6 @@ async function renderCustomerOrders() {
     container.innerHTML = `<div class="loading-state"><div class="loader-circle"></div><p>Đang tải đơn hàng của bạn...</p></div>`;
 
     const allOrders = await db.getOrders();
-    // Lọc theo email hoặc số điện thoại của user
     const userOrders = allOrders.filter(o =>
         (o.customer_email && o.customer_email.toLowerCase() === user.email.toLowerCase()) ||
         (user.phone && o.customer_phone && o.customer_phone.includes(user.phone))
@@ -328,14 +267,14 @@ async function renderCustomerOrders() {
                             <span style="color:#888; font-size:11px; margin-left:8px;">${new Date(o.created_at).toLocaleDateString("vi-VN")}</span>
                         </div>
                         <span class="badge-pay" style="background:#e8f5e9; color:#2e7d32; font-weight:700;">
-                            ${o.status === "completed" ? "Đã giao" : o.status === "shipping" ? "Đang giao hàng" : "Đang xử lý"}
+                            ${o.status === "completed" ? "Đã giao thành công" : o.status === "shipping" ? "Đang giao hàng" : o.status === "confirmed" ? "Đã xác nhận" : o.status === "cancelled" ? "Đã hủy" : "Đang xử lý"}
                         </span>
                     </div>
                     <div style="font-size:13px; margin-bottom:6px;">
                         <span>Địa chỉ: <strong>${o.shipping_address}</strong></span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed #eee; padding-top:8px; margin-top:8px;">
-                        <span style="font-size:12px; color:#666;">Phương thức: ${o.payment_method === "cod" ? "COD nhận hàng" : "Chuyển khoản"}</span>
+                        <span style="font-size:12px; color:#666;">Thanh toán: ${o.payment_method === "cod" ? "COD nhận hàng" : "Chuyển khoản VietQR"}</span>
                         <strong style="color:var(--brand-red); font-size:15px;">
                             ${cart.formatCurrency(o.total_amount)}
                         </strong>
@@ -365,7 +304,7 @@ function setButtonLoading(btnId, isLoading) {
     btn.disabled = isLoading;
     if (isLoading) {
         btn.dataset.origText = btn.innerHTML;
-        btn.innerHTML = `<span class="spinner"></span> Đang xử lý...`;
+        btn.innerHTML = `<span class="spinner"></span> Đang xác thực...`;
     } else {
         btn.innerHTML = btn.dataset.origText || "Hoàn tất";
     }

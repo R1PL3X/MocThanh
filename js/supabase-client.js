@@ -276,6 +276,53 @@ class SupabaseDataService {
     }
 
     /**
+     * Cập nhật trạng thái đơn hàng (Dành cho Quản trị viên & Nhân viên)
+     */
+    async updateOrderStatus(orderIdOrCode, newStatus) {
+        let updated = false;
+
+        if (this.client) {
+            try {
+                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(orderIdOrCode);
+                const query = this.client.from("orders").update({ status: newStatus });
+                const { error } = isUuid
+                    ? await query.eq("id", orderIdOrCode)
+                    : await query.eq("order_code", orderIdOrCode);
+
+                if (!error) updated = true;
+            } catch (e) {
+                console.warn("[Supabase] Lỗi updateOrderStatus:", e);
+            }
+        }
+
+        const local = this.localOrders.find(o => o.id === orderIdOrCode || o.order_code === orderIdOrCode);
+        if (local) {
+            local.status = newStatus;
+            this.saveLocalOrders();
+            updated = true;
+        }
+
+        return { success: updated, status: newStatus };
+    }
+
+    /**
+     * Xóa sản phẩm (Chỉ dành cho Admin)
+     */
+    async deleteProduct(productId) {
+        if (this.client) {
+            try {
+                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(productId);
+                const query = this.client.from("products").delete();
+                if (isUuid) await query.eq("id", productId);
+                else await query.eq("slug", productId);
+            } catch (e) {}
+        }
+        this.localProducts = this.localProducts.filter(p => p.id !== productId && p.slug !== productId);
+        this.saveLocalProducts();
+        return { success: true };
+    }
+
+    /**
      * Thêm sản phẩm mới MORIOO
      */
     async addProduct(product) {
