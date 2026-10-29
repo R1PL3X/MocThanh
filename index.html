@@ -37,12 +37,35 @@
                         <span>Supabase Cloud</span>
                     </button>
                 </div>
-                <div class="top-auth-link btn-open-admin" title="Đăng nhập hoặc Quản lý">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span>Đăng nhập | Đăng ký</span>
+                <div class="top-auth-wrapper" id="topAuthWrapper">
+                    <!-- Nút khi chưa đăng nhập -->
+                    <button class="top-auth-link btn-open-auth-modal" id="btnOpenAuthModal" data-role="customer" title="Đăng nhập hoặc Đăng ký">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Đăng nhập | Đăng ký</span>
+                    </button>
+
+                    <!-- Dropdown khi đã đăng nhập -->
+                    <div class="user-dropdown" id="userDropdown" style="display:none;">
+                        <button class="user-dropdown-btn" id="userDropdownBtn">
+                            <span id="userRoleIcon">👤</span>
+                            <span id="userDisplayName">Khách hàng</span>
+                            <span class="user-badge" id="userRoleBadge">Khách</span>
+                            <svg width="9" height="5" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1L5 5L9 1"/></svg>
+                        </button>
+                        <div class="user-dropdown-menu" id="userDropdownMenu">
+                            <div id="customerMenuLinks">
+                                <a href="#" id="btnOpenCustomerOrders">📦 Đơn hàng của tôi</a>
+                            </div>
+                            <div id="adminMenuLinks" style="display:none;">
+                                <a href="#" class="btn-open-admin" style="font-weight:700; color:var(--brand-red);">👑 Bảng Quản Trị Cửa Hàng</a>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" id="btnLogout">Đăng xuất</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -688,7 +711,163 @@
     </div>
 
     <!-- ==============================================================================
-         16. TOAST NOTIFICATION
+         16. AUTHENTICATION MODAL (ĐĂNG NHẬP / ĐĂNG KÝ KHÁCH & ADMIN RIÊNG BIỆT)
+         ============================================================================== -->
+    <div class="custom-modal" id="authModal">
+        <div class="modal-dialog" style="max-width: 520px;">
+            <span class="modal-close-x" id="closeAuthModal">&times;</span>
+            <div style="padding: 28px 32px;">
+                <!-- 2 Tab phân quyền riêng biệt -->
+                <div class="auth-role-tabs">
+                    <button type="button" class="auth-role-tab active" data-role="customer">
+                        👤 Khách Hàng
+                    </button>
+                    <button type="button" class="auth-role-tab admin-tab" data-role="admin">
+                        👑 Quản Trị Viên
+                    </button>
+                </div>
+
+                <!-- PHẦN 1: KHÁCH HÀNG -->
+                <div id="roleSectionCustomer">
+                    <div class="auth-mode-switch mode-switch-customer">
+                        <span class="auth-mode-btn active" data-mode="login">Đăng Nhập</span>
+                        <span class="auth-mode-btn" data-mode="register">Đăng Ký Khách Mới</span>
+                    </div>
+
+                    <!-- 1.1 Form Đăng nhập Khách -->
+                    <div id="pane-customer-login" class="auth-form-pane active">
+                        <div id="msgLoginCustomer" class="auth-msg"></div>
+                        <form id="formLoginCustomer">
+                            <div class="form-group">
+                                <label for="loginCustEmail">Email đăng nhập *</label>
+                                <input type="email" id="loginCustEmail" class="form-control" required placeholder="vidu@gmail.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="loginCustPass">Mật khẩu *</label>
+                                <input type="password" id="loginCustPass" class="form-control" required placeholder="••••••••">
+                            </div>
+                            <button type="submit" id="btnLoginCustomer" class="btn-brand-primary" style="width:100%; padding:11px; margin-top:8px;">
+                                Đăng Nhập Mua Hàng
+                            </button>
+                            <div class="auth-tip-box">
+                                💡 <strong>Tài khoản khách mẫu:</strong> <code>khachhang@gmail.com</code> / <code>Khach123!</code>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 1.2 Form Đăng ký Khách -->
+                    <div id="pane-customer-register" class="auth-form-pane">
+                        <div id="msgRegCustomer" class="auth-msg"></div>
+                        <form id="formRegisterCustomer">
+                            <div class="form-group">
+                                <label for="regCustName">Họ và tên *</label>
+                                <input type="text" id="regCustName" class="form-control" required placeholder="Nguyễn Văn A">
+                            </div>
+                            <div class="form-group">
+                                <label for="regCustPhone">Số điện thoại *</label>
+                                <input type="tel" id="regCustPhone" class="form-control" required placeholder="0912 345 678">
+                            </div>
+                            <div class="form-group">
+                                <label for="regCustEmail">Email của bạn *</label>
+                                <input type="email" id="regCustEmail" class="form-control" required placeholder="email@gmail.com">
+                            </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                                <div class="form-group">
+                                    <label for="regCustPass">Mật khẩu *</label>
+                                    <input type="password" id="regCustPass" class="form-control" required placeholder="Ít nhất 6 ký tự">
+                                </div>
+                                <div class="form-group">
+                                    <label for="regCustPassConfirm">Xác nhận MK *</label>
+                                    <input type="password" id="regCustPassConfirm" class="form-control" required placeholder="Nhập lại mật khẩu">
+                                </div>
+                            </div>
+                            <button type="submit" id="btnRegCustomer" class="btn-brand-primary" style="width:100%; padding:11px; margin-top:8px;">
+                                Tạo Tài Khoản Khách Hàng
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- PHẦN 2: QUẢN TRỊ VIÊN (ADMIN) -->
+                <div id="roleSectionAdmin" style="display:none;">
+                    <div class="auth-mode-switch mode-switch-admin">
+                        <span class="auth-mode-btn active" data-mode="login">Đăng Nhập Quản Trị</span>
+                        <span class="auth-mode-btn" data-mode="register">Đăng Ký Admin Mới</span>
+                    </div>
+
+                    <!-- 2.1 Form Đăng nhập Admin -->
+                    <div id="pane-admin-login" class="auth-form-pane active">
+                        <div id="msgLoginAdmin" class="auth-msg"></div>
+                        <form id="formLoginAdmin">
+                            <div class="form-group">
+                                <label for="loginAdminEmail">Email Quản Trị Viên *</label>
+                                <input type="email" id="loginAdminEmail" class="form-control" required placeholder="admin@mocthinh.vn">
+                            </div>
+                            <div class="form-group">
+                                <label for="loginAdminPass">Mật khẩu Admin *</label>
+                                <input type="password" id="loginAdminPass" class="form-control" required placeholder="••••••••">
+                            </div>
+                            <button type="submit" id="btnLoginAdmin" class="btn-brand-primary" style="width:100%; padding:11px; margin-top:8px; background-color:#b45309;">
+                                Đăng Nhập Quản Trị
+                            </button>
+                            <div class="auth-tip-box tip-admin">
+                                👑 <strong>Tài khoản Admin mẫu:</strong> <code>admin@mocthinh.vn</code> / <code>Admin123!</code>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 2.2 Form Đăng ký Admin (Có mã bảo mật) -->
+                    <div id="pane-admin-register" class="auth-form-pane">
+                        <div id="msgRegAdmin" class="auth-msg"></div>
+                        <form id="formRegisterAdmin">
+                            <div class="form-group">
+                                <label for="regAdminName">Tên Quản Trị Viên *</label>
+                                <input type="text" id="regAdminName" class="form-control" required placeholder="Quản trị viên 1">
+                            </div>
+                            <div class="form-group">
+                                <label for="regAdminEmail">Email Quản Trị *</label>
+                                <input type="email" id="regAdminEmail" class="form-control" required placeholder="admin2@mocthinh.vn">
+                            </div>
+                            <div class="form-group">
+                                <label for="regAdminPass">Mật khẩu bảo mật *</label>
+                                <input type="password" id="regAdminPass" class="form-control" required placeholder="Mật khẩu Admin">
+                            </div>
+                            <div class="form-group">
+                                <label for="regAdminKey" style="color:#b45309; font-weight:700;">
+                                    🔒 Mã bí mật xác thực quản trị (Admin Secret Key) *
+                                </label>
+                                <input type="text" id="regAdminKey" class="form-control" required placeholder="Nhập mã bảo mật để cấp quyền Admin">
+                                <small style="font-size:11px; color:#666;">Chỉ người có mã mới được đăng ký quyền Admin. Mã mặc định: <code>MOCTHINH@ADMIN2026</code></small>
+                            </div>
+                            <button type="submit" id="btnRegAdmin" class="btn-brand-primary" style="width:100%; padding:11px; margin-top:8px; background-color:#b45309;">
+                                Xác Thực & Đăng Ký Quản Trị
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         17. CUSTOMER ORDERS MODAL (LỊCH SỬ ĐƠN HÀNG CỦA KHÁCH)
+         ============================================================================== -->
+    <div class="custom-modal" id="customerOrdersModal">
+        <div class="modal-dialog" style="max-width: 650px;">
+            <span class="modal-close-x" id="closeCustomerOrdersModal">&times;</span>
+            <div style="padding: 26px 30px;">
+                <h2 style="font-size: 19px; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                    📦 Đơn Hàng Của Bạn Tại Mộc Thịnh
+                </h2>
+                <div id="customerOrdersContainer">
+                    <!-- Tự động đổ danh sách đơn hàng -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         18. TOAST NOTIFICATION
          ============================================================================== -->
     <div id="toastNotification" class="toast-msg"></div>
 

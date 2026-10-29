@@ -5,6 +5,7 @@
 import { db } from "./supabase-client.js";
 import { cart } from "./cart.js";
 import { initAdminControls } from "./admin.js";
+import { initAuthUI } from "./auth-ui.js";
 
 // Trạng thái ứng dụng
 const state = {
@@ -17,8 +18,9 @@ const state = {
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Khởi tạo thanh quản trị & Supabase
+    // 1. Khởi tạo thanh quản trị, Supabase & Xác thực người dùng
     initAdminControls();
+    initAuthUI();
 
     // 2. Tải sản phẩm từ Supabase / Local
     await loadProducts();

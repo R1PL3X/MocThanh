@@ -82,6 +82,18 @@ CREATE TABLE IF NOT EXISTS reviews (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 7. TẠO BẢNG TÀI KHOẢN (ACCOUNTS: KHÁCH HÀNG & QUẢN TRỊ VIÊN RIÊNG BIỆT)
+CREATE TABLE IF NOT EXISTS accounts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    phone VARCHAR(50),
+    role VARCHAR(50) NOT NULL DEFAULT 'customer', -- 'customer' (Khách) hoặc 'admin' (Quản trị viên)
+    avatar_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ==============================================================================
 -- CẤU HÌNH ROW LEVEL SECURITY (RLS) - ĐẢM BẢO BẤT KỲ AI TRÊN MẠNG CŨNG XEM ĐƯỢC
 -- ==============================================================================
@@ -91,10 +103,12 @@ ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Public Read Categories" ON categories FOR SELECT USING (true);
 CREATE POLICY "Public Read Products" ON products FOR SELECT USING (true);
 CREATE POLICY "Public Read Reviews" ON reviews FOR SELECT USING (true);
+CREATE POLICY "Public Read Accounts" ON accounts FOR SELECT USING (true);
 
 CREATE POLICY "Public Insert Orders" ON orders FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public Read Orders" ON orders FOR SELECT USING (true);
@@ -105,6 +119,15 @@ CREATE POLICY "Public Insert Reviews" ON reviews FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public Insert Products" ON products FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public Update Products" ON products FOR UPDATE USING (true);
 CREATE POLICY "Public Delete Products" ON products FOR DELETE USING (true);
+
+CREATE POLICY "Public Insert Accounts" ON accounts FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public Update Accounts" ON accounts FOR UPDATE USING (true);
+
+-- Tài khoản mẫu sẵn trong database
+INSERT INTO accounts (email, password_hash, full_name, phone, role) VALUES
+('admin@mocthinh.vn', 'Admin123!', 'Nguyễn Quản Trị Mộc Thịnh', '0901234567', 'admin'),
+('khachhang@gmail.com', 'Khach123!', 'Trần Văn Khách', '0987654321', 'customer')
+ON CONFLICT (email) DO NOTHING;
 
 -- ==============================================================================
 -- DỮ LIỆU MẪU NỘI THẤT GỖ MỘC THỊNH CHUẨN THIẾT KẾ THEO ẢNH ĐÍNH KÈM
