@@ -51,16 +51,16 @@
          ============================================================================== -->
     <nav class="portal-nav-bar" id="adminNavBar">
         <div class="portal-nav-inner">
-            <button class="portal-tab-btn admin-tab-btn active" data-target="tabKpiStaff">
+            <button class="portal-tab-btn admin-tab-btn active" data-target="tabKpiStaff" onclick="window.switchAdminTab('tabKpiStaff')">
                 📊 Check KPI Nhân Viên & Doanh Thu <span class="tab-badge" id="badgeStaffCount">1</span>
             </button>
-            <button class="portal-tab-btn admin-tab-btn" data-target="tabInventory">
+            <button class="portal-tab-btn admin-tab-btn" data-target="tabInventory" onclick="window.switchAdminTab('tabInventory')">
                 🪑 Quản Lý Kho Hàng Gỗ <span class="tab-badge" id="badgeInventoryCount">12</span>
             </button>
-            <button class="portal-tab-btn admin-tab-btn" data-target="tabOrders">
+            <button class="portal-tab-btn admin-tab-btn" data-target="tabOrders" onclick="window.switchAdminTab('tabOrders')">
                 📦 Giám Sát Đơn Hàng Cửa Hàng
             </button>
-            <button class="portal-tab-btn admin-tab-btn" data-target="tabSupabase">
+            <button class="portal-tab-btn admin-tab-btn" data-target="tabSupabase" onclick="window.switchAdminTab('tabSupabase')">
                 ⚙️ Cấu Hình Supabase Cloud
             </button>
         </div>
@@ -220,7 +220,19 @@
 
     </main>
 
-    <!-- Script điều khiển -->
+    <!-- Inline fallback chuyển tab tức thì -->
+    <script>
+        window.switchAdminTab = function(targetId) {
+            document.querySelectorAll('.admin-tab-btn, .portal-tab-btn').forEach(function(b) {
+                b.classList.toggle('active', b.getAttribute('data-target') === targetId);
+            });
+            document.querySelectorAll('.portal-tab-pane').forEach(function(p) {
+                p.classList.toggle('active', p.id === targetId);
+            });
+        };
+    </script>
+
+    <!-- Script điều khiển chính -->
     <script type="module" src="js/admin-page.js"></script>
 </body>
 </html>

@@ -317,12 +317,8 @@ class SupabaseDataService {
             const queryField = isUuid ? "id" : "order_code";
             
             const payload = { 
-                status: newStatus,
-                updated_at: new Date().toISOString()
+                status: newStatus
             };
-            if (processedBy) {
-                payload.note = `[${processedBy}]: cập nhật trạng thái`;
-            }
 
             await this.restFetch(`orders?${queryField}=eq.${encodeURIComponent(orderIdOrCode)}`, {
                 method: "PATCH",

@@ -373,14 +373,11 @@ function renderStaffInventory(productsToRender) {
  */
 function setupStaffEventListeners() {
     // A. Chuyển tab
-    const tabBtns = document.querySelectorAll(".staff-tab-btn");
+    const tabBtns = document.querySelectorAll(".staff-tab-btn, .staff-tab, .portal-tab-btn");
     tabBtns.forEach(btn => {
         btn.addEventListener("click", () => {
-            tabBtns.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
             const targetId = btn.dataset.target;
-            document.querySelectorAll(".portal-tab-pane").forEach(p => p.classList.remove("active"));
-            document.getElementById(targetId)?.classList.add("active");
+            if (targetId) window.switchStaffTab(targetId);
         });
     });
 
@@ -602,9 +599,19 @@ function formatStatusLabel(st) {
 }
 
 // Global functions for inline HTML calls
+window.switchStaffTab = function(targetId) {
+    document.querySelectorAll(".staff-tab, .staff-tab-btn, .portal-tab-btn").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-target") === targetId);
+    });
+    document.querySelectorAll(".portal-tab-pane").forEach(p => {
+        p.classList.toggle("active", p.id === targetId);
+    });
+};
+
 window.staffChangeOrderState = async function(orderId, status) {
     const user = auth.getCurrentUser();
     await db.updateOrderStatus(orderId, status, user ? user.full_name : "Nhân viên");
+    alert(`✅ Đã cập nhật trạng thái đơn hàng sang: ${formatStatusLabel(status)}`);
     await loadStaffData();
 };
 
