@@ -84,19 +84,11 @@ export function initAdminControls() {
         });
     }
 
-    // Modal Admin
+    // Nút mở Trang Quản Trị Admin
     openAdminBtns.forEach(btn => {
         btn.addEventListener("click", (e) => {
             e.preventDefault();
-            if (!auth.isAdmin()) {
-                document.getElementById("btnOpenAuthModal")?.click();
-                alert("Vui lòng đăng nhập bằng tài khoản Quản Trị Viên (admin@morioo.vn)!");
-                return;
-            }
-            if (adminModal) {
-                adminModal.classList.add("active");
-                loadAdminDashboard();
-            }
+            window.location.href = "admin.html";
         });
     });
 
@@ -104,19 +96,11 @@ export function initAdminControls() {
         adminModal?.classList.remove("active");
     });
 
-    // Modal Nhân Viên
+    // Nút mở Trang Tác Nghiệp Nhân Viên
     openStaffBtns.forEach(btn => {
         btn.addEventListener("click", (e) => {
             e.preventDefault();
-            if (!auth.isStaff() && !auth.isAdmin()) {
-                document.getElementById("btnOpenAuthModal")?.click();
-                alert("Vui lòng đăng nhập tài khoản Nhân Viên (nhanvien@morioo.vn)!");
-                return;
-            }
-            if (staffModal) {
-                staffModal.classList.add("active");
-                loadStaffDashboard();
-            }
+            window.location.href = "staff.html";
         });
     });
 

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Quản Trị Admin Tối Cao | MORIOO - Nội Thất Gỗ Tự Nhiên</title>
+    <link rel="icon" type="image/svg+xml" href="assets/images/logo-morioo.svg">
+    <link rel="stylesheet" href="css/portal.css">
+</head>
+<body>
+
+    <!-- ==============================================================================
+         1. TOP HEADER BAR
+         ============================================================================== -->
+    <header class="portal-header">
+        <div class="portal-header-inner">
+            <div class="portal-brand">
+                <a href="admin.html" class="portal-logo-box" style="text-decoration:none; display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:24px;">👑</span>
+                    <strong style="font-size:18px; font-weight:800; color:var(--brand-red); letter-spacing:0.5px;">MORIOO ADMIN</strong>
+                    <span class="portal-badge-role badge-role-admin">Quản Trị Tối Cao</span>
+                </a>
+            </div>
+
+            <div class="portal-header-actions">
+                <div id="topDbBadge" class="status-pill status-completed">
+                    🟢 Supabase: Online
+                </div>
+                <a href="staff.html" class="portal-btn-link" title="Xem Cổng Tác Nghiệp Nhân Viên">
+                    💼 Cổng Nhân Viên
+                </a>
+                <a href="index.html" class="portal-btn-link" title="Xem Giao Diện Mua Sắm Khách Hàng">
+                    🏪 Về Cửa Hàng
+                </a>
+                <div class="portal-user-pill">
+                    <span>👑</span>
+                    <span id="topAdminName">admin@morioo.vn</span>
+                </div>
+                <button class="portal-btn-logout btn-admin-logout" title="Đăng xuất khỏi hệ thống">
+                    Đăng xuất
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==============================================================================
+         2. SUB NAVIGATION TABS
+         ============================================================================== -->
+    <nav class="portal-nav-bar" id="adminNavBar">
+        <div class="portal-nav-inner">
+            <button class="portal-tab-btn admin-tab-btn active" data-target="tabOverview">
+                📊 Tổng Quan & KPI
+            </button>
+            <button class="portal-tab-btn admin-tab-btn" data-target="tabOrders">
+                📦 Quản Lý Đơn Hàng
+            </button>
+            <button class="portal-tab-btn admin-tab-btn" data-target="tabProducts">
+                🪑 Quản Lý Sản Phẩm Gỗ
+            </button>
+            <button class="portal-tab-btn admin-tab-btn" data-target="tabAddProduct">
+                ➕ Thêm Sản Phẩm Mới
+            </button>
+            <button class="portal-tab-btn admin-tab-btn" data-target="tabStaff">
+                👥 Quản Lý Nhân Sự <span class="tab-badge" id="badgeStaffCount">1</span>
+            </button>
+            <button class="portal-tab-btn admin-tab-btn" data-target="tabSupabase">
+                ⚙️ Cấu Hình Supabase Cloud
+            </button>
+        </div>
+    </nav>
+
+    <!-- ==============================================================================
+         3. MAIN CONTENT CONTAINER
+         ============================================================================== -->
+    <main class="portal-container" id="adminMainContent">
+
+        <!-- TAB 1: TỔNG QUAN & KPI -->
+        <div class="portal-tab-pane active" id="tabOverview">
+            <div id="adminOverviewContent">
+                <!-- Nội dung được tải bởi js/admin-page.js -->
+            </div>
+        </div>
+
+        <!-- TAB 2: QUẢN LÝ ĐƠN HÀNG -->
+        <div class="portal-tab-pane" id="tabOrders">
+            <div class="portal-card">
+                <div class="portal-card-header">
+                    <div>
+                        <h2 class="portal-card-title">📦 Danh Sách Đơn Hàng Supabase Cloud</h2>
+                        <p class="portal-card-subtitle">Theo dõi, kiểm tra thông tin khách và chuyển trạng thái đơn hàng thời gian thực</p>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="text" id="adminOrderSearch" class="form-control" placeholder="🔍 Tìm theo mã đơn, tên, SĐT..." style="width:240px;">
+                        <select id="adminOrderFilterStatus" class="form-control" style="width:170px; font-weight:600;">
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="pending">⏳ Chờ xử lý</option>
+                            <option value="confirmed">📞 Đã xác nhận</option>
+                            <option value="shipping">🚚 Đang giao hàng</option>
+                            <option value="completed">✅ Đã hoàn tất</option>
+                            <option value="cancelled">❌ Đã hủy</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="adminOrdersTableContainer">
+                    <!-- Bảng đơn hàng -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: QUẢN LÝ SẢN PHẨM GỖ -->
+        <div class="portal-tab-pane" id="tabProducts">
+            <div class="portal-card">
+                <div class="portal-card-header">
+                    <div>
+                        <h2 class="portal-card-title">🪑 Danh Mục Sản Phẩm Nội Thất Gỗ Tự Nhiên</h2>
+                        <p class="portal-card-subtitle">Quản lý các mẫu đồ gỗ đang bày bán trên website và lưu trữ trên cơ sở dữ liệu</p>
+                    </div>
+                    <button class="btn-primary" onclick="window.switchAdminTab('tabAddProduct')">
+                        ➕ Thêm Sản Phẩm Mới
+                    </button>
+                </div>
+                <div id="adminProductsTableContainer">
+                    <!-- Bảng sản phẩm -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: THÊM SẢN PHẨM MỚI -->
+        <div class="portal-tab-pane" id="tabAddProduct">
+            <div class="portal-card" style="max-width: 800px; margin: 0 auto;">
+                <div class="portal-card-header">
+                    <div>
+                        <h2 class="portal-card-title">➕ Thêm Mẫu Nội Thất Gỗ Mới Vào Database</h2>
+                        <p class="portal-card-subtitle">Sản phẩm sau khi thêm sẽ lập tức hiển thị công khai trên website cho toàn bộ khách hàng</p>
+                    </div>
+                </div>
+
+                <form id="formAdminAddProduct">
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px;">
+                        <div class="form-group">
+                            <label>Tên sản phẩm gỗ *</label>
+                            <input type="text" id="newProdName" class="form-control" required placeholder="Ví dụ: Giường Ngủ Gỗ Sồi Zen Minimalist">
+                        </div>
+                        <div class="form-group">
+                            <label>Danh mục nội thất *</label>
+                            <select id="newProdCategory" class="form-control" required>
+                                <option value="phong-ngu">Phòng Ngủ</option>
+                                <option value="phong-khach">Phòng Khách</option>
+                                <option value="phong-an">Phòng Ăn & Bếp</option>
+                                <option value="lam-viec">Làm Việc & Học Tập</option>
+                                <option value="decor">Trang Trí & Decor</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px;">
+                        <div class="form-group">
+                            <label>Chất liệu gỗ tự nhiên *</label>
+                            <input type="text" id="newProdWood" class="form-control" required placeholder="Gỗ Sồi Nga, Óc Chó, Teak...">
+                        </div>
+                        <div class="form-group">
+                            <label>Giá bán niêm yết (VNĐ) *</label>
+                            <input type="number" id="newProdPrice" class="form-control" required placeholder="8500000">
+                        </div>
+                        <div class="form-group">
+                            <label>Giá gốc / Khuyến mãi (VNĐ)</label>
+                            <input type="number" id="newProdOriginalPrice" class="form-control" placeholder="10200000">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px;">
+                        <div class="form-group">
+                            <label>Kích thước quy cách (DxRxC) *</label>
+                            <input type="text" id="newProdDimensions" class="form-control" required placeholder="180 x 200 x 30 cm">
+                        </div>
+                        <div class="form-group">
+                            <label>Số lượng tồn kho ban đầu *</label>
+                            <input type="number" id="newProdStock" class="form-control" required value="15">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Đường dẫn hình ảnh (URL ảnh hoặc ảnh Unsplash) *</label>
+                        <input type="url" id="newProdImage" class="form-control" required placeholder="https://images.unsplash.com/photo-...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả ngắn hiển thị ở danh mục</label>
+                        <input type="text" id="newProdShortDesc" class="form-control" placeholder="Thiết kế nan gầm thấp phong cách tối giản Wabi-Sabi">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả chi tiết và kỹ thuật chế tác gỗ</label>
+                        <textarea id="newProdDesc" class="form-control" rows="4" placeholder="Gỗ đã qua tẩm sấy tiêu chuẩn chống cong vênh, mối mọt. Bề mặt sơn phủ gốc nước mờ tự nhiên..."></textarea>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
+                        <button type="button" class="btn-secondary" onclick="window.switchAdminTab('tabProducts')">Hủy bỏ</button>
+                        <button type="submit" class="btn-primary">Lưu Sản Phẩm Vào Database Supabase</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB 5: QUẢN LÝ NHÂN SỰ -->
+        <div class="portal-tab-pane" id="tabStaff">
+            <div style="display:grid; grid-template-columns: 1.8fr 1.2fr; gap:20px;">
+                <!-- Cột trái: Danh sách nhân viên -->
+                <div class="portal-card">
+                    <div class="portal-card-header">
+                        <div>
+                            <h2 class="portal-card-title">👥 Danh Sách Đội Ngũ Nhân Viên</h2>
+                            <p class="portal-card-subtitle">Nhân viên được cấp quyền truy cập Cổng Tác Nghiệp để xử lý đơn hàng và tra cứu kho</p>
+                        </div>
+                    </div>
+                    <div id="adminStaffTableContainer">
+                        <!-- Bảng danh sách nhân viên -->
+                    </div>
+                </div>
+
+                <!-- Cột phải: Form cấp tài khoản nhân viên mới -->
+                <div class="portal-card">
+                    <div class="portal-card-header">
+                        <div>
+                            <h2 class="portal-card-title">➕ Cấp Quyền Nhân Viên Mới</h2>
+                            <p class="portal-card-subtitle">Chỉ có Admin tối cao mới có quyền tạo nhân sự mới</p>
+                        </div>
+                    </div>
+
+                    <form id="formAdminAddStaff">
+                        <div class="form-group">
+                            <label>Họ và tên nhân viên *</label>
+                            <input type="text" id="newStaffName" class="form-control" required placeholder="Ví dụ: Trần Thị Mai">
+                        </div>
+                        <div class="form-group">
+                            <label>Số điện thoại liên hệ *</label>
+                            <input type="tel" id="newStaffPhone" class="form-control" required placeholder="0987 654 321">
+                        </div>
+                        <div class="form-group">
+                            <label>Email đăng nhập *</label>
+                            <input type="email" id="newStaffEmail" class="form-control" required placeholder="mai.tt@morioo.vn">
+                        </div>
+                        <div class="form-group">
+                            <label>Mật khẩu khởi tạo *</label>
+                            <input type="password" id="newStaffPass" class="form-control" required placeholder="Ít nhất 6 ký tự">
+                        </div>
+                        <div class="form-group">
+                            <label>Bộ phận công tác *</label>
+                            <select id="newStaffDept" class="form-control" required>
+                                <option value="Xử lý đơn hàng & Kho">Xử lý đơn hàng & Kho</option>
+                                <option value="Tư vấn bán hàng Hotline">Tư vấn bán hàng Hotline</option>
+                                <option value="Điều phối giao hàng">Điều phối giao hàng</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top:8px;">
+                            Tạo Tài Khoản Nhân Viên
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6: CẤU HÌNH SUPABASE CLOUD -->
+        <div class="portal-tab-pane" id="tabSupabase">
+            <div class="portal-card" style="max-width: 750px; margin: 0 auto;">
+                <div class="portal-card-header">
+                    <div>
+                        <h2 class="portal-card-title">⚙️ Cấu Hình Kết Nối Supabase Cloud</h2>
+                        <p class="portal-card-subtitle">Dữ liệu được lưu trữ trên Cloud công khai để bất kỳ ai trên internet cũng xem và đặt hàng được</p>
+                    </div>
+                </div>
+
+                <form id="formAdminSupabase">
+                    <div class="form-group">
+                        <label>Supabase Project URL *</label>
+                        <input type="url" id="adminSupabaseUrl" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Supabase Anon / Public Key *</label>
+                        <textarea id="adminSupabaseKey" class="form-control" rows="3" required></textarea>
+                    </div>
+
+                    <div id="supabaseTestMsg" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:6px; font-size:13px;"></div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+                        <button type="button" id="btnTestSupabasePage" class="btn-secondary">
+                            🔍 Kiểm Tra Kết Nối
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            💾 Lưu Thay Đổi Cấu Hình
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script điều khiển -->
+    <script type="module" src="js/admin-page.js"></script>
+</body>
+</html>

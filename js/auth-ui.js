@@ -66,13 +66,11 @@ export function initAuthUI() {
                 authModal?.classList.remove("active");
                 formLogin.reset();
 
-                // Tự động mở trang tác nghiệp theo đúng vai trò
+                // Tự động chuyển tới trang riêng theo đúng vai trò
                 if (res.user.role === "admin") {
-                    document.getElementById("adminModal")?.classList.add("active");
-                    window.dispatchEvent(new CustomEvent("open-admin-dashboard"));
+                    window.location.href = "admin.html";
                 } else if (res.user.role === "staff") {
-                    document.getElementById("staffModal")?.classList.add("active");
-                    window.dispatchEvent(new CustomEvent("open-staff-dashboard"));
+                    window.location.href = "staff.html";
                 }
             }, 600);
         }

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Tác Nghiệp Nhân Viên | MORIOO - Nội Thất Gỗ Tự Nhiên</title>
+    <link rel="icon" type="image/svg+xml" href="assets/images/logo-morioo.svg">
+    <link rel="stylesheet" href="css/portal.css">
+    <style>
+        .staff-filter-pills-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .staff-filter-pill {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .staff-filter-pill:hover {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+        .staff-filter-pill.active {
+            background: var(--brand-staff);
+            color: #ffffff;
+            border-color: var(--brand-staff);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==============================================================================
+         1. TOP HEADER BAR
+         ============================================================================== -->
+    <header class="portal-header">
+        <div class="portal-header-inner">
+            <div class="portal-brand">
+                <a href="staff.html" class="portal-logo-box" style="text-decoration:none; display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:24px;">💼</span>
+                    <strong style="font-size:18px; font-weight:800; color:var(--brand-staff); letter-spacing:0.5px;">MORIOO NHÂN VIÊN</strong>
+                    <span class="portal-badge-role badge-role-staff">Cổng Tác Nghiệp</span>
+                </a>
+            </div>
+
+            <div class="portal-header-actions">
+                <div id="topStaffDbBadge" class="status-pill status-completed">
+                    🟢 Supabase: Online
+                </div>
+                <a href="admin.html" class="portal-btn-link" title="Đến Bảng Quản Trị Admin">
+                    👑 Trang Admin
+                </a>
+                <a href="index.html" class="portal-btn-link" title="Xem Giao Diện Mua Sắm Khách Hàng">
+                    🏪 Về Cửa Hàng
+                </a>
+                <div class="portal-user-pill">
+                    <span>💼</span>
+                    <span id="topStaffName">Lê Văn Nhân Viên</span>
+                    <small style="color:var(--text-muted); margin-left:4px;">(<span id="topStaffDept">Kho & Đơn Hàng</span>)</small>
+                </div>
+                <button class="portal-btn-logout btn-staff-logout" title="Đăng xuất khỏi ca trực">
+                    Đăng xuất
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==============================================================================
+         2. SUB NAVIGATION TABS
+         ============================================================================== -->
+    <nav class="portal-nav-bar" id="staffNavBar">
+        <div class="portal-nav-inner">
+            <button class="portal-tab-btn staff-tab active" data-target="tabStaffOrders">
+                📦 Xử Lý Đơn Hàng Mới
+            </button>
+            <button class="portal-tab-btn staff-tab" data-target="tabStaffInventory">
+                🪑 Tra Cứu Tồn Kho & Kích Thước
+            </button>
+        </div>
+    </nav>
+
+    <!-- ==============================================================================
+         3. MAIN CONTAINER
+         ============================================================================== -->
+    <main class="portal-container" id="staffMainContent">
+
+        <!-- THỐNG KÊ NHANH CA TRỰC -->
+        <div class="stat-cards-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+            <div class="stat-card stat-accent-amber" style="padding:16px;">
+                <span class="stat-card-label">⏳ Đơn mới cần gọi:</span>
+                <span class="stat-card-val" id="staffKpiPending" style="color:#b45309;">0</span>
+            </div>
+            <div class="stat-card stat-accent-purple" style="padding:16px;">
+                <span class="stat-card-label">🚚 Đang trên đường giao:</span>
+                <span class="stat-card-val" id="staffKpiShipping" style="color:#6d28d9;">0</span>
+            </div>
+            <div class="stat-card stat-accent-green" style="padding:16px;">
+                <span class="stat-card-label">✅ Đã giao hoàn tất:</span>
+                <span class="stat-card-val" id="staffKpiCompleted" style="color:#15803d;">0</span>
+            </div>
+            <div class="stat-card stat-accent-red" style="padding:16px;">
+                <span class="stat-card-label">❌ Đơn đã hủy:</span>
+                <span class="stat-card-val" id="staffKpiCancelled" style="color:#b91c1c;">0</span>
+            </div>
+        </div>
+
+        <!-- TAB 1: XỬ LÝ ĐƠN HÀNG -->
+        <div class="portal-tab-pane active" id="tabStaffOrders">
+            <div class="portal-card">
+                <div class="portal-card-header">
+                    <div>
+                        <h2 class="portal-card-title">📦 Danh Sách Đơn Hàng Cần Tác Nghiệp</h2>
+                        <p class="portal-card-subtitle">Bấm số điện thoại để gọi ngay cho khách - Bấm nút 1 chạm để cập nhật tiến độ giao</p>
+                    </div>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <input type="text" id="staffOrderSearchInput" class="form-control" placeholder="🔍 Tìm theo SĐT, tên, mã đơn..." style="width:260px;">
+                    </div>
+                </div>
+
+                <!-- Thanh lọc nhanh trạng thái -->
+                <div class="staff-filter-pills-bar" style="margin-bottom:20px;">
+                    <button class="staff-filter-pill active" data-status="all">Tất cả đơn</button>
+                    <button class="staff-filter-pill" data-status="pending">⏳ Chờ xử lý</button>
+                    <button class="staff-filter-pill" data-status="confirmed">📞 Đã xác nhận</button>
+                    <button class="staff-filter-pill" data-status="shipping">🚚 Đang giao hàng</button>
+                    <button class="staff-filter-pill" data-status="completed">✅ Đã giao xong</button>
+                    <button class="staff-filter-pill" data-status="cancelled">❌ Đã hủy</button>
+                </div>
+
+                <!-- Lưới danh sách thẻ đơn hàng -->
+                <div id="staffOrdersCardsList" class="staff-orders-grid">
+                    <!-- Danh sách thẻ đơn hàng được nạp tự động -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: TRA CỨU TỒN KHO -->
+        <div class="portal-tab-pane" id="tabStaffInventory">
+            <div class="portal-card">
+                <div class="portal-card-header">
+                    <div>
+                        <h2 class="portal-card-title">🪑 Tra Cứu Tồn Kho & Thông Số Kỹ Thuật Đồ Gỗ</h2>
+                        <p class="portal-card-subtitle">Xem nhanh kích thước, loại gỗ và số lượng còn lại trong kho để báo khách khi nghe máy</p>
+                    </div>
+                    <div>
+                        <input type="text" id="staffInventorySearch" class="form-control" placeholder="🔍 Tìm tên sản phẩm, loại gỗ..." style="width:280px;">
+                    </div>
+                </div>
+
+                <div id="staffInventoryTableContainer">
+                    <!-- Bảng tồn kho nạp tự động -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script điều khiển -->
+    <script type="module" src="js/staff-page.js"></script>
+</body>
+</html>
