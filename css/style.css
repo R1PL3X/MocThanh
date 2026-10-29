@@ -1,0 +1,1087 @@
+/* ==============================================================================
+   MUJI WOODEN FURNITURE THEME (JAPANESE MINIMALIST STYLE)
+   ============================================================================== */
+
+:root {
+    --brand-red: #7F0019;
+    --brand-red-dark: #620013;
+    --brand-red-light: #9b0b27;
+    --muji-red: var(--brand-red);
+    --muji-red-dark: var(--brand-red-dark);
+    --muji-red-light: var(--brand-red-light);
+    --text-primary: #222222;
+    --text-secondary: #666666;
+    --text-muted: #8e8e8e;
+    --bg-page: #f9f7f4;
+    --bg-card: #ffffff;
+    --wood-accent: #c69c6d;
+    --wood-warm: #ede4d8;
+    --border-light: #e5dfd5;
+    --border-dark: #cccccc;
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --shadow-sm: 0 2px 6px rgba(0,0,0,0.04);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+    --shadow-lg: 0 16px 40px rgba(0,0,0,0.12);
+    --transition: all 0.22s ease-in-out;
+    --max-width: 1240px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    background: none;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+.container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ==============================================================================
+   1. TOP ANNOUNCEMENT BAR (GIỐNG ẢNH ĐÍNH KÈM)
+   ============================================================================== */
+.top-bar {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 12px;
+    color: #444444;
+    padding: 6px 0;
+}
+
+.top-bar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-announcement {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.top-announcement .highlight {
+    color: var(--muji-red);
+    font-weight: 700;
+}
+
+.top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.top-lang-select {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.top-auth-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.top-auth-link:hover {
+    color: var(--muji-red);
+}
+
+/* ==============================================================================
+   2. MAIN RED HEADER BAR (MÀU ĐỎ MUJI ĐẶC TRƯNG)
+   ============================================================================== */
+.main-header {
+    background-color: var(--muji-red);
+    color: #ffffff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    gap: 20px;
+}
+
+/* Logo MUJI */
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.logo-text-wrap {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+}
+
+.logo-main {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+}
+
+.logo-sub {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+/* Navigation Menu */
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-menu li a {
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 8px 6px;
+    border-radius: 4px;
+    transition: var(--transition);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.nav-menu li a:hover,
+.nav-menu li a.active {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.nav-menu .badge-hot {
+    background-color: #ffd166;
+    color: #111;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 3px;
+    margin-left: 2px;
+}
+
+/* Search Bar (Giống thanh tìm kiếm trong ảnh) */
+.header-search {
+    flex: 1;
+    max-width: 360px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-input-box {
+    width: 100%;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 36px 8px 34px;
+    font-size: 13px;
+    color: #333333;
+    outline: none;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.search-input-box::placeholder {
+    color: #777777;
+}
+
+.search-icon-left {
+    position: absolute;
+    left: 10px;
+    color: #666666;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 8px;
+    color: #777777;
+    font-size: 16px;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.search-clear-btn:hover {
+    color: #111;
+    background-color: #eee;
+}
+
+/* Header Action Buttons */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.btn-header-cart {
+    position: relative;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+
+.btn-header-cart:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.cart-count-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #ffffff;
+    color: var(--muji-red);
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Supabase Quick Status in Header */
+.supabase-header-status {
+    display: flex;
+    align-items: center;
+}
+
+.supabase-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(0,0,0,0.15);
+    color: #ffffff;
+    transition: var(--transition);
+}
+
+.supabase-status-badge:hover {
+    background: rgba(0,0,0,0.35);
+}
+
+.supabase-status-badge .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.supabase-status-badge.online .dot {
+    background-color: #2ec4b6;
+    box-shadow: 0 0 6px #2ec4b6;
+}
+
+.supabase-status-badge.offline .dot {
+    background-color: #ffd166;
+    box-shadow: 0 0 6px #ffd166;
+}
+
+/* ==============================================================================
+   3. HERO ROOM SHOWCASE SECTION (CHÍNH XÁC NHƯ ẢNH ĐÍNH KÈM)
+   ============================================================================== */
+.hero-showcase {
+    position: relative;
+    width: 100%;
+    background-color: #eae5de;
+    overflow: hidden;
+}
+
+.hero-media-wrapper {
+    position: relative;
+    width: 100%;
+    max-height: 520px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.hero-banner-img {
+    width: 100%;
+    height: 100%;
+    max-height: 520px;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+/* Overlay Shoppable Hotspots */
+.hotspot-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.hotspot-pin {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.hotspot-dot {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid var(--muji-red);
+    color: var(--muji-red);
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    transition: transform 0.2s ease;
+}
+
+.hotspot-pin:hover .hotspot-dot {
+    transform: scale(1.15);
+    background: var(--muji-red);
+    color: #ffffff;
+}
+
+.hotspot-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: rgba(127, 0, 25, 0.35);
+    animation: pulseRing 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+    pointer-events: none;
+}
+
+@keyframes pulseRing {
+    0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0.8; }
+    100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; }
+}
+
+.hotspot-tooltip {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    padding: 10px 14px;
+    min-width: 200px;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    text-align: left;
+}
+
+.hotspot-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #ffffff transparent transparent transparent;
+}
+
+.hotspot-pin:hover .hotspot-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.hotspot-tooltip strong {
+    display: block;
+    font-size: 13px;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    white-space: nowrap;
+}
+
+.hotspot-tooltip span {
+    font-size: 13px;
+    color: var(--muji-red);
+    font-weight: 700;
+    display: block;
+}
+
+.hotspot-tooltip .hotspot-link {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+/* ==============================================================================
+   4. BREADCRUMB (GIỐNG DÒNG CHỮ TRONG ẢNH: Trang chủ > Nhà Cửa Đời Sống > Đồ Nội Thất)
+   ============================================================================== */
+.breadcrumb-section {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-light);
+    padding: 12px 0;
+    font-size: 13px;
+}
+
+.breadcrumb-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.breadcrumb-list a:hover {
+    color: var(--muji-red);
+    text-decoration: underline;
+}
+
+.breadcrumb-sep {
+    color: #999999;
+}
+
+.breadcrumb-current {
+    color: var(--muji-red);
+    font-weight: 700;
+}
+
+/* Supabase Notice Banner */
+.supabase-banner {
+    background: linear-gradient(90deg, #fdf6ec, #faf2e4);
+    border: 1px solid #ebd8bd;
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.supabase-banner-text {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: #724b17;
+}
+
+.supabase-banner-btn {
+    background-color: var(--muji-red);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 4px;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.supabase-banner-btn:hover {
+    background-color: var(--muji-red-dark);
+}
+
+/* ==============================================================================
+   5. CATALOG & PRODUCT GRID
+   ============================================================================== */
+.catalog-section {
+    padding: 30px 0 60px;
+}
+
+.catalog-header {
+    margin-bottom: 24px;
+}
+
+.catalog-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 16px;
+    border-bottom: 2px solid var(--border-light);
+    padding-bottom: 12px;
+}
+
+.catalog-title {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+}
+
+.catalog-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* Category Filter Tabs */
+.category-tabs-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+}
+
+.category-tabs-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.cat-tab {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    transition: var(--transition);
+}
+
+.cat-tab:hover {
+    border-color: var(--muji-red);
+    color: var(--muji-red);
+}
+
+.cat-tab.active {
+    background-color: var(--muji-red);
+    border-color: var(--muji-red);
+    color: #ffffff;
+}
+
+/* Controls Bar (Chất liệu, Sắp xếp, Tổng số) */
+.catalog-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0 26px;
+    background: #ffffff;
+    padding: 12px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.filter-select {
+    border: 1px solid var(--border-dark);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    background-color: #ffffff;
+    color: var(--text-primary);
+    outline: none;
+    cursor: pointer;
+}
+
+.product-count-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* Product Cards Grid */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+}
+
+.product-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: #d1c7b7;
+}
+
+.product-media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background-color: #f5f2ec;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.product-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.35s ease;
+}
+
+.product-card:hover .product-media img {
+    transform: scale(1.04);
+}
+
+.badge-discount {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: var(--muji-red);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+}
+
+.badge-bestseller {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #ffd166;
+    color: #333333;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+}
+
+.badge-new {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #2ec4b6;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+}
+
+.btn-quick-view {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%) translateY(30px);
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: var(--transition);
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.product-card:hover .btn-quick-view {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.product-info {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.product-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.wood-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: #8b6b47;
+    background-color: #f7eee2;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.product-rating {
+    font-size: 12px;
+    color: #e67e22;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.product-rating .reviews-num {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.product-title {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 6px;
+    cursor: pointer;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 40px;
+}
+
+.product-title:hover {
+    color: var(--muji-red);
+}
+
+.product-dimensions {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.product-bottom {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border-light);
+}
+
+.product-pricing {
+    display: flex;
+    flex-direction: column;
+}
+
+.current-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--muji-red);
+}
+
+.original-price {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: line-through;
+}
+
+.btn-add-cart {
+    background-color: #f3ede2;
+    color: #5d4529;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: var(--transition);
+}
+
+.btn-add-cart:hover {
+    background-color: var(--muji-red);
+    color: #ffffff;
+}
+
+/* ==============================================================================
+   6. BRAND PHILOSOPHY / WABI-SABI SECTION
+   ============================================================================== */
+.philosophy-section {
+    background-color: #ffffff;
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+    padding: 60px 0;
+    margin-top: 40px;
+}
+
+.philosophy-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 36px;
+}
+
+.philo-item {
+    text-align: center;
+    padding: 0 10px;
+}
+
+.philo-icon {
+    width: 60px;
+    height: 60px;
+    background-color: #f7eee2;
+    color: var(--muji-red);
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.philo-item h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.philo-item p {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* ==============================================================================
+   7. FLOATING LIVE & SUPPORT ICONS (GIỐNG ẢNH ĐÍNH KÈM)
+   ============================================================================== */
+.floating-widgets-wrapper {
+    position: fixed;
+    right: 20px;
+    bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    z-index: 99;
+}
+
+.btn-floating-live {
+    width: 52px;
+    height: 52px;
+    background-color: var(--muji-red);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(127, 0, 25, 0.45);
+    transition: transform 0.2s ease;
+    position: relative;
+}
+
+.btn-floating-live:hover {
+    transform: scale(1.08);
+}
+
+.btn-floating-live .live-icon-svg {
+    margin-bottom: 1px;
+}
+
+.btn-floating-live span {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.btn-floating-support {
+    width: 50px;
+    height: 50px;
+    background-color: #ffffff;
+    color: #333333;
+    border: 1px solid var(--border-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.btn-floating-support:hover {
+    transform: scale(1.08);
+    background-color: #f7eee2;
+    color: var(--muji-red);
+}
+
+/* ==============================================================================
+   8. FOOTER
+   ============================================================================== */
+.main-footer {
+    background-color: #262626;
+    color: #d1d1d1;
+    font-size: 13px;
+    padding: 60px 0 30px;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.5fr;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.footer-col h4 {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+}
+
+.footer-col p {
+    line-height: 1.7;
+    margin-bottom: 12px;
+    color: #b0b0b0;
+}
+
+.footer-links {
+    list-style: none;
+}
+
+.footer-links li {
+    margin-bottom: 10px;
+}
+
+.footer-links a {
+    color: #b0b0b0;
+    transition: var(--transition);
+}
+
+.footer-links a:hover {
+    color: #ffffff;
+    padding-left: 4px;
+}
+
+.footer-bottom {
+    border-top: 1px solid #3c3c3c;
+    padding-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #888888;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.footer-admin-btn {
+    color: #b0b0b0;
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .header-inner {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 10px 0;
+    }
+    .nav-menu {
+        overflow-x: auto;
+        width: 100%;
+        padding-bottom: 6px;
+    }
+    .header-search {
+        order: 3;
+        max-width: 100%;
+        width: 100%;
+    }
+    .philosophy-grid {
+        grid-template-columns: 1fr;
+    }
+    .footer-grid {
+        grid-template-columns: 1fr;
+    }
+}
