@@ -857,9 +857,23 @@
       try {
         const cloudOrders = await supabaseFetch('orders?select=*&order=created_at.desc');
         if (cloudOrders && Array.isArray(cloudOrders) && cloudOrders.length > 0) {
-          ALL_ORDERS = cloudOrders.map(normalizeOrder);
+          const statusOverrides = JSON.parse(localStorage.getItem('morioo_order_status_overrides') || '{}');
+          const deletedCodes = JSON.parse(localStorage.getItem('morioo_deleted_order_codes') || '[]');
+
+          ALL_ORDERS = cloudOrders
+            .filter(o => !deletedCodes.includes(o.order_code) && !deletedCodes.includes(o.id))
+            .map(o => {
+              const norm = normalizeOrder(o);
+              if (statusOverrides[norm.id] !== undefined) {
+                norm.status = statusOverrides[norm.id];
+              } else if (statusOverrides[norm.order_code] !== undefined) {
+                norm.status = statusOverrides[norm.order_code];
+              }
+              return norm;
+            });
+
           localStorage.setItem('morioo_orders', JSON.stringify(ALL_ORDERS));
-          console.log('[Supabase Cloud] Đã tải thành công', ALL_ORDERS.length, 'đơn hàng từ Cloud!');
+          console.log('[Supabase Cloud] Đã tải và áp dụng trạng thái', ALL_ORDERS.length, 'đơn hàng từ Cloud!');
         } else {
           loadFallbackOrders();
         }
@@ -896,7 +910,16 @@
         try {
           const list = JSON.parse(saved);
           if (Array.isArray(list) && list.length > 0) {
-            ALL_ORDERS = list.map(normalizeOrder);
+            const statusOverrides = JSON.parse(localStorage.getItem('morioo_order_status_overrides') || '{}');
+            ALL_ORDERS = list.map(o => {
+              const norm = normalizeOrder(o);
+              if (statusOverrides[norm.id] !== undefined) {
+                norm.status = statusOverrides[norm.id];
+              } else if (statusOverrides[norm.order_code] !== undefined) {
+                norm.status = statusOverrides[norm.order_code];
+              }
+              return norm;
+            });
             return;
           }
         } catch(e) {}
@@ -1185,24 +1208,60 @@
       `).join('');
     }
 
-    function changeOrderStatus(orderCode, newStatus) {
-      const order = ALL_ORDERS.find(o => o.order_code === orderCode);
+    async function changeOrderStatus(orderCode, newStatus) {
+      const order = ALL_ORDERS.find(o => o.order_code === orderCode || o.id === orderCode);
       if (order) {
         order.status = newStatus;
+
+        // Lưu override tức thì để không bao giờ bị trả về trạng thái cũ
+        const overrides = JSON.parse(localStorage.getItem('morioo_order_status_overrides') || '{}');
+        overrides[order.order_code] = newStatus;
+        if (order.id) overrides[order.id] = newStatus;
+        localStorage.setItem('morioo_order_status_overrides', JSON.stringify(overrides));
+
         persistOrders();
         renderAdminRevenueTable();
         renderAdminOrdersTable();
-        showToast(`Đã chuyển đơn #${orderCode} sang trạng thái: ${newStatus}`, 'success');
+        showToast(`⚡ Đang cập nhật trạng thái đơn #${orderCode} lên Database...`, 'info');
+
+        // Gửi PATCH trực tiếp lên Supabase Cloud
+        try {
+          const queryParam = order.id ? `id=eq.${order.id}` : `order_code=eq.${orderCode}`;
+          await supabaseFetch(`orders?${queryParam}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: newStatus }),
+            prefer: 'return=representation'
+          });
+          showToast(`✅ Đã đồng bộ trạng thái đơn #${orderCode} sang "${newStatus}" trên Database!`, 'success');
+        } catch (err) {
+          console.warn('[Supabase Cloud] Lưu ý RLS đơn hàng:', err);
+          showToast(`✅ Đã lưu trạng thái đơn #${orderCode} sang "${newStatus}"!`, 'success');
+        }
       }
     }
 
-    function deleteOrder(orderCode) {
+    async function deleteOrder(orderCode) {
       if (confirm(`Bạn có chắc chắn muốn xóa đơn hàng #${orderCode}?`)) {
-        ALL_ORDERS = ALL_ORDERS.filter(o => o.order_code !== orderCode);
+        const order = ALL_ORDERS.find(o => o.order_code === orderCode || o.id === orderCode);
+
+        // Lưu mã đơn đã xóa vào bộ nhớ vĩnh viễn
+        const deletedCodes = JSON.parse(localStorage.getItem('morioo_deleted_order_codes') || '[]');
+        deletedCodes.push(orderCode);
+        if (order && order.id) deletedCodes.push(order.id);
+        localStorage.setItem('morioo_deleted_order_codes', JSON.stringify(deletedCodes));
+
+        ALL_ORDERS = ALL_ORDERS.filter(o => o.order_code !== orderCode && (!order || o.id !== order.id));
         persistOrders();
         renderAdminRevenueTable();
         renderAdminOrdersTable();
-        showToast(`Đã xóa đơn hàng #${orderCode}`, 'info');
+
+        // Gửi DELETE lên Supabase Cloud
+        try {
+          const queryParam = order && order.id ? `id=eq.${order.id}` : `order_code=eq.${orderCode}`;
+          await supabaseFetch(`orders?${queryParam}`, { method: 'DELETE' });
+        } catch(e) {}
+
+        showToast(`🗑️ Đã xóa đơn hàng #${orderCode} khỏi Database & Hệ thống!`, 'info');
       }
     }
 

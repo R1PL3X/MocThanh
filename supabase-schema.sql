@@ -112,6 +112,10 @@ CREATE POLICY "Public Read Accounts" ON accounts FOR SELECT USING (true);
 
 CREATE POLICY "Public Insert Orders" ON orders FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public Read Orders" ON orders FOR SELECT USING (true);
+CREATE POLICY "Public Update Orders" ON orders FOR UPDATE USING (true);
+CREATE POLICY "Public Delete Orders" ON orders FOR DELETE USING (true);
+CREATE POLICY "Public Update Order Items" ON order_items FOR UPDATE USING (true);
+CREATE POLICY "Public Delete Order Items" ON order_items FOR DELETE USING (true);
 CREATE POLICY "Public Insert Order Items" ON order_items FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public Read Order Items" ON order_items FOR SELECT USING (true);
 CREATE POLICY "Public Insert Reviews" ON reviews FOR INSERT WITH CHECK (true);

@@ -589,7 +589,15 @@
       }
       const localOrds = localStorage.getItem('morioo_orders');
       if (localOrds) {
-        try { STAFF_ORDERS = JSON.parse(localOrds); } catch (e) {}
+        try {
+          const list = JSON.parse(localOrds);
+          const overrides = JSON.parse(localStorage.getItem('morioo_order_status_overrides') || '{}');
+          STAFF_ORDERS = list.map(o => {
+            if (overrides[o.order_code]) o.status = overrides[o.order_code];
+            if (overrides[o.id]) o.status = overrides[o.id];
+            return o;
+          });
+        } catch (e) {}
       }
 
       updateStaffKpiMetrics();
@@ -802,7 +810,12 @@
       const ord = STAFF_ORDERS.find(o => o.order_code === code);
       if (ord) {
         ord.status = status;
+        const overrides = JSON.parse(localStorage.getItem('morioo_order_status_overrides') || '{}');
+        overrides[code] = status;
+        if (ord.id) overrides[ord.id] = status;
+        localStorage.setItem('morioo_order_status_overrides', JSON.stringify(overrides));
         localStorage.setItem('morioo_orders', JSON.stringify(STAFF_ORDERS));
+        window.dispatchEvent(new CustomEvent('order-list-changed'));
         showToast(`Đã chuyển đơn #${code} sang trạng thái mới!`, 'success');
         updateStaffKpiMetrics();
         renderStaffOrdersGrid();
