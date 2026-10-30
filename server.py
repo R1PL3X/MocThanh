@@ -16,11 +16,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
     def do_GET(self):
-        # Hỗ trợ URL đẹp giống moccnha (/admin, /admin/products, /staff)
+        # Hỗ trợ URL đẹp giống moccnha (/admin, /admin/products, /admin/accounts, /staff)
         clean_path = self.path.split('?')[0].split('#')[0].rstrip('/')
-        if clean_path in ('/admin', '/admin/orders', '/admin/products', '/admin/revenue', '/admin/quotes'):
+        if clean_path == '/admin' or clean_path.startswith('/admin/'):
             self.path = '/admin.html'
-        elif clean_path in ('/staff', '/nhan-vien'):
+        elif clean_path == '/staff' or clean_path.startswith('/staff/') or clean_path == '/nhan-vien':
             self.path = '/staff.html'
         return super().do_GET()
 

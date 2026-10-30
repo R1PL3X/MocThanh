@@ -120,7 +120,7 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
     
     <!-- 4 CORE METRICS CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
       
       <!-- Card 1: Doanh thu tích lũy -->
       <div 
@@ -180,6 +180,20 @@
         <div id="subtextQuotes" class="text-[11px] text-gray-400 mt-1">Bấm để xem yêu cầu sỉ &rarr;</div>
       </div>
 
+      <!-- Card 5: Tài khoản hệ thống (Admin, Nhân viên, Khách hàng) -->
+      <div 
+        id="cardStatAccounts"
+        onclick="switchAdminTab('accounts')" 
+        class="cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-purple-500/50 hover:shadow-md transition transform hover:-translate-y-0.5"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">5. Tài khoản người dùng</span>
+          <span class="text-lg">👥</span>
+        </div>
+        <div id="statAccounts" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-2 font-mono">0</div>
+        <div id="subtextAccounts" class="text-[11px] text-gray-400 mt-1">Bấm để quản lý phân quyền &rarr;</div>
+      </div>
+
     </div>
 
     <!-- 4 TABS NAVIGATION -->
@@ -221,6 +235,16 @@
       >
         <span>📄 Báo Giá Dự Án (B2B)</span>
         <span id="quotesCountBadge" class="bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+      </button>
+
+      <button 
+        type="button" 
+        id="tabAccountsBtn" 
+        onclick="switchAdminTab('accounts')" 
+        class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap"
+      >
+        <span>👥 Quản Lý Tài Khoản</span>
+        <span id="accountsCountBadge" class="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
       </button>
     </div>
 
@@ -583,6 +607,99 @@
       </div>
     </div>
 
+    <!-- ========================================================================= -->
+    <!-- TAB 5: QUẢN LÝ TÀI KHOẢN (ACCOUNTS MANAGEMENT) -->
+    <!-- ========================================================================= -->
+    <div id="tabAccountsContent" class="space-y-6 hidden">
+      <!-- SUB METRICS GRID: PHÂN LOẠI TÀI KHOẢN -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">👑 Quản Trị Viên (Admin)</div>
+          <div id="countRoleAdmin" class="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1 font-mono">1</div>
+          <div class="text-[10px] text-gray-400 mt-1">Toàn quyền hệ thống & cấu hình Cloud</div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">💼 Nhân Viên Tác Nghiệp (Staff)</div>
+          <div id="countRoleStaff" class="text-xl font-bold text-sky-600 dark:text-sky-400 mt-1 font-mono">1</div>
+          <div class="text-[10px] text-gray-400 mt-1">Xử lý đơn hàng, kho vận & hotline</div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">🛒 Khách Hàng (Customer)</div>
+          <div id="countRoleCustomer" class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1 font-mono">1</div>
+          <div class="text-[10px] text-gray-400 mt-1">Tài khoản mua sắm online</div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">🛡️ Bảo Mật Phân Quyền</div>
+          <div class="text-xl font-bold text-purple-600 dark:text-purple-400 mt-1 font-mono">Supabase RLS</div>
+          <div class="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1 font-semibold">● Đồng bộ public.accounts</div>
+        </div>
+      </div>
+
+      <!-- FILTER & ACTIONS BAR -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-semibold mr-1">Lọc vai trò:</span>
+          <button onclick="setAccountFilter('all')" data-accfilter="all" class="acc-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-700 text-white shadow-sm">Tất cả</button>
+          <button onclick="setAccountFilter('admin')" data-accfilter="admin" class="acc-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">👑 Quản trị viên</button>
+          <button onclick="setAccountFilter('staff')" data-accfilter="staff" class="acc-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">💼 Nhân viên</button>
+          <button onclick="setAccountFilter('customer')" data-accfilter="customer" class="acc-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">🛒 Khách hàng</button>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <input 
+            type="text" 
+            placeholder="Tìm theo họ tên, email, SĐT..." 
+            oninput="handleAccountSearch(this.value)" 
+            class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:border-purple-600 w-full sm:w-56"
+          />
+          <button 
+            type="button" 
+            onclick="openAddAccountModal()" 
+            class="text-xs bg-purple-700 hover:bg-purple-800 text-white px-3.5 py-1.5 rounded-lg font-bold shadow transition flex items-center gap-1.5 whitespace-nowrap"
+          >
+            <span>➕ Cấp Tài Khoản Mới</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- MAIN ACCOUNTS TABLE -->
+      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white">Bảng Quản Trị Tài Khoản Người Dùng (Supabase & Hệ Thống)</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Danh sách tài khoản khách hàng, nhân viên bán hàng và ban quản trị MORIOO Furniture.</p>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button onclick="loadDataFromSupabase()" class="text-xs bg-purple-50 dark:bg-zinc-800 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-purple-100 transition flex items-center gap-1 font-medium">
+              ⟳ Làm mới tài khoản
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+              <tr>
+                <th class="p-3.5">Mã ID & Ngày tạo</th>
+                <th class="p-3.5">Họ & Tên</th>
+                <th class="p-3.5">Email Đăng Nhập</th>
+                <th class="p-3.5">Số Điện Thoại</th>
+                <th class="p-3.5">Vai Trò (Phân Quyền)</th>
+                <th class="p-3.5">Bộ Phận / Chức Vụ</th>
+                <th class="p-3.5 text-right">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="adminAccountsTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+              <!-- Loaded via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- ========================================================================= -->
@@ -666,6 +783,67 @@
     </div>
   </div>
 
+  <!-- ========================================================================= -->
+  <!-- ADD / CREATE USER ACCOUNT MODAL -->
+  <!-- ========================================================================= -->
+  <div id="addAccountModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-zinc-900 w-full max-w-lg rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50/50 dark:bg-zinc-800/50">
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <span>👥 Cấp Mới Tài Khoản & Phân Quyền (Supabase Cloud)</span>
+        </h3>
+        <button onclick="closeAddAccountModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg font-bold">✕</button>
+      </div>
+
+      <form id="addAccountForm" onsubmit="handleCreateAccount(event)" class="p-5 overflow-y-auto space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold mb-1">Họ và tên người dùng *</label>
+          <input id="accFullName" name="fullName" required type="text" placeholder="VD: Lê Thị Bích" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-purple-600" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold mb-1">Email đăng nhập *</label>
+            <input id="accEmail" name="email" required type="email" placeholder="VD: nhanvien2@morioo.vn" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-purple-600" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Số điện thoại</label>
+            <input id="accPhone" name="phone" type="tel" placeholder="VD: 0988777666" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-purple-600" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">Mật khẩu khởi tạo *</label>
+          <input id="accPassword" name="password" required type="text" value="Morioo@123" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-purple-600 font-mono" />
+          <p class="text-[10px] text-gray-400 mt-1">Người dùng có thể đăng nhập ngay với mật khẩu này.</p>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1 text-purple-700 dark:text-purple-400">Phân quyền vai trò *</label>
+          <select id="accRole" name="role" required class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-purple-600 font-bold">
+            <option value="staff" selected>💼 Nhân Viên (Staff) - Quản lý đơn hàng, đổi trạng thái & kho hàng</option>
+            <option value="admin">👑 Quản Trị Viên (Admin) - Toàn quyền cấu hình sản phẩm, doanh thu, tài khoản</option>
+            <option value="customer">🛒 Khách Hàng (Customer) - Mua hàng & theo dõi đơn hàng cá nhân</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">Phòng ban / Bộ phận / Ghi chú</label>
+          <input id="accDepartment" name="department" type="text" placeholder="VD: Xử lý đơn hàng, Chăm sóc khách hàng, Kho vận..." class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-purple-600" />
+        </div>
+
+        <div class="pt-4 border-t border-gray-100 dark:border-zinc-800 flex justify-end gap-2">
+          <button type="button" onclick="closeAddAccountModal()" class="px-4 py-2 border border-gray-200 dark:border-zinc-700 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 font-medium transition">
+            Hủy
+          </button>
+          <button type="submit" class="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-5 py-2 rounded-lg shadow transition">
+            Lưu Tài Khoản Lên Supabase
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- TOAST CONTAINER -->
   <div id="toastContainer" class="fixed top-16 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
@@ -687,6 +865,42 @@
     let ALL_PRODUCTS = [];
     let ALL_ORDERS = [];
     let ALL_QUOTES = [];
+    let ALL_ACCOUNTS = [];
+    let CURRENT_ACCOUNT_FILTER = 'all';
+
+    // Default Seed Accounts (Admin, Staff, Customer)
+    const DEFAULT_ACCOUNTS = [
+      {
+        id: "acc-admin-supreme",
+        email: "admin@morioo.vn",
+        password_hash: "Admin123!",
+        full_name: "Quản Trị Viên MORIOO",
+        phone: "0901234567",
+        role: "admin",
+        department: "Ban Giám Đốc & Quản Trị Hệ Thống",
+        created_at: new Date().toISOString()
+      },
+      {
+        id: "acc-staff-1",
+        email: "nhanvien@morioo.vn",
+        password_hash: "Staff123!",
+        full_name: "Lê Văn Nhân Viên",
+        phone: "0912345678",
+        role: "staff",
+        department: "Xử Lý Đơn Hàng & Kho Vận",
+        created_at: new Date().toISOString()
+      },
+      {
+        id: "acc-customer-1",
+        email: "khachhang@gmail.com",
+        password_hash: "Khach123!",
+        full_name: "Trần Khách Hàng",
+        phone: "0987654321",
+        role: "customer",
+        department: "Khách Hàng Thân Thiết",
+        created_at: new Date().toISOString()
+      }
+    ];
 
     // Image Presets for Quick Fill
     const IMAGE_PRESETS = {
@@ -832,6 +1046,26 @@
       };
     }
 
+    // Normalize account record
+    function normalizeAccount(a) {
+      let createdStr = a.created_at;
+      try {
+        if (a.created_at) {
+          createdStr = new Date(a.created_at).toLocaleString('vi-VN');
+        }
+      } catch(e) {}
+
+      return {
+        id: a.id || ('acc-' + Math.floor(1000 + Math.random() * 9000)),
+        email: (a.email || '').trim().toLowerCase(),
+        full_name: a.full_name || a.name || 'Người dùng MORIOO',
+        phone: a.phone || '',
+        role: (a.role || 'customer').toLowerCase(),
+        department: a.department || (a.role === 'admin' ? 'Ban Giám Đốc & Quản Trị' : a.role === 'staff' ? 'Xử Lý Đơn Hàng & Kho Vận' : 'Khách Hàng'),
+        created_at: createdStr || 'Vừa xong'
+      };
+    }
+
     // =========================================================================
     // LOAD DATA DIRECTLY FROM SUPABASE CLOUD
     // =========================================================================
@@ -884,6 +1118,21 @@
 
       // 3. Load B2B Quotes
       loadQuotes();
+
+      // 4. Fetch accounts from Supabase Cloud (Admin, Staff, Customer)
+      try {
+        const cloudAccounts = await supabaseFetch('accounts?select=*&order=created_at.desc');
+        if (cloudAccounts && Array.isArray(cloudAccounts) && cloudAccounts.length > 0) {
+          ALL_ACCOUNTS = cloudAccounts.map(normalizeAccount);
+          localStorage.setItem('morioo_accounts', JSON.stringify(ALL_ACCOUNTS));
+          console.log('[Supabase Cloud] Đã tải thành công', ALL_ACCOUNTS.length, 'tài khoản từ Cloud!');
+        } else {
+          loadFallbackAccounts();
+        }
+      } catch (err) {
+        console.warn('[Supabase Cloud] Bảng accounts chưa tồn tại hoặc lỗi, dùng cache hệ thống:', err.message);
+        loadFallbackAccounts();
+      }
 
       updateCloudStatusPill('connected');
       renderAllData();
@@ -974,6 +1223,21 @@
       localStorage.setItem('morioo_quotes', JSON.stringify(ALL_QUOTES));
     }
 
+    function loadFallbackAccounts() {
+      const saved = localStorage.getItem('morioo_accounts');
+      if (saved) {
+        try {
+          const list = JSON.parse(saved);
+          if (Array.isArray(list) && list.length > 0) {
+            ALL_ACCOUNTS = list.map(normalizeAccount);
+            return;
+          }
+        } catch(e) {}
+      }
+      ALL_ACCOUNTS = DEFAULT_ACCOUNTS.map(normalizeAccount);
+      localStorage.setItem('morioo_accounts', JSON.stringify(ALL_ACCOUNTS));
+    }
+
     // Persist Products to Local Cache and Trigger Events
     function persistProducts() {
       localStorage.setItem('morioo_products', JSON.stringify(ALL_PRODUCTS));
@@ -988,7 +1252,7 @@
       updateStatsCards();
     }
 
-    // Update Top 4 Metric Cards & Badges
+    // Update Top 5 Metric Cards & Badges
     function updateStatsCards() {
       const validOrders = ALL_ORDERS.filter(o => o.status !== 'cancelled');
       const totalRev = validOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
@@ -997,10 +1261,27 @@
       document.getElementById('statOrders').textContent = ALL_ORDERS.length;
       document.getElementById('statProducts').textContent = ALL_PRODUCTS.length;
       document.getElementById('statQuotes').textContent = ALL_QUOTES.length;
+      if (document.getElementById('statAccounts')) {
+        document.getElementById('statAccounts').textContent = ALL_ACCOUNTS.length;
+      }
 
       document.getElementById('ordersCountBadge').textContent = ALL_ORDERS.length;
       document.getElementById('productsCountBadge').textContent = ALL_PRODUCTS.length;
       document.getElementById('quotesCountBadge').textContent = ALL_QUOTES.length;
+      if (document.getElementById('accountsCountBadge')) {
+        document.getElementById('accountsCountBadge').textContent = ALL_ACCOUNTS.length;
+      }
+
+      // Update sub-metrics in Tab 5
+      const adminCount = ALL_ACCOUNTS.filter(a => a.role === 'admin').length;
+      const staffCount = ALL_ACCOUNTS.filter(a => a.role === 'staff').length;
+      const customerCount = ALL_ACCOUNTS.filter(a => a.role === 'customer').length;
+      const elAdm = document.getElementById('countRoleAdmin');
+      const elStf = document.getElementById('countRoleStaff');
+      const elCst = document.getElementById('countRoleCustomer');
+      if (elAdm) elAdm.textContent = adminCount;
+      if (elStf) elStf.textContent = staffCount;
+      if (elCst) elCst.textContent = customerCount;
     }
 
     // =========================================================================
@@ -1009,7 +1290,7 @@
     function switchAdminTab(tab) {
       CURRENT_TAB = tab;
 
-      const tabs = ['revenue', 'orders', 'products', 'quotes'];
+      const tabs = ['revenue', 'orders', 'products', 'quotes', 'accounts'];
       tabs.forEach(t => {
         const content = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Content`);
         const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
@@ -1650,12 +1931,264 @@
       }
     }
 
+    // =========================================================================
+    // TAB 5: QUẢN LÝ TÀI KHOẢN (ACCOUNTS MANAGEMENT)
+    // =========================================================================
+    function setAccountFilter(role) {
+      CURRENT_ACCOUNT_FILTER = role;
+      document.querySelectorAll('.acc-filter-btn').forEach(btn => {
+        if (btn.dataset.accfilter === role) {
+          btn.className = "acc-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-700 text-white shadow-sm";
+        } else {
+          btn.className = "acc-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300";
+        }
+      });
+      renderAdminAccountsTable();
+    }
+
+    function handleAccountSearch(query) {
+      renderAdminAccountsTable(query.toLowerCase().trim());
+    }
+
+    function renderAdminAccountsTable(searchQuery = '') {
+      const tbody = document.getElementById('adminAccountsTableBody');
+      if (!tbody) return;
+
+      let filtered = ALL_ACCOUNTS;
+      if (CURRENT_ACCOUNT_FILTER !== 'all') {
+        filtered = filtered.filter(a => a.role === CURRENT_ACCOUNT_FILTER);
+      }
+
+      if (searchQuery) {
+        filtered = filtered.filter(a => 
+          (a.full_name && a.full_name.toLowerCase().includes(searchQuery)) ||
+          (a.email && a.email.toLowerCase().includes(searchQuery)) ||
+          (a.phone && a.phone.includes(searchQuery)) ||
+          (a.department && a.department.toLowerCase().includes(searchQuery))
+        );
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="p-8 text-center text-gray-400">
+              <div class="text-3xl mb-1.5">👥</div>
+              <div class="font-bold text-gray-600 dark:text-gray-300">Không tìm thấy tài khoản người dùng nào</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(acc => {
+        let roleBadge = '';
+        if (acc.role === 'admin') {
+          roleBadge = `<span class="bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 px-2.5 py-0.5 rounded text-[11px] font-bold inline-flex items-center gap-1">👑 Quản Trị Viên</span>`;
+        } else if (acc.role === 'staff') {
+          roleBadge = `<span class="bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 px-2.5 py-0.5 rounded text-[11px] font-bold inline-flex items-center gap-1">💼 Nhân Viên</span>`;
+        } else {
+          roleBadge = `<span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 px-2.5 py-0.5 rounded text-[11px] font-bold inline-flex items-center gap-1">🛒 Khách Hàng</span>`;
+        }
+
+        const isSuperAdmin = acc.email === 'admin@morioo.vn';
+
+        return `
+          <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition">
+            <td class="p-3.5 font-mono text-[11px] text-gray-400">
+              <div>#${String(acc.id).slice(-8)}</div>
+              <div class="text-[10px] text-gray-400 mt-0.5">${acc.created_at || 'Mới'}</div>
+            </td>
+            <td class="p-3.5">
+              <div class="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                <span>${acc.full_name}</span>
+                ${isSuperAdmin ? '<span class="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 px-1.5 py-0.2 rounded font-bold">Admin Gốc</span>' : ''}
+              </div>
+            </td>
+            <td class="p-3.5 font-mono text-xs text-gray-700 dark:text-zinc-300">
+              ${acc.email}
+            </td>
+            <td class="p-3.5 font-mono text-xs text-gray-700 dark:text-zinc-300">
+              ${acc.phone || '<span class="text-gray-400 italic">Chưa cập nhật</span>'}
+            </td>
+            <td class="p-3.5">
+              ${roleBadge}
+            </td>
+            <td class="p-3.5 text-xs text-gray-600 dark:text-gray-300">
+              ${acc.department || 'Thành viên'}
+            </td>
+            <td class="p-3.5 text-right whitespace-nowrap">
+              <div class="flex items-center justify-end gap-2">
+                <button 
+                  onclick="changeAccountRole('${acc.id}', '${acc.role}')" 
+                  class="text-xs text-purple-700 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 font-bold px-2 py-1 rounded hover:bg-purple-50 dark:hover:bg-zinc-800 transition"
+                  title="Thay đổi vai trò & phân quyền"
+                >
+                  🔄 Đổi Quyền
+                </button>
+                ${!isSuperAdmin ? `
+                  <span class="text-gray-300 dark:text-zinc-700">|</span>
+                  <button 
+                    onclick="deleteAccount('${acc.id}', '${acc.email}')" 
+                    class="text-xs text-red-600 hover:text-red-800 font-bold px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition"
+                    title="Xóa tài khoản khỏi hệ thống"
+                  >
+                    🗑️ Xóa
+                  </button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openAddAccountModal() {
+      document.getElementById('addAccountModal')?.classList.remove('hidden');
+    }
+
+    function closeAddAccountModal() {
+      document.getElementById('addAccountModal')?.classList.add('hidden');
+    }
+
+    async function handleCreateAccount(e) {
+      e.preventDefault();
+      const form = e.target;
+      const fullName = form.fullName.value.trim();
+      const email = form.email.value.trim().toLowerCase();
+      const phone = form.phone.value.trim();
+      const password = form.password.value.trim();
+      const role = form.role.value;
+      const department = form.department.value.trim() || (role === 'admin' ? 'Ban Giám Đốc' : role === 'staff' ? 'Xử Lý Đơn Hàng' : 'Khách Hàng');
+
+      if (ALL_ACCOUNTS.some(a => a.email === email)) {
+        showToast('Email này đã tồn tại trong danh sách tài khoản!', 'error');
+        return;
+      }
+
+      showToast('⏳ Đang lưu tài khoản lên Supabase Cloud...', 'info');
+
+      const payload = {
+        email: email,
+        password_hash: password,
+        full_name: fullName,
+        phone: phone,
+        role: role,
+        department: department
+      };
+
+      let savedFromCloud = null;
+      try {
+        const resp = await supabaseFetch('accounts', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+          prefer: 'return=representation'
+        });
+        if (resp && resp[0]) {
+          savedFromCloud = resp[0];
+          console.log('[Supabase Cloud] Đã lưu thành công tài khoản:', savedFromCloud.id);
+        }
+      } catch (err) {
+        console.warn('[Supabase Cloud] Lưu online chưa khả dụng (bảng accounts), lưu vào cache nội bộ:', err.message);
+      }
+
+      const newAccount = normalizeAccount(savedFromCloud || {
+        ...payload,
+        id: "acc-" + Date.now(),
+        created_at: new Date().toISOString()
+      });
+
+      ALL_ACCOUNTS.unshift(newAccount);
+      persistAccounts();
+
+      form.reset();
+      document.getElementById('accPassword').value = 'Morioo@123';
+      closeAddAccountModal();
+
+      let roleLabel = role === 'admin' ? 'Quản Trị Viên' : role === 'staff' ? 'Nhân Viên' : 'Khách Hàng';
+      showToast(`🎉 Đã cấp tài khoản ${roleLabel} cho "${fullName}" thành công!`, 'success');
+    }
+
+    async function changeAccountRole(accId, currentRole) {
+      const acc = ALL_ACCOUNTS.find(a => a.id == accId);
+      if (!acc) return;
+
+      const roleNames = {
+        'customer': 'Khách Hàng (Customer)',
+        'staff': 'Nhân Viên (Staff)',
+        'admin': 'Quản Trị Viên (Admin)'
+      };
+
+      const promptMsg = `Chọn vai trò mới cho "${acc.full_name}" (${acc.email}):\n1. Khách Hàng (customer)\n2. Nhân Viên (staff)\n3. Quản Trị Viên (admin)\n\nNhập số 1, 2 hoặc 3:`;
+      const choice = prompt(promptMsg, currentRole === 'admin' ? '3' : currentRole === 'staff' ? '2' : '1');
+      if (!choice) return;
+
+      let newRole = currentRole;
+      if (choice.trim() === '1' || choice.trim().toLowerCase() === 'customer') newRole = 'customer';
+      else if (choice.trim() === '2' || choice.trim().toLowerCase() === 'staff') newRole = 'staff';
+      else if (choice.trim() === '3' || choice.trim().toLowerCase() === 'admin') newRole = 'admin';
+      else {
+        showToast('Lựa chọn vai trò không hợp lệ!', 'error');
+        return;
+      }
+
+      if (newRole === currentRole) return;
+
+      acc.role = newRole;
+      if (newRole === 'admin' && (!acc.department || acc.department === 'Khách Hàng')) acc.department = 'Ban Quản Trị';
+      if (newRole === 'staff' && (!acc.department || acc.department === 'Khách Hàng')) acc.department = 'Xử Lý Đơn Hàng & Kho Vận';
+
+      showToast('⏳ Đang cập nhật vai trò lên Supabase Cloud...', 'info');
+
+      try {
+        await supabaseFetch(`accounts?id=eq.${accId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ role: newRole, department: acc.department })
+        });
+      } catch(e) {
+        console.warn('[Supabase Cloud] Cập nhật vai trò qua API gặp sự cố, đã cập nhật cục bộ:', e.message);
+      }
+
+      persistAccounts();
+      showToast(`Đã chuyển vai trò của "${acc.full_name}" sang "${roleNames[newRole]}"!`, 'success');
+    }
+
+    async function deleteAccount(accId, email) {
+      if (email === 'admin@morioo.vn') {
+        showToast('Không thể xóa tài khoản Quản trị viên tối cao!', 'error');
+        return;
+      }
+
+      if (confirm(`Bạn có chắc chắn muốn xóa tài khoản "${email}" khỏi hệ thống?`)) {
+        showToast('⏳ Đang xóa tài khoản...', 'info');
+
+        try {
+          await supabaseFetch(`accounts?id=eq.${accId}`, {
+            method: 'DELETE'
+          });
+        } catch(e) {
+          console.warn('[Supabase Cloud] Xóa qua API gặp sự cố, đã xóa khỏi bộ nhớ:', e.message);
+        }
+
+        ALL_ACCOUNTS = ALL_ACCOUNTS.filter(a => a.id != accId);
+        persistAccounts();
+        showToast(`🗑️ Đã xóa tài khoản "${email}"!`, 'info');
+      }
+    }
+
+    function persistAccounts() {
+      localStorage.setItem('morioo_accounts', JSON.stringify(ALL_ACCOUNTS));
+      window.dispatchEvent(new CustomEvent('accounts-list-changed'));
+      updateStatsCards();
+      renderAdminAccountsTable();
+    }
+
     function renderAllData() {
       updateStatsCards();
       renderAdminRevenueTable();
       renderAdminOrdersTable();
       renderAdminProductsTable();
       renderAdminQuotesTable();
+      renderAdminAccountsTable();
     }
 
     // =========================================================================
@@ -1696,7 +2229,10 @@
 
     // Multi-tab sync
     window.addEventListener('storage', (e) => {
-      if (e.key === 'morioo_products' || e.key === 'morioo_orders') {
+      if (e.key === 'morioo_products' || e.key === 'morioo_orders' || e.key === 'morioo_accounts') {
+        loadFallbackProducts();
+        loadFallbackOrders();
+        loadFallbackAccounts();
         loadFallbackProducts();
         loadFallbackOrders();
         renderAllData();
@@ -1706,7 +2242,7 @@
     // Check URL Hash for direct Tab Navigation
     function checkHashTab() {
       const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (['revenue', 'orders', 'products', 'quotes'].includes(hash)) {
+      if (['revenue', 'orders', 'products', 'quotes', 'accounts'].includes(hash)) {
         switchAdminTab(hash);
       }
     }

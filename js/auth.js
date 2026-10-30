@@ -241,7 +241,8 @@ class AuthService {
                     password_hash: newStaff.password,
                     full_name: newStaff.full_name,
                     phone: newStaff.phone,
-                    role: "staff"
+                    role: "staff",
+                    department: newStaff.department
                 }]);
             } catch (e) {}
         }

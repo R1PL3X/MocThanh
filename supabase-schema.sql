@@ -82,14 +82,15 @@ CREATE TABLE IF NOT EXISTS reviews (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 7. TẠO BẢNG TÀI KHOẢN (ACCOUNTS: KHÁCH HÀNG & QUẢN TRỊ VIÊN RIÊNG BIỆT)
+-- 7. TẠO BẢNG TÀI KHOẢN (ACCOUNTS: QUẢN TRỊ VIÊN, NHÂN VIÊN & KHÁCH HÀNG)
 CREATE TABLE IF NOT EXISTS accounts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
     phone VARCHAR(50),
-    role VARCHAR(50) NOT NULL DEFAULT 'customer', -- 'customer' (Khách) hoặc 'admin' (Quản trị viên)
+    role VARCHAR(50) NOT NULL DEFAULT 'customer', -- 'customer' (Khách hàng), 'staff' (Nhân viên), 'admin' (Quản trị viên)
+    department VARCHAR(100),                      -- Bộ phận công tác (Kho vận, CSKH, Bán hàng, Quản lý...)
     avatar_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -126,12 +127,17 @@ CREATE POLICY "Public Delete Products" ON products FOR DELETE USING (true);
 
 CREATE POLICY "Public Insert Accounts" ON accounts FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public Update Accounts" ON accounts FOR UPDATE USING (true);
+CREATE POLICY "Public Delete Accounts" ON accounts FOR DELETE USING (true);
 
--- Tài khoản mẫu sẵn trong database
-INSERT INTO accounts (email, password_hash, full_name, phone, role) VALUES
-('admin@morioo.vn', 'Admin123!', 'Nguyễn Quản Trị MORIOO', '0901234567', 'admin'),
-('khachhang@gmail.com', 'Khach123!', 'Trần Văn Khách', '0987654321', 'customer')
-ON CONFLICT (email) DO NOTHING;
+-- Dữ liệu tài khoản mẫu đầy đủ 3 vai trò: Admin, Nhân Viên, Khách Hàng
+INSERT INTO accounts (email, password_hash, full_name, phone, role, department) VALUES
+('admin@morioo.vn', 'Admin123!', 'Quản Trị Viên MORIOO', '0901234567', 'admin', 'Ban Giám Đốc & Quản Trị Hệ Thống'),
+('nhanvien@morioo.vn', 'Staff123!', 'Lê Văn Nhân Viên', '0912345678', 'staff', 'Xử Lý Đơn Hàng & Kho Vận'),
+('khachhang@gmail.com', 'Khach123!', 'Trần Khách Hàng', '0987654321', 'customer', 'Khách Hàng Thân Thiết')
+ON CONFLICT (email) DO UPDATE SET
+    role = EXCLUDED.role,
+    department = EXCLUDED.department,
+    full_name = EXCLUDED.full_name;
 
 -- ==============================================================================
 -- DỮ LIỆU MẪU NỘI THẤT GỖ MORIOO CHUẨN THIẾT KẾ THEO ẢNH ĐÍNH KÈM
