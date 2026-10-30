@@ -1,238 +1,230 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảng Quản Trị Admin Tối Cao | MORIOO - Quản Lý KPI & Kho Hàng</title>
-    <link rel="icon" type="image/svg+xml" href="assets/images/logo-morioo.svg">
-    <!-- Supabase JS Library (Chính thức qua CDN để kết nối Database Cloud) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/portal.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Báo Cáo Doanh Thu Tích Lũy - Quản Trị moccnha</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            moho: {
+              wood: '#a0673d',
+              terracotta: '#c85a32'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪵</text></svg>">
 </head>
-<body>
+<body class="bg-gray-50 dark:bg-zinc-950 text-gray-800 dark:text-zinc-100 min-h-screen">
+  
+  <!-- ADMIN NAVBAR -->
+  <header class="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a href="/" class="flex items-baseline select-none">
+          <span class="text-2xl font-black text-gray-900 dark:text-white">moccnha</span>
+          <span class="text-2xl font-black text-amber-600">.</span>
+        </a>
+        <span class="bg-amber-100 dark:bg-zinc-800 text-amber-800 dark:text-amber-400 text-xs px-2.5 py-0.5 rounded font-bold uppercase tracking-wider">
+          Admin Portal
+        </span>
+        <span id="db-status-pill" class="text-xs px-2.5 py-0.5 rounded-full font-medium hidden"></span>
+        <span id="ai-status-pill" class="text-xs px-2.5 py-0.5 rounded-full font-medium hidden"></span>
+      </div>
 
-    <!-- ==============================================================================
-         1. TOP HEADER BAR
-         ============================================================================== -->
-    <header class="portal-header">
-        <div class="portal-header-inner">
-            <div class="portal-brand">
-                <a href="admin.html" class="portal-logo-box" style="text-decoration:none; display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:24px;">👑</span>
-                    <strong style="font-size:18px; font-weight:800; color:var(--brand-red); letter-spacing:0.5px;">MORIOO ADMIN</strong>
-                    <span class="portal-badge-role badge-role-admin">Quản Trị Tối Cao</span>
-                </a>
-            </div>
+      <div class="flex items-center gap-3">
+        <button 
+          type="button" 
+          onclick="openDbConfigModal('db')" 
+          class="hidden sm:inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-zinc-800 hover:bg-amber-100 dark:hover:bg-zinc-700 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-zinc-700 font-semibold transition" 
+          title="Cấu hình kết nối Supabase Cloud Database để đồng bộ trên mọi máy tính"
+        >
+          <span>☁️ Đồng Bộ Cloud</span>
+        </button>
+        <button 
+          type="button" 
+          onclick="toggleTheme()" 
+          class="theme-toggle-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-600 dark:text-yellow-400 transition" 
+          title="Đổi giao diện"
+        >
+          <svg class="sun-icon w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg class="moon-icon w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
 
-            <div class="portal-header-actions">
-                <div id="topDbBadge" class="status-pill status-completed">
-                    🟢 Supabase: Online
-                </div>
-                <a href="staff.html" class="portal-btn-link" title="Xem Cổng Tác Nghiệp Nhân Viên">
-                    💼 Cổng Nhân Viên
-                </a>
-                <a href="index.html" class="portal-btn-link" title="Xem Giao Diện Mua Sắm Khách Hàng">
-                    🏪 Về Cửa Hàng
-                </a>
-                <div class="portal-user-pill">
-                    <span>👑</span>
-                    <span id="topAdminName">admin@morioo.vn</span>
-                </div>
-                <button class="portal-btn-logout btn-admin-logout" title="Đăng xuất khỏi hệ thống">
-                    Đăng xuất
-                </button>
-            </div>
+        <a href="/" class="text-xs text-amber-800 dark:text-amber-400 font-semibold hover:underline flex items-center gap-1">
+          &larr; Xem cửa hàng moccnha
+        </a>
+      </div>
+    </div>
+  </header>
+  <!-- SQLITE OFFLINE WARNING BANNER -->
+  <div id="sqlite-warning-banner" class="hidden bg-amber-500/10 border-b border-amber-300/80 dark:border-amber-700/60 px-4 py-2.5 text-xs text-amber-950 dark:text-amber-200">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="text-base">⚠️</span>
+        <span><strong>Đang dùng Database nội bộ (chưa đồng bộ đa thiết bị):</strong> Dữ liệu chỉ lưu trên máy này. Khi chuyển sang máy khác sẽ không thấy các thay đổi.</span>
+      </div>
+      <button type="button" onclick="openDbConfigModal('db')" class="px-3 py-1 bg-amber-800 hover:bg-amber-900 text-white font-bold rounded-lg shadow-xs transition text-xs whitespace-nowrap">
+        🚀 Kết nối Supabase Cloud để đồng bộ
+      </button>
+    </div>
+  </div>
+
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    
+    <!-- 4 CORE METRICS CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      
+      <!-- Card 1: Doanh thu tích lũy (Active) -->
+      <a href="/admin/revenue" class="block bg-white dark:bg-zinc-900 p-5 rounded-xl border-2 border-amber-600 dark:border-amber-500 shadow-md ring-2 ring-amber-500/20 transition transform hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">1. Doanh thu tích lũy</span>
+          <span class="text-lg">💰</span>
         </div>
-    </header>
+        <div id="statRevenue" class="text-2xl font-black text-red-600 dark:text-red-400 mt-2">0₫</div>
+        <div class="text-[11px] text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
+          <span>●</span> Đang xem trang này
+        </div>
+      </a>
 
-    <!-- ==============================================================================
-         2. SUB NAVIGATION TABS
-         (Admin tập trung: Check KPI Nhân Viên & Doanh Thu, Quản Lý Kho Hàng)
-         ============================================================================== -->
-    <nav class="portal-nav-bar" id="adminNavBar">
-        <div class="portal-nav-inner">
-            <button class="portal-tab-btn admin-tab-btn active" data-target="tabKpiStaff" onclick="window.switchAdminTab('tabKpiStaff')">
-                📊 Check KPI Nhân Viên & Doanh Thu <span class="tab-badge" id="badgeStaffCount">1</span>
+      <!-- Card 2: Tổng đơn đặt hàng -->
+      <a href="/admin/orders" class="block bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition transform hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">2. Tổng đơn đặt hàng</span>
+          <span class="text-lg">📦</span>
+        </div>
+        <div id="statOrders" class="text-2xl font-black text-gray-900 dark:text-white mt-2">0</div>
+        <div class="text-[11px] text-gray-400 mt-1">Bấm để quản lý đơn &rarr;</div>
+      </a>
+
+      <!-- Card 3: Sản phẩm đang bán -->
+      <a href="/admin/products" class="block bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition transform hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">3. Sản phẩm đang bán</span>
+          <span class="text-lg">🪑</span>
+        </div>
+        <div id="statProducts" class="text-2xl font-black text-amber-700 dark:text-amber-400 mt-2">0</div>
+        <div class="text-[11px] text-gray-400 mt-1">Bấm để quản lý kho &rarr;</div>
+      </a>
+
+      <!-- Card 4: Yêu cầu báo giá B2B -->
+      <a href="/admin/quotes" class="block bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition transform hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">4. Báo giá dự án B2B</span>
+          <span class="text-lg">📄</span>
+        </div>
+        <div id="statQuotes" class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-2">0</div>
+        <div class="text-[11px] text-gray-400 mt-1">Bấm để xem yêu cầu sỉ &rarr;</div>
+      </a>
+
+    </div>
+
+    <!-- 4 TABS NAVIGATION -->
+    <div class="flex border-b border-gray-200 dark:border-zinc-800 mb-8 gap-6 overflow-x-auto">
+      <a href="/admin/revenue" class="pb-3 text-sm font-bold border-b-2 border-amber-800 text-amber-800 dark:text-amber-400 flex items-center gap-2 whitespace-nowrap">
+        <span>💰 Doanh Thu Tích Lũy</span>
+      </a>
+
+      <a href="/admin/orders" class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap">
+        <span>📋 Quản Lý Đơn Hàng</span>
+        <span id="ordersCountBadge" class="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs px-2 py-0.5 rounded-full">0</span>
+      </a>
+
+      <a href="/admin/products" class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap">
+        <span>🪑 Quản Lý Sản Phẩm</span>
+        <span id="productsCountBadge" class="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs px-2 py-0.5 rounded-full">0</span>
+      </a>
+
+      <a href="/admin/quotes" class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap">
+        <span>📄 Báo Giá Dự Án (B2B)</span>
+        <span id="quotesCountBadge" class="bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">0</span>
+      </a>
+    </div>
+
+    <!-- REVENUE ANALYTICS DETAILS -->
+    <div class="space-y-6">
+      
+      <!-- SUB METRICS GRID -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Đã thực thu (Hoàn tất)</div>
+          <div id="revenueCompleted" class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">0₫</div>
+          <div class="text-[10px] text-gray-400 mt-1"><span id="revenueCompletedCount">0</span> đơn hoàn tất giao hàng</div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Đang giao (Chờ thu)</div>
+          <div id="revenueShipping" class="text-xl font-bold text-amber-600 dark:text-amber-400 mt-1">0₫</div>
+          <div class="text-[10px] text-gray-400 mt-1">Đang trên đường vận chuyển</div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Thanh toán chuyển khoản</div>
+          <div id="revenueBank" class="text-xl font-bold text-blue-600 dark:text-blue-400 mt-1">0₫</div>
+          <div class="text-[10px] text-gray-400 mt-1">Qua ngân hàng / QR Pay</div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Giá trị đơn TB (AOV)</div>
+          <div id="revenueAov" class="text-xl font-bold text-purple-600 dark:text-purple-400 mt-1">0₫</div>
+          <div class="text-[10px] text-gray-400 mt-1">Doanh thu / số đơn mua</div>
+        </div>
+      </div>
+
+      <!-- MAIN REVENUE TRANSACTIONS TABLE -->
+      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white">Lịch Sử Giao Dịch Dòng Tiền & Doanh Thu</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Chi tiết số tiền thực nhận từ các đơn đặt hàng trong hệ thống.</p>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button onclick="handleResetDemoData()" class="text-xs bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition flex items-center gap-1 font-medium" title="Khôi phục 12 sản phẩm và 5 đơn hàng mẫu">
+              ⚡ Nạp dữ liệu mẫu
             </button>
-            <button class="portal-tab-btn admin-tab-btn" data-target="tabInventory" onclick="window.switchAdminTab('tabInventory')">
-                🪑 Quản Lý Kho Hàng Gỗ <span class="tab-badge" id="badgeInventoryCount">12</span>
+            <button onclick="loadAdminRevenue()" class="text-xs bg-amber-50 dark:bg-zinc-800 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition flex items-center gap-1 font-medium">
+              ⟳ Làm mới dữ liệu
             </button>
-            <button class="portal-tab-btn admin-tab-btn" data-target="tabOrders" onclick="window.switchAdminTab('tabOrders')">
-                📦 Giám Sát Đơn Hàng Cửa Hàng
-            </button>
-            <button class="portal-tab-btn admin-tab-btn" data-target="tabSupabase" onclick="window.switchAdminTab('tabSupabase')">
-                ⚙️ Cấu Hình Supabase Cloud
-            </button>
-        </div>
-    </nav>
-
-    <!-- ==============================================================================
-         3. MAIN CONTENT CONTAINER
-         ============================================================================== -->
-    <main class="portal-container" id="adminMainContent">
-
-        <!-- TAB 1: CHECK KPI NHÂN VIÊN & DOANH THU -->
-        <div class="portal-tab-pane active" id="tabKpiStaff">
-            <div id="adminKpiOverviewContainer">
-                <!-- KPI số liệu nạp tự động -->
-            </div>
-
-            <!-- Bảng chi tiết KPI & Quản lý nhân sự -->
-            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-top:20px;">
-                <div class="portal-card">
-                    <div class="portal-card-header">
-                        <div>
-                            <h2 class="portal-card-title">👥 Bảng Theo Dõi KPI Nhân Viên Bán Hàng</h2>
-                            <p class="portal-card-subtitle">Theo dõi số đơn đã chốt, doanh thu bán hàng mang lại và tỷ lệ hoàn thành KPI</p>
-                        </div>
-                    </div>
-                    <div id="adminStaffKpiTableContainer">
-                        <!-- Bảng KPI nhân viên -->
-                    </div>
-                </div>
-
-                <!-- Cấp tài khoản nhân viên mới -->
-                <div class="portal-card">
-                    <div class="portal-card-header">
-                        <div>
-                            <h2 class="portal-card-title">➕ Cấp Quyền Nhân Viên Mới</h2>
-                            <p class="portal-card-subtitle">Admin tạo tài khoản để nhân viên vào ca trực</p>
-                        </div>
-                    </div>
-
-                    <form id="formAdminAddStaff">
-                        <div class="form-group">
-                            <label>Họ và tên nhân viên *</label>
-                            <input type="text" id="newStaffName" class="form-control" required placeholder="Ví dụ: Trần Thị Mai">
-                        </div>
-                        <div class="form-group">
-                            <label>Số điện thoại liên hệ *</label>
-                            <input type="tel" id="newStaffPhone" class="form-control" required placeholder="0987 654 321">
-                        </div>
-                        <div class="form-group">
-                            <label>Email đăng nhập *</label>
-                            <input type="email" id="newStaffEmail" class="form-control" required placeholder="mai.tt@morioo.vn">
-                        </div>
-                        <div class="form-group">
-                            <label>Mật khẩu khởi tạo *</label>
-                            <input type="password" id="newStaffPass" class="form-control" required placeholder="Ít nhất 6 ký tự">
-                        </div>
-                        <div class="form-group">
-                            <label>Bộ phận công tác *</label>
-                            <select id="newStaffDept" class="form-control" required>
-                                <option value="Tư vấn bán hàng & Hotline">Tư vấn bán hàng & Hotline</option>
-                                <option value="Xử lý đơn hàng & Kho">Xử lý đơn hàng & Kho</option>
-                                <option value="Điều phối bưu tá & Giao hàng">Điều phối bưu tá & Giao hàng</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top:8px;">
-                            Tạo Tài Khoản Nhân Viên
-                        </button>
-                    </form>
-                </div>
-            </div>
+          </div>
         </div>
 
-        <!-- TAB 2: QUẢN LÝ KHO HÀNG GỖ -->
-        <div class="portal-tab-pane" id="tabInventory">
-            <div class="portal-card">
-                <div class="portal-card-header">
-                    <div>
-                        <h2 class="portal-card-title">🪑 Bảng Quản Lý Kho Nội Thất Gỗ Tự Nhiên</h2>
-                        <p class="portal-card-subtitle">Theo dõi lượng tồn kho thực tế, cảnh báo hết hàng và điều chỉnh số lượng tồn kho 1 chạm</p>
-                    </div>
-                    <div style="display:flex; gap:12px; align-items:center;">
-                        <input type="text" id="adminInventorySearch" class="form-control" placeholder="🔍 Tìm tên sản phẩm, loại gỗ..." style="width:260px;">
-                        <select id="adminInventoryFilterStock" class="form-control" style="width:160px;">
-                            <option value="all">Tất cả kho hàng</option>
-                            <option value="low">⚠️ Sắp hết hàng (&le; 3 cái)</option>
-                            <option value="in_stock">🟢 Còn hàng (&gt; 3 cái)</option>
-                            <option value="out">🔴 Hết hàng (0 cái)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="adminInventoryTableContainer">
-                    <!-- Bảng kho hàng kèm stepper điều chỉnh số lượng -->
-                </div>
-            </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+              <tr>
+                <th class="p-3.5">Mã đơn & Ngày đặt</th>
+                <th class="p-3.5">Khách hàng</th>
+                <th class="p-3.5">Phương thức</th>
+                <th class="p-3.5">Trạng thái dòng tiền</th>
+                <th class="p-3.5 text-right">Doanh thu (VNĐ)</th>
+              </tr>
+            </thead>
+            <tbody id="adminRevenueTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+              <!-- Loaded via JavaScript -->
+            </tbody>
+          </table>
         </div>
+      </div>
 
-        <!-- TAB 3: GIÁM SÁT ĐƠN HÀNG CỬA HÀNG -->
-        <div class="portal-tab-pane" id="tabOrders">
-            <div class="portal-card">
-                <div class="portal-card-header">
-                    <div>
-                        <h2 class="portal-card-title">📦 Danh Sách Đơn Hàng Cửa Hàng (Supabase Cloud)</h2>
-                        <p class="portal-card-subtitle">Giám sát toàn bộ đơn hàng khách tự đặt và nhân viên bán qua hotline</p>
-                    </div>
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <input type="text" id="adminOrderSearch" class="form-control" placeholder="🔍 Tìm theo mã đơn, tên, SĐT..." style="width:240px;">
-                        <select id="adminOrderFilterStatus" class="form-control" style="width:170px; font-weight:600;">
-                            <option value="all">Tất cả trạng thái</option>
-                            <option value="pending">⏳ Chờ xử lý</option>
-                            <option value="confirmed">📞 Đã xác nhận</option>
-                            <option value="shipping">🚚 Đang giao hàng</option>
-                            <option value="completed">✅ Đã hoàn tất</option>
-                            <option value="cancelled">❌ Đã hủy</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="adminOrdersTableContainer">
-                    <!-- Bảng đơn hàng -->
-                </div>
-            </div>
-        </div>
+    </div>
 
-        <!-- TAB 4: CẤU HÌNH SUPABASE CLOUD -->
-        <div class="portal-tab-pane" id="tabSupabase">
-            <div class="portal-card" style="max-width: 750px; margin: 0 auto;">
-                <div class="portal-card-header">
-                    <div>
-                        <h2 class="portal-card-title">⚙️ Cấu Hình Kết Nối Supabase Cloud</h2>
-                        <p class="portal-card-subtitle">Dữ liệu được lưu trữ trực tuyến vĩnh viễn trên Supabase Cloud để bất kỳ ai cũng truy cập được</p>
-                    </div>
-                </div>
+  </main>
 
-                <form id="formAdminSupabase">
-                    <div class="form-group">
-                        <label>Supabase Project URL *</label>
-                        <input type="url" id="adminSupabaseUrl" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Supabase Anon / Public Key *</label>
-                        <textarea id="adminSupabaseKey" class="form-control" rows="3" required></textarea>
-                    </div>
+  <div id="toastContainer" class="fixed top-16 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-                    <div id="supabaseTestMsg" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:6px; font-size:13px;"></div>
-
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
-                        <button type="button" id="btnTestSupabasePage" class="btn-secondary">
-                            🔍 Kiểm Tra Kết Nối
-                        </button>
-                        <button type="submit" class="btn-primary">
-                            💾 Lưu Thay Đổi Cấu Hình
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Inline fallback chuyển tab tức thì -->
-    <script>
-        window.switchAdminTab = function(targetId) {
-            document.querySelectorAll('.admin-tab-btn, .portal-tab-btn').forEach(function(b) {
-                b.classList.toggle('active', b.getAttribute('data-target') === targetId);
-            });
-            document.querySelectorAll('.portal-tab-pane').forEach(function(p) {
-                p.classList.toggle('active', p.id === targetId);
-            });
-        };
-    </script>
-
-    <!-- Script điều khiển chính -->
-    <script type="module" src="js/admin-page.js"></script>
+  <script src="/static/js/admin.js?v=14"></script>
 </body>
 </html>
