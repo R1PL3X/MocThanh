@@ -1,238 +1,1666 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảng Quản Trị Admin Tối Cao | MORIOO - Quản Lý KPI & Kho Hàng</title>
-    <link rel="icon" type="image/svg+xml" href="assets/images/logo-morioo.svg">
-    <!-- Supabase JS Library (Chính thức qua CDN để kết nối Database Cloud) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/portal.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Trị Hệ Thống - MORIOO Furniture</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/logo-morioo.svg">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            moho: {
+              wood: '#a0673d',
+              'wood-dark': '#86522c',
+              terracotta: '#c85a32',
+              red: '#e53935',
+              darkbg: '#121214',
+              darkcard: '#1c1c20',
+              darkborder: '#2e2e34'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/portal.css">
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-serif-title { font-family: 'Playfair Display', serif; }
+  </style>
 </head>
-<body>
+<body class="bg-gray-50 dark:bg-zinc-950 text-gray-800 dark:text-zinc-100 min-h-screen transition-colors duration-200">
+  
+  <!-- ADMIN NAVBAR -->
+  <header class="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-gray-200 dark:border-zinc-800 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 sm:gap-4">
+        <!-- MORIOO BRAND LOGO -->
+        <a href="index.html" class="flex items-baseline select-none">
+          <span class="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">morioo</span>
+          <span class="text-2xl sm:text-3xl font-black text-amber-600 leading-none">.</span>
+        </a>
+        <span class="bg-amber-100 dark:bg-zinc-800 text-amber-900 dark:text-amber-400 text-xs px-2.5 py-0.5 rounded font-bold uppercase tracking-wider">
+          Admin Portal
+        </span>
+        
+        <!-- SUPABASE CLOUD STATUS PILL -->
+        <span id="syncPill" class="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 shadow-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="syncPillText">Supabase Cloud Trực Tuyến</span>
+        </span>
+      </div>
 
-    <!-- ==============================================================================
-         1. TOP HEADER BAR
-         ============================================================================== -->
-    <header class="portal-header">
-        <div class="portal-header-inner">
-            <div class="portal-brand">
-                <a href="admin.html" class="portal-logo-box" style="text-decoration:none; display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:24px;">👑</span>
-                    <strong style="font-size:18px; font-weight:800; color:var(--brand-red); letter-spacing:0.5px;">MORIOO ADMIN</strong>
-                    <span class="portal-badge-role badge-role-admin">Quản Trị Tối Cao</span>
-                </a>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Supabase Cloud Sync Button -->
+        <button 
+          type="button" 
+          onclick="loadDataFromSupabase()" 
+          class="hidden sm:inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-zinc-800 hover:bg-emerald-100 dark:hover:bg-zinc-700 text-emerald-900 dark:text-emerald-300 border border-emerald-200 dark:border-zinc-700 font-semibold transition" 
+          title="Đồng bộ lại dữ liệu mới nhất từ Supabase Cloud"
+        >
+          <span>☁️ Đồng Bộ Cloud</span>
+        </button>
+
+        <!-- Dark/Light Theme Toggle -->
+        <button 
+          type="button" 
+          onclick="toggleTheme()" 
+          class="theme-toggle-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-600 dark:text-yellow-400 transition" 
+          title="Đổi giao diện Sáng / Tối"
+          aria-label="Đổi giao diện"
+        >
+          <svg class="sun-icon w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg class="moon-icon w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+
+        <!-- Link to Staff Portal -->
+        <a href="staff.html" class="text-xs text-sky-700 dark:text-sky-400 font-semibold hover:underline flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-zinc-800">
+          👔 Cổng Nhân Viên
+        </a>
+
+        <!-- Link to Store -->
+        <a href="index.html" class="text-xs text-amber-800 dark:text-amber-400 font-semibold hover:underline flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-amber-200 dark:border-zinc-700 bg-amber-50 dark:bg-zinc-800">
+          &larr; Xem cửa hàng MORIOO
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- SUPABASE CLOUD ACTIVE BANNER -->
+  <div id="cloud-banner" class="bg-emerald-500/10 border-b border-emerald-300/80 dark:border-emerald-700/60 px-4 py-2 text-xs text-emerald-950 dark:text-emerald-200">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span><strong>Trạng thái: ĐÃ KẾT NỐI SUPABASE CLOUD TOÀN DIỆN</strong> &bull; Database: <code class="bg-emerald-100 dark:bg-zinc-800 px-1 py-0.5 rounded font-mono text-emerald-900 dark:text-emerald-300">vkhgbegximfhecwgfyow.supabase.co</code> &bull; Mọi thay đổi sản phẩm & đơn hàng được lưu trực tiếp lên Cloud và đồng bộ với website MORIOO.</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="loadDataFromSupabase()" class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg shadow-xs transition text-xs whitespace-nowrap">
+          ⟳ Làm mới từ Cloud
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    
+    <!-- 4 CORE METRICS CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      
+      <!-- Card 1: Doanh thu tích lũy -->
+      <div 
+        id="cardStatRevenue"
+        onclick="switchAdminTab('revenue')" 
+        class="cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border-2 border-amber-600 dark:border-amber-500 shadow-md ring-2 ring-amber-500/20 transition transform hover:-translate-y-0.5"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">1. Doanh thu tích lũy (Cloud)</span>
+          <span class="text-lg">💰</span>
+        </div>
+        <div id="statRevenue" class="text-2xl font-black text-red-600 dark:text-red-400 mt-2 font-mono">0₫</div>
+        <div id="subtextRevenue" class="text-[11px] text-green-600 dark:text-green-400 mt-1 flex items-center gap-1 font-semibold">
+          <span>●</span> Đang xem mục này
+        </div>
+      </div>
+
+      <!-- Card 2: Tổng đơn đặt hàng -->
+      <div 
+        id="cardStatOrders"
+        onclick="switchAdminTab('orders')" 
+        class="cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition transform hover:-translate-y-0.5"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">2. Tổng đơn đặt hàng</span>
+          <span class="text-lg">📦</span>
+        </div>
+        <div id="statOrders" class="text-2xl font-black text-gray-900 dark:text-white mt-2 font-mono">0</div>
+        <div id="subtextOrders" class="text-[11px] text-gray-400 mt-1">Bấm để quản lý đơn &rarr;</div>
+      </div>
+
+      <!-- Card 3: Sản phẩm đang bán -->
+      <div 
+        id="cardStatProducts"
+        onclick="switchAdminTab('products')" 
+        class="cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition transform hover:-translate-y-0.5"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">3. Sản phẩm đang bán (Kho)</span>
+          <span class="text-lg">🪑</span>
+        </div>
+        <div id="statProducts" class="text-2xl font-black text-amber-700 dark:text-amber-400 mt-2 font-mono">0</div>
+        <div id="subtextProducts" class="text-[11px] text-gray-400 mt-1">Bấm để quản lý kho &rarr;</div>
+      </div>
+
+      <!-- Card 4: Yêu cầu báo giá B2B -->
+      <div 
+        id="cardStatQuotes"
+        onclick="switchAdminTab('quotes')" 
+        class="cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition transform hover:-translate-y-0.5"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">4. Báo giá dự án B2B</span>
+          <span class="text-lg">📄</span>
+        </div>
+        <div id="statQuotes" class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-2 font-mono">0</div>
+        <div id="subtextQuotes" class="text-[11px] text-gray-400 mt-1">Bấm để xem yêu cầu sỉ &rarr;</div>
+      </div>
+
+    </div>
+
+    <!-- 4 TABS NAVIGATION -->
+    <div class="flex border-b border-gray-200 dark:border-zinc-800 mb-8 gap-6 overflow-x-auto">
+      <button 
+        type="button" 
+        id="tabRevenueBtn" 
+        onclick="switchAdminTab('revenue')" 
+        class="pb-3 text-sm font-bold border-b-2 border-amber-800 text-amber-800 dark:text-amber-400 flex items-center gap-2 whitespace-nowrap"
+      >
+        <span>💰 Doanh Thu Tích Lũy</span>
+      </button>
+
+      <button 
+        type="button" 
+        id="tabOrdersBtn" 
+        onclick="switchAdminTab('orders')" 
+        class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap"
+      >
+        <span>📋 Quản Lý Đơn Hàng</span>
+        <span id="ordersCountBadge" class="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+      </button>
+
+      <button 
+        type="button" 
+        id="tabProductsBtn" 
+        onclick="switchAdminTab('products')" 
+        class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap"
+      >
+        <span>🪑 Quản Lý Sản Phẩm (Kho Hàng)</span>
+        <span id="productsCountBadge" class="bg-amber-100 dark:bg-zinc-800 text-amber-900 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+      </button>
+
+      <button 
+        type="button" 
+        id="tabQuotesBtn" 
+        onclick="switchAdminTab('quotes')" 
+        class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap"
+      >
+        <span>📄 Báo Giá Dự Án (B2B)</span>
+        <span id="quotesCountBadge" class="bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+      </button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: DOANH THU TÍCH LŨY (REVENUE ANALYTICS) -->
+    <!-- ========================================================================= -->
+    <div id="tabRevenueContent" class="space-y-6">
+      <!-- SUB METRICS GRID -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Đã thực thu (Hoàn tất)</div>
+          <div id="revenueCompleted" class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1 font-mono">0₫</div>
+          <div class="text-[10px] text-gray-400 mt-1"><span id="revenueCompletedCount">0</span> đơn đã hoàn tất giao hàng</div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Đang giao / Chờ thu</div>
+          <div id="revenueShipping" class="text-xl font-bold text-amber-600 dark:text-amber-400 mt-1 font-mono">0₫</div>
+          <div class="text-[10px] text-gray-400 mt-1"><span id="revenueShippingCount">0</span> đơn đang xử lý vận chuyển</div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Thanh toán chuyển khoản</div>
+          <div id="revenueBank" class="text-xl font-bold text-blue-600 dark:text-blue-400 mt-1 font-mono">0₫</div>
+          <div class="text-[10px] text-gray-400 mt-1">Qua ngân hàng / Quét QR Pay</div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Giá trị đơn TB (AOV)</div>
+          <div id="revenueAov" class="text-xl font-bold text-purple-600 dark:text-purple-400 mt-1 font-mono">0₫</div>
+          <div class="text-[10px] text-gray-400 mt-1">Doanh thu / số đơn mua thành công</div>
+        </div>
+      </div>
+
+      <!-- MAIN REVENUE TRANSACTIONS TABLE -->
+      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white">Lịch Sử Dòng Tiền & Doanh Thu Đơn Hàng (Supabase Cloud)</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Chi tiết các khoản tiền thực nhận từ các đơn đặt hàng trong cơ sở dữ liệu Supabase.</p>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button onclick="loadDataFromSupabase()" class="text-xs bg-amber-50 dark:bg-zinc-800 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition flex items-center gap-1 font-medium">
+              ⟳ Làm mới từ Cloud
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+              <tr>
+                <th class="p-3.5">Mã đơn & Ngày đặt</th>
+                <th class="p-3.5">Khách hàng</th>
+                <th class="p-3.5">Phương thức</th>
+                <th class="p-3.5">Trạng thái dòng tiền</th>
+                <th class="p-3.5 text-right">Doanh thu (VNĐ)</th>
+              </tr>
+            </thead>
+            <tbody id="adminRevenueTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+              <!-- Loaded via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: QUẢN LÝ ĐƠN HÀNG (ORDERS MANAGEMENT) -->
+    <!-- ========================================================================= -->
+    <div id="tabOrdersContent" class="space-y-6 hidden">
+      <!-- FILTER & SEARCH BAR -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-semibold mr-1">Lọc đơn:</span>
+          <button onclick="setOrderFilter('all')" data-filter="all" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-800 text-white shadow-sm">Tất cả</button>
+          <button onclick="setOrderFilter('pending')" data-filter="pending" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">⏳ Chờ xử lý</button>
+          <button onclick="setOrderFilter('shipping')" data-filter="shipping" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">🚚 Đang vận chuyển</button>
+          <button onclick="setOrderFilter('completed')" data-filter="completed" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">✅ Hoàn thành</button>
+          <button onclick="setOrderFilter('cancelled')" data-filter="cancelled" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">❌ Đã hủy</button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <input 
+              id="orderSearchInput" 
+              type="text" 
+              oninput="handleOrderSearch(this.value)" 
+              placeholder="Tìm mã đơn, tên, SĐT..." 
+              class="px-3 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700 w-48 sm:w-60"
+            />
+          </div>
+          <button onclick="loadDataFromSupabase()" class="text-xs bg-amber-50 dark:bg-zinc-800 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition font-medium">
+            ⟳ Tải lại
+          </button>
+        </div>
+      </div>
+
+      <!-- MAIN ORDERS TABLE -->
+      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+              <tr>
+                <th class="p-3.5">Mã đơn & Ngày đặt</th>
+                <th class="p-3.5">Khách hàng & Địa chỉ</th>
+                <th class="p-3.5">Tổng tiền</th>
+                <th class="p-3.5">Thanh toán</th>
+                <th class="p-3.5">Cập nhật trạng thái</th>
+                <th class="p-3.5 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="adminOrdersTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+              <!-- Loaded via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: QUẢN LÝ SẢN PHẨM (PRODUCTS MANAGEMENT) -->
+    <!-- ========================================================================= -->
+    <div id="tabProductsContent" class="space-y-6 hidden">
+      
+      <!-- ADD PRODUCT FORM CARD -->
+      <div class="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+        <div class="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-zinc-800 pb-3">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span>➕ Thêm Sản Phẩm Nội Thất Mới Vào Cửa Hàng MORIOO</span>
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Sản phẩm thêm mới sẽ được lưu trực tiếp vào cơ sở dữ liệu Supabase Cloud và xuất hiện ngay trên trang chủ.</p>
+          </div>
+          <span class="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Ghi Thẳng Vào Supabase</span>
+          </span>
+        </div>
+        
+        <form id="createProductForm" onsubmit="handleCreateProduct(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold mb-1">Tên sản phẩm nội thất *</label>
+            <input 
+              id="newProdTitle" 
+              name="title" 
+              required 
+              type="text" 
+              placeholder="Ví dụ: Tủ Giày Gỗ Thông VLINE 2 Cánh MORIOO" 
+              class="w-full px-3 py-2 text-xs rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700" 
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1">Danh mục sản phẩm *</label>
+            <select 
+              id="newProdCategory" 
+              name="category" 
+              required 
+              class="w-full px-3 py-2 text-xs rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700"
+            >
+              <option value="phong-khach">Phòng Khách</option>
+              <option value="phong-ngu">Phòng Ngủ</option>
+              <option value="phong-an">Phòng Ăn & Bếp</option>
+              <option value="lam-viec">Góc Làm Việc</option>
+              <option value="tu-ke">Tủ & Kệ</option>
+              <option value="decor">Phụ Kiện Gỗ & Decor</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1">Chất liệu / Loại gỗ *</label>
+            <input 
+              id="newProdWood" 
+              name="wood_type" 
+              required 
+              type="text" 
+              placeholder="Gỗ Sồi Trắng Bắc Mỹ, Gỗ Tần Bì Ash..." 
+              value="Gỗ Sồi Tự Nhiên"
+              class="w-full px-3 py-2 text-xs rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700" 
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1">Giá bán ưu đãi (VNĐ) *</label>
+            <input 
+              id="newProdPrice" 
+              name="price" 
+              required 
+              type="number" 
+              min="0" 
+              step="1000"
+              placeholder="6990000" 
+              class="w-full px-3 py-2 text-xs rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700 font-mono font-bold" 
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1">Giá gốc niêm yết (VNĐ)</label>
+            <input 
+              id="newProdOriginalPrice" 
+              name="original_price" 
+              type="number" 
+              min="0" 
+              step="1000"
+              placeholder="8990000" 
+              class="w-full px-3 py-2 text-xs rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700 font-mono" 
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1">Số lượng tồn kho ban đầu *</label>
+            <input 
+              id="newProdStock" 
+              name="stock" 
+              required 
+              type="number" 
+              min="0" 
+              value="15" 
+              class="w-full px-3 py-2 text-xs rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700 font-mono" 
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1">Kích thước tiêu chuẩn</label>
+            <input 
+              id="newProdDimensions" 
+              name="dimensions" 
+              type="text" 
+              placeholder="Ví dụ: 120 x 40 x 85 cm" 
+              value="Tiêu chuẩn"
+              class="w-full px-3 py-2 text-xs rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700" 
+            />
+          </div>
+
+          <div class="sm:col-span-3">
+            <label class="block text-xs font-semibold mb-1 flex items-center justify-between">
+              <span>Link Ảnh Sản Phẩm (URL) *</span>
+              <span class="text-[11px] text-amber-700 dark:text-amber-400 font-normal">Hoặc chọn nhanh ảnh mẫu đẹp bên dưới &darr;</span>
+            </label>
+            <input 
+              id="newProdImage" 
+              name="image" 
+              required 
+              type="url" 
+              placeholder="https://images.unsplash.com/photo-..." 
+              value="https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=800&q=80"
+              class="w-full px-3 py-2 text-xs rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700" 
+            />
+
+            <!-- Quick Image Presets -->
+            <div class="flex items-center gap-2 mt-2 flex-wrap">
+              <span class="text-[10px] text-gray-400 uppercase font-bold">Chọn nhanh ảnh:</span>
+              <button type="button" onclick="setPresetImage('giuong')" class="px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[11px]">🛏️ Giường ngủ</button>
+              <button type="button" onclick="setPresetImage('sofa')" class="px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[11px]">🛋️ Ghế sofa</button>
+              <button type="button" onclick="setPresetImage('bantra')" class="px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[11px]">🍵 Bàn trà</button>
+              <button type="button" onclick="setPresetImage('banan')" class="px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[11px]">🍽️ Bàn ăn</button>
+              <button type="button" onclick="setPresetImage('banlamviec')" class="px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[11px]">💻 Bàn làm việc</button>
+              <button type="button" onclick="setPresetImage('tuke')" class="px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[11px]">🚪 Tủ kệ</button>
             </div>
+          </div>
 
-            <div class="portal-header-actions">
-                <div id="topDbBadge" class="status-pill status-completed">
-                    🟢 Supabase: Online
-                </div>
-                <a href="staff.html" class="portal-btn-link" title="Xem Cổng Tác Nghiệp Nhân Viên">
-                    💼 Cổng Nhân Viên
-                </a>
-                <a href="index.html" class="portal-btn-link" title="Xem Giao Diện Mua Sắm Khách Hàng">
-                    🏪 Về Cửa Hàng
-                </a>
-                <div class="portal-user-pill">
-                    <span>👑</span>
-                    <span id="topAdminName">admin@morioo.vn</span>
-                </div>
-                <button class="portal-btn-logout btn-admin-logout" title="Đăng xuất khỏi hệ thống">
-                    Đăng xuất
+          <div class="sm:col-span-3">
+            <label class="block text-xs font-semibold mb-1">Mô tả sản phẩm</label>
+            <textarea 
+              id="newProdDescription" 
+              name="description" 
+              rows="2" 
+              placeholder="Chất liệu mộng gỗ truyền thống, phủ sơn gốc nước an toàn, chống cong vênh mối mọt..." 
+              class="w-full px-3 py-2 text-xs rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700"
+            ></textarea>
+          </div>
+
+          <div class="sm:col-span-3 flex items-center justify-between pt-2">
+            <span class="text-xs text-gray-400">✨ Bấm "Lưu Lên Supabase" sẽ lưu trực tiếp vào Cloud và cập nhật trang web.</span>
+            <button type="submit" class="bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs px-6 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2">
+              <span>💾 Lưu Lên Supabase Cloud & Website</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- PRODUCTS LIST TABLE CARD -->
+      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white">Kho Sản Phẩm MORIOO (Đang Đồng Bộ Supabase Cloud)</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Danh sách các mặt hàng thực tế đang được lưu trữ trên Cloud và bán trên website <code>index.html</code>.</p>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <input 
+              id="productSearchInput" 
+              type="text" 
+              oninput="handleProductSearch(this.value)" 
+              placeholder="Tìm theo tên sản phẩm..." 
+              class="px-3 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700 w-44 sm:w-56"
+            />
+            <button onclick="loadDataFromSupabase()" class="text-xs bg-amber-50 dark:bg-zinc-800 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition flex items-center gap-1 font-medium">
+              ⟳ Làm mới kho
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+              <tr>
+                <th class="p-3.5">ID / Mã</th>
+                <th class="p-3.5">Hình ảnh</th>
+                <th class="p-3.5">Tên sản phẩm & Chất liệu</th>
+                <th class="p-3.5">Danh mục</th>
+                <th class="p-3.5">Giá bán</th>
+                <th class="p-3.5">Tồn kho</th>
+                <th class="p-3.5 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="adminProductsTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+              <!-- Loaded via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: BÁO GIÁ DỰ ÁN B2B (QUOTES MANAGEMENT) -->
+    <!-- ========================================================================= -->
+    <div id="tabQuotesContent" class="space-y-6 hidden">
+      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white">Danh Sách Yêu Cầu Báo Giá Dự Án (B2B) MORIOO</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Tiếp nhận thông tin khách hàng cần cung cấp số lượng lớn, đối tác thiết kế và chủ đầu tư dự án.</p>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button onclick="renderAdminQuotesTable()" class="text-xs bg-blue-50 dark:bg-zinc-800 text-blue-800 dark:text-blue-400 border border-blue-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition flex items-center gap-1 font-medium">
+              ⟳ Làm mới yêu cầu
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+              <tr>
+                <th class="p-3.5">Mã / Ngày gửi</th>
+                <th class="p-3.5">Khách hàng & SĐT</th>
+                <th class="p-3.5">Loại hình dự án</th>
+                <th class="p-3.5">Nhu cầu & Số lượng dự kiến</th>
+                <th class="p-3.5">Trạng thái xử lý</th>
+                <th class="p-3.5 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="adminQuotesTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+              <!-- Loaded via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- EDIT PRODUCT MODAL -->
+  <!-- ========================================================================= -->
+  <div id="editProductModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-zinc-900 w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50/50 dark:bg-zinc-800/50">
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <span>✏️ Chỉnh Sửa Sản Phẩm & Cập Nhật Lên Supabase Cloud</span>
+        </h3>
+        <button onclick="closeEditProductModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg font-bold">✕</button>
+      </div>
+
+      <form id="editProductForm" onsubmit="handleUpdateProduct(event)" class="p-5 overflow-y-auto space-y-4 text-xs">
+        <input type="hidden" id="editProductId" name="id" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="sm:col-span-2">
+            <label class="block font-semibold mb-1">Tên sản phẩm *</label>
+            <input id="editTitle" name="title" required type="text" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700" />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Danh mục *</label>
+            <select id="editCategory" name="category" required class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700">
+              <option value="phong-khach">Phòng Khách</option>
+              <option value="phong-ngu">Phòng Ngủ</option>
+              <option value="phong-an">Phòng Ăn & Bếp</option>
+              <option value="lam-viec">Góc Làm Việc</option>
+              <option value="tu-ke">Tủ & Kệ</option>
+              <option value="decor">Phụ Kiện Gỗ & Decor</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Chất liệu / Loại gỗ *</label>
+            <input id="editWood" name="wood_type" required type="text" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700" />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Giá bán (VNĐ) *</label>
+            <input id="editPrice" name="price" required type="number" min="0" step="1000" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700 font-mono font-bold" />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Giá gốc niêm yết (VNĐ)</label>
+            <input id="editOriginalPrice" name="original_price" type="number" min="0" step="1000" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700 font-mono" />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-amber-700 dark:text-amber-400">Số lượng tồn kho *</label>
+            <input id="editStock" name="stock" required type="number" min="0" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white font-mono focus:outline-none focus:border-amber-700" />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Kích thước</label>
+            <input id="editDimensions" name="dimensions" type="text" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700" />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block font-semibold mb-1">Link Ảnh Sản Phẩm (URL) *</label>
+            <input id="editImage" name="image" type="url" required class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700" />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block font-semibold mb-1">Mô tả sản phẩm</label>
+            <textarea id="editDescription" name="description" rows="2" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700"></textarea>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-end gap-2">
+          <button type="button" onclick="closeEditProductModal()" class="px-4 py-2 rounded border border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800">
+            Hủy
+          </button>
+          <button type="submit" class="bg-amber-800 hover:bg-amber-900 text-white font-semibold px-5 py-2 rounded-lg shadow transition">
+            Lưu Lên Supabase & Cập Nhật Web
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="fixed top-16 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- JAVASCRIPT LOGIC DIRECT SUPABASE INTEGRATION -->
+  <script>
+    /**
+     * MORIOO Admin Dashboard Core Script
+     * LUÔN KẾT NỐI VÀ ĐỒNG BỘ SUPABASE CLOUD (https://vkhgbegximfhecwgfyow.supabase.co)
+     */
+
+    const SUPABASE_URL = "https://vkhgbegximfhecwgfyow.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZraGdiZWd4aW1maGVjd2dmeW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyNTI2MzgsImV4cCI6MjEwODgyODYzOH0.2I9pGf1a1NoCoaxnJElWSCO41NGoP6MNMDWLoOHaaJo";
+
+    let ADMIN_THEME = localStorage.getItem('moho_theme') || 'light';
+    let CURRENT_TAB = 'revenue';
+    let CURRENT_ORDER_FILTER = 'all';
+
+    // State Variables
+    let ALL_PRODUCTS = [];
+    let ALL_ORDERS = [];
+    let ALL_QUOTES = [];
+
+    // Image Presets for Quick Fill
+    const IMAGE_PRESETS = {
+      giuong: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=800&q=80",
+      sofa: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80",
+      bantra: "https://images.unsplash.com/photo-1533090161767-e6ffed986b88?auto=format&fit=crop&w=800&q=80",
+      banan: "https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=800&q=80",
+      banlamviec: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80",
+      tuke: "https://images.unsplash.com/photo-1558997519-83ea9252def8?auto=format&fit=crop&w=800&q=80"
+    };
+
+    function setPresetImage(key) {
+      if (IMAGE_PRESETS[key]) {
+        document.getElementById('newProdImage').value = IMAGE_PRESETS[key];
+        showToast(`Đã chọn ảnh mẫu ${key}`, 'info');
+      }
+    }
+
+    // Category Slugs Map
+    const CATEGORY_MAP = {
+      'phong-khach': 'Phòng Khách',
+      'phong-ngu': 'Phòng Ngủ',
+      'phong-an': 'Phòng Ăn & Bếp',
+      'lam-viec': 'Góc Làm Việc',
+      'tu-ke': 'Tủ & Kệ',
+      'decor': 'Phụ Kiện Gỗ & Decor'
+    };
+
+    // Helper: Format Price (VND)
+    function formatPrice(number) {
+      return new Intl.NumberFormat('vi-VN').format(number || 0) + '₫';
+    }
+
+    // Helper: Show Toast
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-zinc-900 dark:bg-zinc-700';
+      toast.className = `${bg} text-white text-xs px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    // =========================================================================
+    // REST API CALL TO SUPABASE CLOUD
+    // =========================================================================
+    async function supabaseFetch(endpoint, options = {}) {
+      const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+      const headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": options.prefer || "return=representation",
+        ...(options.headers || {})
+      };
+      const res = await fetch(url, { ...options, headers });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      }
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return await res.json();
+      }
+      return null;
+    }
+
+    function updateCloudStatusPill(status) {
+      const pill = document.getElementById('syncPill');
+      const text = document.getElementById('syncPillText');
+      if (!pill || !text) return;
+
+      if (status === 'connected') {
+        pill.className = "inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 shadow-xs";
+        text.textContent = "Supabase Cloud Trực Tuyến";
+      } else if (status === 'connecting') {
+        pill.className = "inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-300 dark:border-amber-800 shadow-xs";
+        text.textContent = "Đang kết nối Cloud...";
+      } else {
+        pill.className = "inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-400 border border-blue-300 dark:border-blue-800 shadow-xs";
+        text.textContent = "Bộ Nhớ Đệm Nội Bộ";
+      }
+    }
+
+    // Normalize product record
+    function normalizeProduct(p) {
+      const title = p.name || p.title || 'Sản phẩm MORIOO';
+      const stock = p.stock_quantity !== undefined ? p.stock_quantity : (p.stock !== undefined ? p.stock : 10);
+      const originalPrice = p.original_price || p.price || 0;
+      const discount = originalPrice > p.price ? Math.round((1 - p.price / originalPrice) * 100) : 0;
+
+      return {
+        ...p,
+        id: p.id,
+        name: title,
+        title: title,
+        slug: p.slug || 'san-pham',
+        category_slug: p.category_slug || p.category || 'phong-khach',
+        category: p.category_slug || p.category || 'phong-khach',
+        category_name: CATEGORY_MAP[p.category_slug || p.category] || 'Phòng Khách',
+        wood_type: p.wood_type || 'Gỗ Sồi Trắng Bắc Mỹ',
+        price: Number(p.price) || 0,
+        original_price: Number(originalPrice),
+        discount_percent: discount,
+        stock: Number(stock),
+        stock_quantity: Number(stock),
+        sold_count: p.sold_count || 15,
+        rating: p.rating || 5.0,
+        reviews_count: p.reviews_count || 24,
+        dimensions: p.dimensions || 'Tiêu chuẩn',
+        description: p.description || p.short_desc || '',
+        in_stock: Number(stock) > 0,
+        image_url: p.image_url || p.image || IMAGE_PRESETS.giuong,
+        image: p.image_url || p.image || IMAGE_PRESETS.giuong
+      };
+    }
+
+    // Normalize order record
+    function normalizeOrder(o) {
+      let createdStr = o.created_at;
+      try {
+        if (o.created_at) {
+          createdStr = new Date(o.created_at).toLocaleString('vi-VN');
+        }
+      } catch(e) {}
+
+      return {
+        id: o.id,
+        order_code: o.order_code || ('MR-' + Math.floor(1000 + Math.random() * 9000)),
+        customer_name: o.customer_name || 'Khách hàng MORIOO',
+        customer_phone: o.customer_phone || '0901 234 567',
+        customer_address: o.shipping_address || o.customer_address || 'Toàn quốc',
+        total_amount: Number(o.total_amount) || 0,
+        payment_method: (o.payment_method || 'BANK_TRANSFER').toUpperCase().includes('BANK') ? 'BANK_TRANSFER' : 'COD',
+        status: o.status || 'pending',
+        created_at: createdStr || 'Vừa xong'
+      };
+    }
+
+    // =========================================================================
+    // LOAD DATA DIRECTLY FROM SUPABASE CLOUD
+    // =========================================================================
+    async function loadDataFromSupabase() {
+      updateCloudStatusPill('connecting');
+
+      // 1. Fetch products from Supabase Cloud
+      try {
+        const cloudProds = await supabaseFetch('products?select=*&order=created_at.desc');
+        if (cloudProds && Array.isArray(cloudProds) && cloudProds.length > 0) {
+          ALL_PRODUCTS = cloudProds.map(normalizeProduct);
+          localStorage.setItem('morioo_products', JSON.stringify(ALL_PRODUCTS));
+          console.log('[Supabase Cloud] Đã tải thành công', ALL_PRODUCTS.length, 'sản phẩm từ Cloud!');
+        } else {
+          loadFallbackProducts();
+        }
+      } catch (err) {
+        console.warn('[Supabase Cloud] Không tải được sản phẩm online:', err);
+        loadFallbackProducts();
+      }
+
+      // 2. Fetch orders from Supabase Cloud
+      try {
+        const cloudOrders = await supabaseFetch('orders?select=*&order=created_at.desc');
+        if (cloudOrders && Array.isArray(cloudOrders) && cloudOrders.length > 0) {
+          ALL_ORDERS = cloudOrders.map(normalizeOrder);
+          localStorage.setItem('morioo_orders', JSON.stringify(ALL_ORDERS));
+          console.log('[Supabase Cloud] Đã tải thành công', ALL_ORDERS.length, 'đơn hàng từ Cloud!');
+        } else {
+          loadFallbackOrders();
+        }
+      } catch (err) {
+        console.warn('[Supabase Cloud] Không tải được đơn hàng online:', err);
+        loadFallbackOrders();
+      }
+
+      // 3. Load B2B Quotes
+      loadQuotes();
+
+      updateCloudStatusPill('connected');
+      renderAllData();
+      showToast('☁️ Đã đồng bộ toàn bộ dữ liệu mới nhất từ Supabase Cloud!', 'success');
+    }
+
+    function loadFallbackProducts() {
+      const saved = localStorage.getItem('morioo_products');
+      if (saved) {
+        try {
+          const list = JSON.parse(saved);
+          if (Array.isArray(list) && list.length > 0) {
+            ALL_PRODUCTS = list.map(normalizeProduct);
+            return;
+          }
+        } catch(e) {}
+      }
+      ALL_PRODUCTS = [];
+    }
+
+    function loadFallbackOrders() {
+      const saved = localStorage.getItem('morioo_orders');
+      if (saved) {
+        try {
+          const list = JSON.parse(saved);
+          if (Array.isArray(list) && list.length > 0) {
+            ALL_ORDERS = list.map(normalizeOrder);
+            return;
+          }
+        } catch(e) {}
+      }
+      ALL_ORDERS = [];
+    }
+
+    function loadQuotes() {
+      const saved = localStorage.getItem('morioo_quotes');
+      if (saved) {
+        try {
+          const list = JSON.parse(saved);
+          if (Array.isArray(list) && list.length > 0) {
+            ALL_QUOTES = list;
+            return;
+          }
+        } catch(e) {}
+      }
+
+      ALL_QUOTES = [
+        {
+          quote_code: "BG-MORIOO-01",
+          customer_name: "KTS. Đặng Minh Quân (Công ty V-Studio)",
+          customer_phone: "0918 333 444",
+          project_type: "Biệt thự nghỉ dưỡng 3 tầng tại Đà Lạt",
+          items_desc: "Trọn gói nội thất 4 phòng ngủ gỗ sồi, 1 phòng khách Wabi-Sabi, 1 bàn ăn 10 ghế",
+          estimated_budget: 350000000,
+          status: "negotiating",
+          created_at: "2026-10-27 10:20"
+        },
+        {
+          quote_code: "BG-MORIOO-02",
+          customer_name: "Bà Hoàng Yến (Chuỗi Cà Phê Mộc Trà)",
+          customer_phone: "0909 888 999",
+          project_type: "Chuỗi 3 chi nhánh Cà phê phong cách Zen Nhật Bản",
+          items_desc: "60 bàn trà gỗ sồi chân thấp, 180 đôn lười hạt xốp, 20 kệ trang trí",
+          estimated_budget: 185000000,
+          status: "pending",
+          created_at: "2026-10-29 15:40"
+        },
+        {
+          quote_code: "BG-MORIOO-03",
+          customer_name: "Công ty Cổ phần Bất Động Sản An Gia",
+          customer_phone: "0982 123 456",
+          project_type: "Trang bị nội thất 12 căn hộ mẫu Zen Living",
+          items_desc: "12 bộ giường ngủ Tatami kèm 4 hộc kéo, 12 bộ bàn ăn chân thuôn",
+          estimated_budget: 520000000,
+          status: "approved",
+          created_at: "2026-10-30 09:00"
+        }
+      ];
+      localStorage.setItem('morioo_quotes', JSON.stringify(ALL_QUOTES));
+    }
+
+    // Persist Products to Local Cache and Trigger Events
+    function persistProducts() {
+      localStorage.setItem('morioo_products', JSON.stringify(ALL_PRODUCTS));
+      window.dispatchEvent(new CustomEvent('product-list-changed'));
+      updateStatsCards();
+    }
+
+    // Persist Orders
+    function persistOrders() {
+      localStorage.setItem('morioo_orders', JSON.stringify(ALL_ORDERS));
+      window.dispatchEvent(new CustomEvent('order-list-changed'));
+      updateStatsCards();
+    }
+
+    // Update Top 4 Metric Cards & Badges
+    function updateStatsCards() {
+      const validOrders = ALL_ORDERS.filter(o => o.status !== 'cancelled');
+      const totalRev = validOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+
+      document.getElementById('statRevenue').textContent = formatPrice(totalRev);
+      document.getElementById('statOrders').textContent = ALL_ORDERS.length;
+      document.getElementById('statProducts').textContent = ALL_PRODUCTS.length;
+      document.getElementById('statQuotes').textContent = ALL_QUOTES.length;
+
+      document.getElementById('ordersCountBadge').textContent = ALL_ORDERS.length;
+      document.getElementById('productsCountBadge').textContent = ALL_PRODUCTS.length;
+      document.getElementById('quotesCountBadge').textContent = ALL_QUOTES.length;
+    }
+
+    // =========================================================================
+    // TAB NAVIGATION
+    // =========================================================================
+    function switchAdminTab(tab) {
+      CURRENT_TAB = tab;
+
+      const tabs = ['revenue', 'orders', 'products', 'quotes'];
+      tabs.forEach(t => {
+        const content = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Content`);
+        const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
+        const card = document.getElementById(`cardStat${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const subtext = document.getElementById(`subtext${t.charAt(0).toUpperCase() + t.slice(1)}`);
+
+        if (t === tab) {
+          content?.classList.remove('hidden');
+          btn?.classList.add('border-b-2', 'border-amber-800', 'text-amber-800', 'dark:text-amber-400', 'font-bold');
+          btn?.classList.remove('text-gray-500');
+
+          if (card) {
+            card.className = "cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border-2 border-amber-600 dark:border-amber-500 shadow-md ring-2 ring-amber-500/20 transition transform hover:-translate-y-0.5";
+          }
+          if (subtext) {
+            subtext.innerHTML = `<span>●</span> Đang xem mục này`;
+            subtext.className = "text-[11px] text-green-600 dark:text-green-400 mt-1 flex items-center gap-1 font-semibold";
+          }
+        } else {
+          content?.classList.add('hidden');
+          btn?.classList.remove('border-b-2', 'border-amber-800', 'text-amber-800', 'dark:text-amber-400', 'font-bold');
+          btn?.classList.add('text-gray-500');
+
+          if (card) {
+            card.className = "cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition transform hover:-translate-y-0.5";
+          }
+          if (subtext) {
+            subtext.innerHTML = `Bấm để quản lý &rarr;`;
+            subtext.className = "text-[11px] text-gray-400 mt-1";
+          }
+        }
+      });
+    }
+
+    // =========================================================================
+    // TAB 1: DOANH THU TÍCH LŨY (REVENUE)
+    // =========================================================================
+    function renderAdminRevenueTable() {
+      const tbody = document.getElementById('adminRevenueTableBody');
+      if (!tbody) return;
+
+      const validOrders = ALL_ORDERS.filter(o => o.status !== 'cancelled');
+      const completedOrders = ALL_ORDERS.filter(o => o.status === 'completed');
+      const shippingOrders = ALL_ORDERS.filter(o => o.status === 'shipping' || o.status === 'pending');
+
+      const completedRev = completedOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+      const shippingRev = shippingOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+      const bankRev = validOrders.filter(o => o.payment_method === 'BANK_TRANSFER').reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+      const aov = validOrders.length > 0 ? Math.round(validOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0) / validOrders.length) : 0;
+
+      document.getElementById('revenueCompleted').textContent = formatPrice(completedRev);
+      document.getElementById('revenueCompletedCount').textContent = completedOrders.length;
+      document.getElementById('revenueShipping').textContent = formatPrice(shippingRev);
+      document.getElementById('revenueShippingCount').textContent = shippingOrders.length;
+      document.getElementById('revenueBank').textContent = formatPrice(bankRev);
+      document.getElementById('revenueAov').textContent = formatPrice(aov);
+
+      if (ALL_ORDERS.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="p-8 text-center text-gray-400">
+              <div class="text-3xl mb-1.5">💰</div>
+              <div class="font-bold text-gray-600 dark:text-gray-300">Chưa có giao dịch phát sinh doanh thu</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = ALL_ORDERS.map(o => {
+        const isCompleted = o.status === 'completed';
+        const isCancelled = o.status === 'cancelled';
+
+        let statusBadge = '';
+        if (isCompleted) {
+          statusBadge = `<span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 px-2.5 py-0.5 rounded text-[11px] font-bold">✅ Đã thực thu</span>`;
+        } else if (isCancelled) {
+          statusBadge = `<span class="bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400 px-2.5 py-0.5 rounded text-[11px] font-bold">❌ Đã hủy đơn</span>`;
+        } else {
+          statusBadge = `<span class="bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400 px-2.5 py-0.5 rounded text-[11px] font-bold">⏳ Chờ xử lý / Thu tiền</span>`;
+        }
+
+        const paymentLabel = o.payment_method === 'BANK_TRANSFER' 
+          ? `<span class="text-blue-600 dark:text-blue-400 font-semibold">🏦 Chuyển khoản QR</span>`
+          : `<span class="text-gray-700 dark:text-zinc-300 font-semibold">💵 Tiền mặt (COD)</span>`;
+
+        return `
+          <tr class="hover:bg-gray-50/50 dark:hover:bg-zinc-800/40 transition">
+            <td class="p-3.5 font-mono text-xs">
+              <span class="font-bold text-amber-800 dark:text-amber-400">#${o.order_code}</span>
+              <div class="text-[10px] text-gray-400 mt-0.5">${o.created_at || ''}</div>
+            </td>
+            <td class="p-3.5">
+              <div class="font-bold text-gray-900 dark:text-white">${o.customer_name || 'Khách vãng lai'}</div>
+              <div class="text-[11px] text-gray-400 font-mono">${o.customer_phone || ''}</div>
+            </td>
+            <td class="p-3.5 text-xs">
+              ${paymentLabel}
+            </td>
+            <td class="p-3.5">
+              ${statusBadge}
+            </td>
+            <td class="p-3.5 text-right font-black font-mono text-sm ${isCancelled ? 'line-through text-gray-400' : 'text-red-600 dark:text-red-400'}">
+              ${formatPrice(o.total_amount || 0)}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // TAB 2: QUẢN LÝ ĐƠN HÀNG (ORDERS)
+    // =========================================================================
+    function setOrderFilter(filter) {
+      CURRENT_ORDER_FILTER = filter;
+      document.querySelectorAll('.order-filter-btn').forEach(btn => {
+        if (btn.dataset.filter === filter) {
+          btn.className = 'order-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-800 text-white shadow-sm';
+        } else {
+          btn.className = 'order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300';
+        }
+      });
+      renderAdminOrdersTable();
+    }
+
+    function handleOrderSearch(query) {
+      renderAdminOrdersTable(query.toLowerCase().trim());
+    }
+
+    function renderAdminOrdersTable(searchQuery = '') {
+      const tbody = document.getElementById('adminOrdersTableBody');
+      if (!tbody) return;
+
+      let filtered = ALL_ORDERS;
+      if (CURRENT_ORDER_FILTER !== 'all') {
+        filtered = filtered.filter(o => o.status === CURRENT_ORDER_FILTER);
+      }
+      if (searchQuery) {
+        filtered = filtered.filter(o => 
+          (o.order_code && o.order_code.toLowerCase().includes(searchQuery)) ||
+          (o.customer_name && o.customer_name.toLowerCase().includes(searchQuery)) ||
+          (o.customer_phone && o.customer_phone.includes(searchQuery))
+        );
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="p-8 text-center text-gray-400">
+              <div class="text-3xl mb-1.5">📦</div>
+              <div class="font-bold text-gray-600 dark:text-gray-300">Không có đơn hàng nào phù hợp</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(o => `
+        <tr class="hover:bg-gray-50/50 dark:hover:bg-zinc-800/40 transition">
+          <td class="p-3.5 font-mono text-xs">
+            <span class="font-bold text-amber-800 dark:text-amber-400">#${o.order_code}</span>
+            <div class="text-[10px] text-gray-400 mt-0.5">${o.created_at || ''}</div>
+          </td>
+          <td class="p-3.5">
+            <div class="font-bold text-gray-900 dark:text-white">${o.customer_name}</div>
+            <div class="text-xs text-amber-700 dark:text-amber-400 font-mono">${o.customer_phone}</div>
+            <div class="text-[10px] text-gray-400 line-clamp-1 mt-0.5" title="${o.customer_address || ''}">${o.customer_address || 'Nhận tại cửa hàng'}</div>
+          </td>
+          <td class="p-3.5 font-mono font-bold text-red-600 dark:text-red-400 text-sm">
+            ${formatPrice(o.total_amount)}
+          </td>
+          <td class="p-3.5 text-xs font-semibold">
+            ${o.payment_method === 'BANK_TRANSFER' ? '<span class="text-blue-600 dark:text-blue-400">🏦 Chuyển khoản QR</span>' : '<span class="text-gray-700 dark:text-zinc-300">💵 Tiền mặt COD</span>'}
+          </td>
+          <td class="p-3.5">
+            <select 
+              onchange="changeOrderStatus('${o.order_code}', this.value)" 
+              class="text-xs px-2.5 py-1 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white font-semibold focus:outline-none focus:border-amber-700"
+            >
+              <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>⏳ Chờ xử lý</option>
+              <option value="shipping" ${o.status === 'shipping' ? 'selected' : ''}>🚚 Đang vận chuyển</option>
+              <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>✅ Đã hoàn tất</option>
+              <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>❌ Đã hủy đơn</option>
+            </select>
+          </td>
+          <td class="p-3.5 text-right">
+            <button 
+              onclick="deleteOrder('${o.order_code}')" 
+              class="text-xs text-red-600 hover:text-red-800 font-semibold px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition" 
+              title="Xóa đơn hàng"
+            >
+              🗑️ Xóa
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function changeOrderStatus(orderCode, newStatus) {
+      const order = ALL_ORDERS.find(o => o.order_code === orderCode);
+      if (order) {
+        order.status = newStatus;
+        persistOrders();
+        renderAdminRevenueTable();
+        renderAdminOrdersTable();
+        showToast(`Đã chuyển đơn #${orderCode} sang trạng thái: ${newStatus}`, 'success');
+      }
+    }
+
+    function deleteOrder(orderCode) {
+      if (confirm(`Bạn có chắc chắn muốn xóa đơn hàng #${orderCode}?`)) {
+        ALL_ORDERS = ALL_ORDERS.filter(o => o.order_code !== orderCode);
+        persistOrders();
+        renderAdminRevenueTable();
+        renderAdminOrdersTable();
+        showToast(`Đã xóa đơn hàng #${orderCode}`, 'info');
+      }
+    }
+
+    // =========================================================================
+    // TAB 3: QUẢN LÝ SẢN PHẨM (PRODUCTS MANAGEMENT) - DIRECT SUPABASE INSERT
+    // =========================================================================
+    async function handleCreateProduct(e) {
+      e.preventDefault();
+      const form = e.target;
+
+      const title = form.title.value.trim();
+      const categorySlug = form.category.value;
+      const categoryName = CATEGORY_MAP[categorySlug] || 'Phòng Khách';
+      const woodType = form.wood_type.value.trim() || 'Gỗ Sồi Trắng Bắc Mỹ';
+      const price = Number(form.price.value) || 0;
+      const originalPrice = Number(form.original_price.value) || price;
+      const stock = Number(form.stock.value) || 10;
+      const dimensions = form.dimensions.value.trim() || 'Tiêu chuẩn';
+      const image = form.image.value.trim() || IMAGE_PRESETS.giuong;
+      const description = form.description.value.trim();
+
+      const discountPercent = originalPrice > price ? Math.round((1 - price / originalPrice) * 100) : 0;
+      const slug = title
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") + "-" + Math.floor(100 + Math.random() * 900);
+
+      // Cloud Payload for Supabase
+      const cloudPayload = {
+        slug: slug,
+        name: title,
+        category_slug: categorySlug,
+        wood_type: woodType,
+        price: price,
+        original_price: originalPrice,
+        rating: 5.0,
+        reviews_count: 1,
+        dimensions: dimensions,
+        short_desc: description || title,
+        description: description || title,
+        in_stock: stock > 0,
+        stock_quantity: stock,
+        is_featured: true,
+        is_new: true,
+        is_bestseller: false,
+        image_url: image
+      };
+
+      showToast('⏳ Đang gửi sản phẩm lên Supabase Cloud...', 'info');
+
+      let savedFromCloud = null;
+      try {
+        const resp = await supabaseFetch('products', {
+          method: 'POST',
+          body: JSON.stringify(cloudPayload),
+          prefer: 'return=representation'
+        });
+        if (resp && resp[0]) {
+          savedFromCloud = resp[0];
+          console.log('[Supabase Cloud] Đã lưu thành công sản phẩm:', savedFromCloud.id);
+        }
+      } catch (err) {
+        console.warn('[Supabase Cloud] Lỗi lưu lên Supabase:', err);
+      }
+
+      const newProduct = normalizeProduct(savedFromCloud || {
+        ...cloudPayload,
+        id: "prod-" + Date.now(),
+        discount_percent: discountPercent,
+        stock: stock
+      });
+
+      // Push to front of array
+      ALL_PRODUCTS.unshift(newProduct);
+      persistProducts();
+
+      // Reset form
+      form.reset();
+      document.getElementById('newProdWood').value = 'Gỗ Sồi Tự Nhiên';
+      document.getElementById('newProdStock').value = '15';
+      document.getElementById('newProdDimensions').value = 'Tiêu chuẩn';
+      document.getElementById('newProdImage').value = IMAGE_PRESETS.giuong;
+
+      renderAdminProductsTable();
+      showToast(`🎉 Đã thêm sản phẩm "${title}" lên Supabase Cloud & Website!`, 'success');
+      document.getElementById('adminProductsTableBody')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function handleProductSearch(query) {
+      renderAdminProductsTable(query.toLowerCase().trim());
+    }
+
+    function renderAdminProductsTable(searchQuery = '') {
+      const tbody = document.getElementById('adminProductsTableBody');
+      if (!tbody) return;
+
+      let filtered = ALL_PRODUCTS;
+      if (searchQuery) {
+        filtered = filtered.filter(p => 
+          ((p.name || p.title) && (p.name || p.title).toLowerCase().includes(searchQuery)) ||
+          (p.wood_type && p.wood_type.toLowerCase().includes(searchQuery)) ||
+          (p.category_slug && p.category_slug.toLowerCase().includes(searchQuery))
+        );
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="p-8 text-center text-gray-400">
+              <div class="text-3xl mb-1.5">🪑</div>
+              <div class="font-bold text-gray-600 dark:text-gray-300">Không tìm thấy sản phẩm nào trong kho</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(product => {
+        const title = product.name || product.title;
+        const img = product.image_url || product.image || IMAGE_PRESETS.giuong;
+        const catName = CATEGORY_MAP[product.category_slug || product.category] || product.category_name || product.category || 'Nội thất';
+        const stock = product.stock !== undefined ? product.stock : (product.stock_quantity || 10);
+
+        return `
+          <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition">
+            <td class="p-3.5 font-mono text-[11px] text-gray-400">
+              #${String(product.id).slice(-6)}
+            </td>
+            <td class="p-3.5">
+              <img src="${img}" alt="${title}" class="w-12 h-12 object-cover rounded-lg border border-gray-200 dark:border-zinc-700 shadow-xs" />
+            </td>
+            <td class="p-3.5">
+              <div class="font-bold text-gray-900 dark:text-white line-clamp-1">${title}</div>
+              <div class="text-[11px] text-amber-900 dark:text-amber-400 mt-0.5">${product.wood_type || 'Gỗ Sồi Tự Nhiên'}</div>
+              <div class="text-[10px] text-gray-400">Kích thước: ${product.dimensions || 'Tiêu chuẩn'}</div>
+            </td>
+            <td class="p-3.5 text-xs font-semibold">
+              <span class="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-zinc-800 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-zinc-700">
+                ${catName}
+              </span>
+            </td>
+            <td class="p-3.5">
+              <div class="font-bold font-mono text-red-600 dark:text-red-400">${formatPrice(product.price)}</div>
+              ${product.original_price > product.price ? `<div class="text-[10px] line-through text-gray-400 font-mono">${formatPrice(product.original_price)}</div>` : ''}
+            </td>
+            <td class="p-3.5 text-xs text-gray-700 dark:text-gray-300">
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold font-mono ${stock > 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600'}">
+                  Kho: ${stock}
+                </span>
+                <button 
+                  onclick="quickEditStock('${product.id}', ${stock})" 
+                  class="text-gray-400 hover:text-amber-800 dark:hover:text-amber-400 p-0.5 rounded transition text-xs" 
+                  title="Sửa nhanh số lượng tồn kho"
+                >
+                  ✎
                 </button>
-            </div>
-        </div>
-    </header>
+              </div>
+            </td>
+            <td class="p-3.5 text-right whitespace-nowrap">
+              <div class="flex items-center justify-end gap-2">
+                <button 
+                  onclick="openEditProductModal('${product.id}')" 
+                  class="text-xs text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 font-bold px-2 py-1 rounded hover:bg-amber-50 dark:hover:bg-zinc-800 transition"
+                >
+                  ✏️ Sửa
+                </button>
+                <span class="text-gray-300 dark:text-zinc-700">|</span>
+                <button 
+                  onclick="deleteProduct('${product.id}', '${title.replace(/'/g, "\\'")}')" 
+                  class="text-xs text-red-600 hover:text-red-800 font-bold px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition"
+                >
+                  🗑️ Xóa
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
 
-    <!-- ==============================================================================
-         2. SUB NAVIGATION TABS
-         (Admin tập trung: Check KPI Nhân Viên & Doanh Thu, Quản Lý Kho Hàng)
-         ============================================================================== -->
-    <nav class="portal-nav-bar" id="adminNavBar">
-        <div class="portal-nav-inner">
-            <button class="portal-tab-btn admin-tab-btn active" data-target="tabKpiStaff" onclick="window.switchAdminTab('tabKpiStaff')">
-                📊 Check KPI Nhân Viên & Doanh Thu <span class="tab-badge" id="badgeStaffCount">1</span>
-            </button>
-            <button class="portal-tab-btn admin-tab-btn" data-target="tabInventory" onclick="window.switchAdminTab('tabInventory')">
-                🪑 Quản Lý Kho Hàng Gỗ <span class="tab-badge" id="badgeInventoryCount">12</span>
-            </button>
-            <button class="portal-tab-btn admin-tab-btn" data-target="tabOrders" onclick="window.switchAdminTab('tabOrders')">
-                📦 Giám Sát Đơn Hàng Cửa Hàng
-            </button>
-            <button class="portal-tab-btn admin-tab-btn" data-target="tabSupabase" onclick="window.switchAdminTab('tabSupabase')">
-                ⚙️ Cấu Hình Supabase Cloud
-            </button>
-        </div>
-    </nav>
+    async function quickEditStock(productId, currentStock) {
+      const newStockStr = prompt(`Nhập số lượng tồn kho mới cho sản phẩm này:`, currentStock);
+      if (newStockStr === null) return;
+      const newStock = parseInt(newStockStr);
+      if (isNaN(newStock) || newStock < 0) {
+        showToast('Số lượng tồn kho không hợp lệ!', 'error');
+        return;
+      }
+      const prod = ALL_PRODUCTS.find(p => p.id == productId);
+      if (prod) {
+        prod.stock = newStock;
+        prod.stock_quantity = newStock;
+        prod.in_stock = newStock > 0;
 
-    <!-- ==============================================================================
-         3. MAIN CONTENT CONTAINER
-         ============================================================================== -->
-    <main class="portal-container" id="adminMainContent">
+        // Sync to Supabase
+        try {
+          await supabaseFetch(`products?id=eq.${productId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ stock_quantity: newStock, in_stock: newStock > 0 })
+          });
+        } catch(e) {}
 
-        <!-- TAB 1: CHECK KPI NHÂN VIÊN & DOANH THU -->
-        <div class="portal-tab-pane active" id="tabKpiStaff">
-            <div id="adminKpiOverviewContainer">
-                <!-- KPI số liệu nạp tự động -->
-            </div>
+        persistProducts();
+        renderAdminProductsTable();
+        showToast(`Đã cập nhật tồn kho thành ${newStock}!`, 'success');
+      }
+    }
 
-            <!-- Bảng chi tiết KPI & Quản lý nhân sự -->
-            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-top:20px;">
-                <div class="portal-card">
-                    <div class="portal-card-header">
-                        <div>
-                            <h2 class="portal-card-title">👥 Bảng Theo Dõi KPI Nhân Viên Bán Hàng</h2>
-                            <p class="portal-card-subtitle">Theo dõi số đơn đã chốt, doanh thu bán hàng mang lại và tỷ lệ hoàn thành KPI</p>
-                        </div>
-                    </div>
-                    <div id="adminStaffKpiTableContainer">
-                        <!-- Bảng KPI nhân viên -->
-                    </div>
-                </div>
+    function openEditProductModal(productId) {
+      const product = ALL_PRODUCTS.find(p => p.id == productId);
+      if (!product) return;
 
-                <!-- Cấp tài khoản nhân viên mới -->
-                <div class="portal-card">
-                    <div class="portal-card-header">
-                        <div>
-                            <h2 class="portal-card-title">➕ Cấp Quyền Nhân Viên Mới</h2>
-                            <p class="portal-card-subtitle">Admin tạo tài khoản để nhân viên vào ca trực</p>
-                        </div>
-                    </div>
+      document.getElementById('editProductId').value = product.id;
+      document.getElementById('editTitle').value = product.name || product.title || '';
+      document.getElementById('editCategory').value = product.category_slug || product.category || 'phong-khach';
+      document.getElementById('editWood').value = product.wood_type || 'Gỗ Sồi Trắng Bắc Mỹ';
+      document.getElementById('editPrice').value = product.price || 0;
+      document.getElementById('editOriginalPrice').value = product.original_price || product.price || 0;
+      document.getElementById('editStock').value = product.stock !== undefined ? product.stock : (product.stock_quantity || 10);
+      document.getElementById('editDimensions').value = product.dimensions || 'Tiêu chuẩn';
+      document.getElementById('editImage').value = product.image_url || product.image || '';
+      document.getElementById('editDescription').value = product.description || '';
 
-                    <form id="formAdminAddStaff">
-                        <div class="form-group">
-                            <label>Họ và tên nhân viên *</label>
-                            <input type="text" id="newStaffName" class="form-control" required placeholder="Ví dụ: Trần Thị Mai">
-                        </div>
-                        <div class="form-group">
-                            <label>Số điện thoại liên hệ *</label>
-                            <input type="tel" id="newStaffPhone" class="form-control" required placeholder="0987 654 321">
-                        </div>
-                        <div class="form-group">
-                            <label>Email đăng nhập *</label>
-                            <input type="email" id="newStaffEmail" class="form-control" required placeholder="mai.tt@morioo.vn">
-                        </div>
-                        <div class="form-group">
-                            <label>Mật khẩu khởi tạo *</label>
-                            <input type="password" id="newStaffPass" class="form-control" required placeholder="Ít nhất 6 ký tự">
-                        </div>
-                        <div class="form-group">
-                            <label>Bộ phận công tác *</label>
-                            <select id="newStaffDept" class="form-control" required>
-                                <option value="Tư vấn bán hàng & Hotline">Tư vấn bán hàng & Hotline</option>
-                                <option value="Xử lý đơn hàng & Kho">Xử lý đơn hàng & Kho</option>
-                                <option value="Điều phối bưu tá & Giao hàng">Điều phối bưu tá & Giao hàng</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top:8px;">
-                            Tạo Tài Khoản Nhân Viên
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
+      document.getElementById('editProductModal')?.classList.remove('hidden');
+    }
 
-        <!-- TAB 2: QUẢN LÝ KHO HÀNG GỖ -->
-        <div class="portal-tab-pane" id="tabInventory">
-            <div class="portal-card">
-                <div class="portal-card-header">
-                    <div>
-                        <h2 class="portal-card-title">🪑 Bảng Quản Lý Kho Nội Thất Gỗ Tự Nhiên</h2>
-                        <p class="portal-card-subtitle">Theo dõi lượng tồn kho thực tế, cảnh báo hết hàng và điều chỉnh số lượng tồn kho 1 chạm</p>
-                    </div>
-                    <div style="display:flex; gap:12px; align-items:center;">
-                        <input type="text" id="adminInventorySearch" class="form-control" placeholder="🔍 Tìm tên sản phẩm, loại gỗ..." style="width:260px;">
-                        <select id="adminInventoryFilterStock" class="form-control" style="width:160px;">
-                            <option value="all">Tất cả kho hàng</option>
-                            <option value="low">⚠️ Sắp hết hàng (&le; 3 cái)</option>
-                            <option value="in_stock">🟢 Còn hàng (&gt; 3 cái)</option>
-                            <option value="out">🔴 Hết hàng (0 cái)</option>
-                        </select>
-                    </div>
-                </div>
+    function closeEditProductModal() {
+      document.getElementById('editProductModal')?.classList.add('hidden');
+    }
 
-                <div id="adminInventoryTableContainer">
-                    <!-- Bảng kho hàng kèm stepper điều chỉnh số lượng -->
-                </div>
-            </div>
-        </div>
+    async function handleUpdateProduct(e) {
+      e.preventDefault();
+      const form = e.target;
+      const productId = form.id.value;
 
-        <!-- TAB 3: GIÁM SÁT ĐƠN HÀNG CỬA HÀNG -->
-        <div class="portal-tab-pane" id="tabOrders">
-            <div class="portal-card">
-                <div class="portal-card-header">
-                    <div>
-                        <h2 class="portal-card-title">📦 Danh Sách Đơn Hàng Cửa Hàng (Supabase Cloud)</h2>
-                        <p class="portal-card-subtitle">Giám sát toàn bộ đơn hàng khách tự đặt và nhân viên bán qua hotline</p>
-                    </div>
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <input type="text" id="adminOrderSearch" class="form-control" placeholder="🔍 Tìm theo mã đơn, tên, SĐT..." style="width:240px;">
-                        <select id="adminOrderFilterStatus" class="form-control" style="width:170px; font-weight:600;">
-                            <option value="all">Tất cả trạng thái</option>
-                            <option value="pending">⏳ Chờ xử lý</option>
-                            <option value="confirmed">📞 Đã xác nhận</option>
-                            <option value="shipping">🚚 Đang giao hàng</option>
-                            <option value="completed">✅ Đã hoàn tất</option>
-                            <option value="cancelled">❌ Đã hủy</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="adminOrdersTableContainer">
-                    <!-- Bảng đơn hàng -->
-                </div>
-            </div>
-        </div>
+      const prod = ALL_PRODUCTS.find(p => p.id == productId);
+      if (!prod) {
+        showToast('Không tìm thấy sản phẩm cần sửa!', 'error');
+        return;
+      }
 
-        <!-- TAB 4: CẤU HÌNH SUPABASE CLOUD -->
-        <div class="portal-tab-pane" id="tabSupabase">
-            <div class="portal-card" style="max-width: 750px; margin: 0 auto;">
-                <div class="portal-card-header">
-                    <div>
-                        <h2 class="portal-card-title">⚙️ Cấu Hình Kết Nối Supabase Cloud</h2>
-                        <p class="portal-card-subtitle">Dữ liệu được lưu trữ trực tuyến vĩnh viễn trên Supabase Cloud để bất kỳ ai cũng truy cập được</p>
-                    </div>
-                </div>
+      const price = Number(form.price.value);
+      const originalPrice = Number(form.original_price.value) || price;
+      const stock = Number(form.stock.value) || 0;
 
-                <form id="formAdminSupabase">
-                    <div class="form-group">
-                        <label>Supabase Project URL *</label>
-                        <input type="url" id="adminSupabaseUrl" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Supabase Anon / Public Key *</label>
-                        <textarea id="adminSupabaseKey" class="form-control" rows="3" required></textarea>
-                    </div>
+      prod.name = form.title.value.trim();
+      prod.title = form.title.value.trim();
+      prod.category_slug = form.category.value;
+      prod.category = form.category.value;
+      prod.category_name = CATEGORY_MAP[form.category.value] || 'Phòng Khách';
+      prod.wood_type = form.wood_type.value.trim();
+      prod.price = price;
+      prod.original_price = originalPrice;
+      prod.discount_percent = originalPrice > price ? Math.round((1 - price / originalPrice) * 100) : 0;
+      prod.stock = stock;
+      prod.stock_quantity = stock;
+      prod.in_stock = stock > 0;
+      prod.dimensions = form.dimensions.value.trim();
+      prod.image_url = form.image.value.trim();
+      prod.image = form.image.value.trim();
+      prod.description = form.description.value.trim();
 
-                    <div id="supabaseTestMsg" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:6px; font-size:13px;"></div>
+      showToast('⏳ Đang cập nhật lên Supabase Cloud...', 'info');
 
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
-                        <button type="button" id="btnTestSupabasePage" class="btn-secondary">
-                            🔍 Kiểm Tra Kết Nối
-                        </button>
-                        <button type="submit" class="btn-primary">
-                            💾 Lưu Thay Đổi Cấu Hình
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+      // Update to Supabase Cloud
+      try {
+        await supabaseFetch(`products?id=eq.${productId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            name: prod.name,
+            category_slug: prod.category_slug,
+            wood_type: prod.wood_type,
+            price: prod.price,
+            original_price: prod.original_price,
+            stock_quantity: prod.stock,
+            dimensions: prod.dimensions,
+            image_url: prod.image_url,
+            description: prod.description,
+            in_stock: prod.stock > 0
+          })
+        });
+      } catch (err) {
+        console.warn('[Supabase Cloud] Lỗi cập nhật lên Cloud:', err);
+      }
 
-    </main>
+      persistProducts();
+      closeEditProductModal();
+      renderAdminProductsTable();
+      showToast(`🎉 Đã cập nhật sản phẩm "${prod.name}" trên Supabase Cloud & Website!`, 'success');
+    }
 
-    <!-- Inline fallback chuyển tab tức thì -->
-    <script>
-        window.switchAdminTab = function(targetId) {
-            document.querySelectorAll('.admin-tab-btn, .portal-tab-btn').forEach(function(b) {
-                b.classList.toggle('active', b.getAttribute('data-target') === targetId);
-            });
-            document.querySelectorAll('.portal-tab-pane').forEach(function(p) {
-                p.classList.toggle('active', p.id === targetId);
-            });
-        };
-    </script>
+    async function deleteProduct(productId, productTitle) {
+      if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${productTitle}" khỏi Supabase Cloud & Cửa hàng?`)) {
+        showToast('⏳ Đang xóa sản phẩm trên Supabase...', 'info');
 
-    <!-- Script điều khiển chính -->
-    <script type="module" src="js/admin-page.js"></script>
+        try {
+          await supabaseFetch(`products?id=eq.${productId}`, {
+            method: 'DELETE'
+          });
+        } catch (err) {
+          console.warn('[Supabase Cloud] Lỗi xóa trên Cloud:', err);
+        }
+
+        ALL_PRODUCTS = ALL_PRODUCTS.filter(p => p.id != productId);
+        persistProducts();
+        renderAdminProductsTable();
+        showToast(`🗑️ Đã xóa sản phẩm khỏi Supabase Cloud & Website!`, 'info');
+      }
+    }
+
+    // =========================================================================
+    // TAB 4: BÁO GIÁ DỰ ÁN B2B (QUOTES)
+    // =========================================================================
+    function renderAdminQuotesTable() {
+      const tbody = document.getElementById('adminQuotesTableBody');
+      if (!tbody) return;
+
+      if (ALL_QUOTES.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="p-8 text-center text-gray-400">
+              <div class="text-3xl mb-1.5">📄</div>
+              <div class="font-bold text-gray-600 dark:text-gray-300">Chưa có yêu cầu báo giá dự án nào</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = ALL_QUOTES.map(q => {
+        let badgeStatus = '';
+        if (q.status === 'approved') {
+          badgeStatus = `<span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 px-2.5 py-0.5 rounded text-[11px] font-bold">🤝 Đã ký hợp đồng</span>`;
+        } else if (q.status === 'negotiating') {
+          badgeStatus = `<span class="bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-400 px-2.5 py-0.5 rounded text-[11px] font-bold">📝 Đang gửi báo giá</span>`;
+        } else if (q.status === 'rejected') {
+          badgeStatus = `<span class="bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400 px-2.5 py-0.5 rounded text-[11px] font-bold">❌ Đã từ chối</span>`;
+        } else {
+          badgeStatus = `<span class="bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400 px-2.5 py-0.5 rounded text-[11px] font-bold">⏳ Mới tiếp nhận</span>`;
+        }
+
+        return `
+          <tr class="hover:bg-gray-50/50 dark:hover:bg-zinc-800/40 transition">
+            <td class="p-3.5 font-mono text-xs">
+              <span class="font-bold text-blue-600 dark:text-blue-400">#${q.quote_code}</span>
+              <div class="text-[10px] text-gray-400 mt-0.5">${q.created_at || ''}</div>
+            </td>
+            <td class="p-3.5">
+              <div class="font-bold text-gray-900 dark:text-white">${q.customer_name}</div>
+              <div class="text-xs text-amber-700 dark:text-amber-400 font-mono">${q.customer_phone}</div>
+            </td>
+            <td class="p-3.5 font-semibold text-gray-900 dark:text-white">
+              ${q.project_type}
+            </td>
+            <td class="p-3.5">
+              <div class="text-xs text-gray-600 dark:text-gray-300">${q.items_desc}</div>
+              <div class="text-[11px] text-amber-800 dark:text-amber-400 font-mono font-bold mt-1">Dự toán: ${formatPrice(q.estimated_budget)}</div>
+            </td>
+            <td class="p-3.5">
+              ${badgeStatus}
+            </td>
+            <td class="p-3.5 text-right">
+              <button 
+                onclick="deleteQuote('${q.quote_code}')" 
+                class="text-xs text-red-600 hover:text-red-800 font-bold px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition" 
+                title="Xóa yêu cầu báo giá"
+              >
+                🗑️ Xóa
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function deleteQuote(quoteCode) {
+      if (confirm(`Bạn có chắc chắn muốn xóa yêu cầu báo giá #${quoteCode}?`)) {
+        ALL_QUOTES = ALL_QUOTES.filter(q => q.quote_code !== quoteCode);
+        localStorage.setItem('morioo_quotes', JSON.stringify(ALL_QUOTES));
+        renderAdminQuotesTable();
+        showToast(`Đã xóa yêu cầu báo giá #${quoteCode}`, 'info');
+      }
+    }
+
+    function renderAllData() {
+      updateStatsCards();
+      renderAdminRevenueTable();
+      renderAdminOrdersTable();
+      renderAdminProductsTable();
+      renderAdminQuotesTable();
+    }
+
+    // =========================================================================
+    // THEME MANAGEMENT (DARK / LIGHT)
+    // =========================================================================
+    function initTheme() {
+      if (ADMIN_THEME === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      updateThemeIcons();
+    }
+
+    function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        ADMIN_THEME = 'light';
+      } else {
+        document.documentElement.classList.add('dark');
+        ADMIN_THEME = 'dark';
+      }
+      localStorage.setItem('moho_theme', ADMIN_THEME);
+      updateThemeIcons();
+    }
+
+    function updateThemeIcons() {
+      const sunIcon = document.querySelector('.sun-icon');
+      const moonIcon = document.querySelector('.moon-icon');
+      if (ADMIN_THEME === 'dark') {
+        sunIcon?.classList.remove('hidden');
+        moonIcon?.classList.add('hidden');
+      } else {
+        sunIcon?.classList.add('hidden');
+        moonIcon?.classList.remove('hidden');
+      }
+    }
+
+    // Multi-tab sync
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'morioo_products' || e.key === 'morioo_orders') {
+        loadFallbackProducts();
+        loadFallbackOrders();
+        renderAllData();
+      }
+    });
+
+    // Check URL Hash for direct Tab Navigation
+    function checkHashTab() {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (['revenue', 'orders', 'products', 'quotes'].includes(hash)) {
+        switchAdminTab(hash);
+      }
+    }
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      checkHashTab();
+      // Load straight from Supabase Cloud on launch
+      loadDataFromSupabase();
+    });
+  </script>
 </body>
 </html>

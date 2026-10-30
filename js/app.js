@@ -39,6 +39,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Lắng nghe sự kiện giỏ hàng
     window.addEventListener("cart-updated", updateCartUI);
     window.addEventListener("product-list-changed", loadProducts);
+
+    // Đồng bộ đa tab khi Admin hoặc Nhân viên cập nhật sản phẩm
+    window.addEventListener("storage", (e) => {
+        if (e.key === "morioo_products") {
+            console.log("[Sync] Phát hiện sản phẩm thay đổi từ Admin/Staff, đang làm mới web...");
+            loadProducts();
+        }
+        if (e.key === "morioo_cart") {
+            updateCartUI();
+        }
+    });
+
+    // Khi người dùng chuyển tab quay lại web, tự động tải lại dữ liệu mới nhất
+    window.addEventListener("focus", () => {
+        loadProducts();
+    });
 });
 
 /**
@@ -103,7 +119,7 @@ function renderProductGrid() {
     grid.innerHTML = state.products.map(prod => `
         <article class="product-card" data-id="${prod.id}">
             <div class="product-media" onclick="window.viewProductDetail('${prod.id}')">
-                <img src="${prod.image_url}" alt="${prod.name}" loading="lazy">
+                <img src="${prod.image_url || prod.image || 'assets/images/hero-room-banner.png'}" alt="${prod.name || prod.title}" loading="lazy">
                 ${prod.original_price > prod.price ? `<span class="badge-discount">-${Math.round((1 - prod.price / prod.original_price) * 100)}%</span>` : ""}
                 ${prod.is_bestseller ? `<span class="badge-bestseller">Bán Chạy</span>` : ""}
                 ${prod.is_new ? `<span class="badge-new">Mới</span>` : ""}
@@ -113,7 +129,7 @@ function renderProductGrid() {
             </div>
             <div class="product-info">
                 <div class="product-meta">
-                    <span class="wood-tag">${prod.wood_type}</span>
+                    <span class="wood-tag">${prod.wood_type || prod.material || 'Gỗ Tự Nhiên'}</span>
                     <div class="product-rating">
                         <span class="star">★</span>
                         <span>${prod.rating || 5.0}</span>
@@ -121,7 +137,7 @@ function renderProductGrid() {
                     </div>
                 </div>
                 <h3 class="product-title" onclick="window.viewProductDetail('${prod.id}')" title="${prod.name}">
-                    ${prod.name}
+                    ${prod.name || prod.title}
                 </h3>
                 ${prod.dimensions ? `<p class="product-dimensions"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg> ${prod.dimensions}</p>` : ""}
                 <div class="product-bottom">

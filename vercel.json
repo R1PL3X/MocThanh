@@ -2,6 +2,16 @@
   "version": 2,
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/admin/:match*",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/staff/:match*",
+      "destination": "/staff.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

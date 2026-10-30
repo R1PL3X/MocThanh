@@ -169,13 +169,23 @@ class SupabaseDataService {
             console.warn("[Supabase] Lỗi getProducts online, dùng bộ nhớ đệm:", err);
         }
 
-        // Fallback bộ nhớ nếu đứt mạng
+        // Fallback bộ nhớ nếu đứt mạng hoặc dùng LocalStorage
+        this.localProducts = this.loadLocalProducts();
         let list = [...this.localProducts];
         if (filters.category && filters.category !== "all") {
-            list = list.filter(p => p.category_slug === filters.category);
+            list = list.filter(p => p.category_slug === filters.category || p.category === filters.category);
         }
         if (filters.woodType && filters.woodType !== "all") {
             list = list.filter(p => p.wood_type && p.wood_type.toLowerCase().includes(filters.woodType.toLowerCase()));
+        }
+        if (filters.search) {
+            const q = filters.search.toLowerCase().trim();
+            list = list.filter(p =>
+                ((p.name || p.title) && (p.name || p.title).toLowerCase().includes(q)) ||
+                (p.wood_type && p.wood_type.toLowerCase().includes(q)) ||
+                (p.short_desc && p.short_desc.toLowerCase().includes(q)) ||
+                (p.description && p.description.toLowerCase().includes(q))
+            );
         }
         return list;
     }
@@ -192,7 +202,8 @@ class SupabaseDataService {
         } catch (e) {
             console.warn("[Supabase] Lỗi getProduct online:", e);
         }
-        return this.localProducts.find(p => p.id === idOrSlug || p.slug === idOrSlug) || null;
+        this.localProducts = this.loadLocalProducts();
+        return this.localProducts.find(p => p.id == idOrSlug || p.slug === idOrSlug) || null;
     }
 
     /**

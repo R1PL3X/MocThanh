@@ -1,390 +1,924 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cổng Tác Nghiệp Nhân Viên | MORIOO - Bán Hàng, Kho & Sản Phẩm</title>
-    <link rel="icon" type="image/svg+xml" href="assets/images/logo-morioo.svg">
-    <!-- Supabase JS Library (Chính thức qua CDN để kết nối Database Cloud) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/portal.css">
-    <style>
-        .staff-filter-pills-bar {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 4px;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cổng Tác Nghiệp Nhân Viên - Bán Hàng & Quản Lý Kho | MORIOO</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/logo-morioo.svg">
+  
+  <!-- Tailwind CSS CDN with Dark Mode Class Support -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            moho: {
+              wood: '#a0673d',
+              'wood-dark': '#86522c',
+              terracotta: '#c85a32',
+              red: '#e53935',
+              darkbg: '#121214',
+              darkcard: '#1c1c20',
+              darkborder: '#2e2e34'
+            }
+          }
         }
-        .staff-filter-pill {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            background: #f1f5f9;
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-        }
-        .staff-filter-pill:hover {
-            background: #e2e8f0;
-            color: var(--text-main);
-        }
-        .staff-filter-pill.active {
-            background: var(--brand-staff);
-            color: #ffffff;
-            border-color: var(--brand-staff);
-        }
-    </style>
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-serif-title { font-family: 'Playfair Display', serif; }
+  </style>
 </head>
-<body>
+<body class="bg-gray-50 dark:bg-zinc-950 text-gray-800 dark:text-zinc-100 min-h-screen transition-colors duration-200">
+  
+  <!-- TOP ANNOUNCEMENT BAR (MORIOO Style) -->
+  <div class="bg-zinc-900 text-zinc-300 dark:bg-black dark:text-zinc-400 text-xs py-1.5 px-4 border-b border-zinc-800">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="hidden sm:flex items-center gap-4">
+        <span class="inline-flex items-center gap-1.5 text-sky-400 font-semibold">
+          <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+          <span>Ca Trực Tác Nghiệp: Đang Hoạt Động</span>
+        </span>
+        <span class="text-zinc-600">|</span>
+        <span>Tư vấn bán hàng, chốt đơn hotline & quản lý kho hàng gỗ MORIOO</span>
+      </div>
+      <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4">
+        <span>Tổng đài tiếp nhận: <strong class="text-amber-400 font-mono">097 114 1140</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN HEADER (Matches MORIOO style) -->
+  <header class="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-gray-200 dark:border-zinc-800 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <a href="staff.html" class="flex items-baseline select-none">
+          <span class="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">morioo</span>
+          <span class="text-2xl sm:text-3xl font-black text-sky-600 leading-none">.</span>
+        </a>
+        <span class="bg-sky-100 dark:bg-zinc-800 text-sky-800 dark:text-sky-300 text-xs px-2.5 py-0.5 rounded font-bold uppercase tracking-wider">
+          Staff Portal
+        </span>
+        <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span>Đang Trực Ca</span>
+        </span>
+      </div>
+
+      <div class="flex items-center gap-3 sm:gap-4">
+        <!-- Dark Mode Toggle Button -->
+        <button 
+          type="button" 
+          onclick="toggleTheme()" 
+          class="theme-toggle-btn p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-600 dark:text-yellow-400 transition" 
+          title="Đổi giao diện Dark / Light"
+          aria-label="Đổi giao diện"
+        >
+          <svg class="sun-icon w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg class="moon-icon w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+
+        <a href="admin.html" class="text-xs text-amber-800 dark:text-amber-400 font-semibold hover:underline flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-amber-200 dark:border-zinc-700 bg-amber-50 dark:bg-zinc-800">
+          👑 Trang Admin
+        </a>
+
+        <a href="index.html" class="text-xs text-gray-700 dark:text-zinc-300 font-semibold hover:underline flex items-center gap-1">
+          &larr; Xem cửa hàng
+        </a>
+
+        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-xs font-bold text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700">
+          <span>💼</span>
+          <span>Lê Văn Nhân Viên</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    
+    <!-- 4 SHIFT METRICS CARDS (MORIOO Style) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
+      
+      <!-- Card 1: Đơn cần gọi -->
+      <div 
+        onclick="switchStaffTab('orders'); setStaffOrderFilter('pending');" 
+        class="cursor-pointer bg-white dark:bg-zinc-900 p-4 sm:p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition transform hover:-translate-y-0.5"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-amber-700 dark:text-amber-400 font-bold uppercase tracking-wider">⏳ Đơn cần gọi</span>
+          <span class="text-base sm:text-lg">📞</span>
+        </div>
+        <div id="staffKpiPending" class="text-2xl sm:text-3xl font-black text-amber-700 dark:text-amber-400 mt-2 font-mono">1</div>
+        <div class="text-[11px] text-gray-400 mt-1">Khách vừa đặt trực tuyến &rarr;</div>
+      </div>
+
+      <!-- Card 2: Đang giao hàng -->
+      <div 
+        onclick="switchStaffTab('orders'); setStaffOrderFilter('shipping');" 
+        class="cursor-pointer bg-white dark:bg-zinc-900 p-4 sm:p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-purple-500/50 hover:shadow-md transition transform hover:-translate-y-0.5"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-purple-700 dark:text-purple-400 font-bold uppercase tracking-wider">🚚 Đang giao hàng</span>
+          <span class="text-base sm:text-lg">📦</span>
+        </div>
+        <div id="staffKpiShipping" class="text-2xl sm:text-3xl font-black text-purple-700 dark:text-purple-400 mt-2 font-mono">1</div>
+        <div class="text-[11px] text-gray-400 mt-1">Bưu tá đang vận chuyển &rarr;</div>
+      </div>
+
+      <!-- Card 3: Đã giao hoàn tất -->
+      <div 
+        onclick="switchStaffTab('orders'); setStaffOrderFilter('completed');" 
+        class="cursor-pointer bg-white dark:bg-zinc-900 p-4 sm:p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-emerald-500/50 hover:shadow-md transition transform hover:-translate-y-0.5"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-emerald-700 dark:text-emerald-400 font-bold uppercase tracking-wider">✅ Đã hoàn tất</span>
+          <span class="text-base sm:text-lg">🎉</span>
+        </div>
+        <div id="staffKpiCompleted" class="text-2xl sm:text-3xl font-black text-emerald-700 dark:text-emerald-400 mt-2 font-mono">2</div>
+        <div class="text-[11px] text-gray-400 mt-1">Đã thu tiền & bàn giao &rarr;</div>
+      </div>
+
+      <!-- Card 4: Đơn đã hủy -->
+      <div 
+        onclick="switchStaffTab('orders'); setStaffOrderFilter('cancelled');" 
+        class="cursor-pointer bg-white dark:bg-zinc-900 p-4 sm:p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-rose-500/50 hover:shadow-md transition transform hover:-translate-y-0.5"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-rose-700 dark:text-rose-400 font-bold uppercase tracking-wider">❌ Đơn đã hủy</span>
+          <span class="text-base sm:text-lg">⚠️</span>
+        </div>
+        <div id="staffKpiCancelled" class="text-2xl sm:text-3xl font-black text-rose-700 dark:text-rose-400 mt-2 font-mono">0</div>
+        <div class="text-[11px] text-gray-400 mt-1">Khách hủy hoặc hết hàng &rarr;</div>
+      </div>
+
+    </div>
+
+    <!-- 4 TABS NAVIGATION -->
+    <div class="flex border-b border-gray-200 dark:border-zinc-800 mb-8 gap-6 overflow-x-auto scrollbar-none">
+      <button 
+        id="staffTabBtnPos" 
+        onclick="switchStaffTab('pos')" 
+        class="pb-3 text-sm font-bold border-b-2 border-sky-600 text-sky-700 dark:text-sky-400 flex items-center gap-2 whitespace-nowrap transition"
+      >
+        <span>🛍️ Sale, Tư Vấn & Tạo Đơn Bán Hàng</span>
+      </button>
+
+      <button 
+        id="staffTabBtnOrders" 
+        onclick="switchStaffTab('orders')" 
+        class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap transition"
+      >
+        <span>📞 Xác Nhận Trạng Thái Đơn Hàng</span>
+        <span id="staffOrdersBadge" class="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs px-2 py-0.5 rounded-full font-bold">5</span>
+      </button>
+
+      <button 
+        id="staffTabBtnInventory" 
+        onclick="switchStaffTab('inventory')" 
+        class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap transition"
+      >
+        <span>🪑 Quản Lý Kho & Kiểm Kê</span>
+        <span id="staffInventoryBadge" class="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs px-2 py-0.5 rounded-full font-bold">12</span>
+      </button>
+
+      <button 
+        id="staffTabBtnAddProduct" 
+        onclick="switchStaffTab('addProduct')" 
+        class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap transition"
+      >
+        <span>➕ Thêm Sản Phẩm Mới (Tải Ảnh Từ Máy)</span>
+      </button>
+    </div>
 
     <!-- ==============================================================================
-         1. TOP HEADER BAR
+         TAB 1: POS BÁN HÀNG & TƯ VẤN (2-Column Layout)
          ============================================================================== -->
-    <header class="portal-header">
-        <div class="portal-header-inner">
-            <div class="portal-brand">
-                <a href="staff.html" class="portal-logo-box" style="text-decoration:none; display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:24px;">💼</span>
-                    <strong style="font-size:18px; font-weight:800; color:var(--brand-staff); letter-spacing:0.5px;">MORIOO NHÂN VIÊN</strong>
-                    <span class="portal-badge-role badge-role-staff">Cổng Tác Nghiệp</span>
-                </a>
+    <div id="staffTabContentPos" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column (5/12): Quick Order Form -->
+        <div class="lg:col-span-5 bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm p-5">
+          <div class="border-b border-gray-100 dark:border-zinc-800 pb-3 mb-4">
+            <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span>🛍️</span> Tạo Đơn Bán Hàng (Hotline / Tại Quầy)
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Chốt đơn nhanh cho khách gọi điện - Tự động đồng bộ kho</p>
+          </div>
+
+          <form onsubmit="handlePosSubmit(event)" class="space-y-3.5 text-xs">
+            <div>
+              <label class="block font-semibold mb-1">Chọn sản phẩm nội thất gỗ *</label>
+              <select id="posSelectProduct" onchange="updatePosTotal()" required class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:border-sky-600">
+                <option value="">-- Chọn mẫu gỗ trong kho --</option>
+              </select>
             </div>
 
-            <div class="portal-header-actions">
-                <div id="topStaffDbBadge" class="status-pill status-completed">
-                    🟢 Supabase: Online
-                </div>
-                <a href="admin.html" class="portal-btn-link" title="Đến Bảng Quản Trị Admin">
-                    👑 Trang Admin
-                </a>
-                <a href="index.html" class="portal-btn-link" title="Xem Giao Diện Mua Sắm Khách Hàng">
-                    🏪 Về Cửa Hàng
-                </a>
-                <div class="portal-user-pill">
-                    <span>💼</span>
-                    <span id="topStaffName">Lê Văn Nhân Viên</span>
-                    <small style="color:var(--text-muted); margin-left:4px;">(<span id="topStaffDept">Tư Vấn & Bán Hàng</span>)</small>
-                </div>
-                <button class="portal-btn-logout btn-staff-logout" title="Đăng xuất khỏi ca trực">
-                    Đăng xuất
-                </button>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold mb-1">Số lượng mua *</label>
+                <input type="number" id="posQuantity" oninput="updatePosTotal()" required min="1" value="1" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white font-mono font-bold focus:outline-none focus:border-sky-600">
+              </div>
+              <div>
+                <label class="block font-semibold mb-1">Hình thức thanh toán *</label>
+                <select id="posPayment" required class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:border-sky-600">
+                  <option value="COD">💵 COD (Khi nhận hàng)</option>
+                  <option value="BANK_TRANSFER">💳 Chuyển khoản VietQR</option>
+                </select>
+              </div>
             </div>
+
+            <!-- Price Preview Card -->
+            <div class="p-3.5 rounded-xl bg-sky-50 dark:bg-zinc-800/60 border border-sky-100 dark:border-zinc-700 flex items-center justify-between">
+              <span class="text-xs font-semibold text-sky-900 dark:text-sky-300">Tổng tiền thanh toán:</span>
+              <span id="posTotalPriceVal" class="text-lg font-black text-red-600 dark:text-red-400 font-mono">0₫</span>
+            </div>
+
+            <div class="pt-1 border-t border-gray-100 dark:border-zinc-800">
+              <label class="block font-semibold mb-1">Họ tên khách hàng *</label>
+              <input type="text" id="posCustName" required placeholder="Ví dụ: Lê Anh Tuấn" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:border-sky-600">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold mb-1">Số điện thoại *</label>
+                <input type="tel" id="posCustPhone" required placeholder="0901 234 567" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white font-mono focus:outline-none focus:border-sky-600">
+              </div>
+              <div>
+                <label class="block font-semibold mb-1">Email (nếu có)</label>
+                <input type="email" id="posCustEmail" placeholder="khach@gmail.com" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:border-sky-600">
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold mb-1">Địa chỉ giao hàng & Lắp đặt *</label>
+              <textarea id="posCustAddress" rows="2" required placeholder="Số nhà, tên đường, quận/huyện, TP.HCM..." class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:border-sky-600"></textarea>
+            </div>
+
+            <button type="submit" class="w-full mt-2 py-3 px-4 rounded-lg bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs sm:text-sm shadow transition flex items-center justify-center gap-2">
+              <span>🚀 Tạo Đơn Hàng & Đưa Lên Hệ Thống</span>
+            </button>
+          </form>
         </div>
-    </header>
+
+        <!-- Right Column (7/12): Fast Product Consultation Table -->
+        <div class="lg:col-span-7 bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col">
+          <div class="p-4 sm:p-5 border-b border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <span>📖</span> Tra Cứu Thông Số & Kho Tư Vấn
+              </h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Tìm kiếm nhanh kích thước, chất liệu gỗ, tồn kho để giải đáp cho khách</p>
+            </div>
+            <input 
+              type="text" 
+              id="posSearchInput" 
+              oninput="handlePosSearch(this.value)" 
+              placeholder="🔍 Tra cứu tên, loại gỗ..." 
+              class="px-3 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-sky-600 w-full sm:w-52"
+            >
+          </div>
+
+          <div class="flex-1 overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+              <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+                <tr>
+                  <th class="p-3 w-14">Ảnh</th>
+                  <th class="p-3">Tên sản phẩm</th>
+                  <th class="p-3">Loại gỗ</th>
+                  <th class="p-3">Giá bán</th>
+                  <th class="p-3 text-right">Kho</th>
+                </tr>
+              </thead>
+              <tbody id="posConsultTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
 
     <!-- ==============================================================================
-         2. SUB NAVIGATION TABS
-         (Nhân viên phụ trách: Sale & Bán hàng, Xác nhận đơn, Kho & Thêm sản phẩm tải ảnh từ máy)
+         TAB 2: XÁC NHẬN TRẠNG THÁI ĐƠN HÀNG (Staff Orders Cards Grid)
          ============================================================================== -->
-    <nav class="portal-nav-bar" id="staffNavBar">
-        <div class="portal-nav-inner">
-            <button class="portal-tab-btn staff-tab staff-tab-btn active" data-target="tabStaffPos" onclick="window.switchStaffTab('tabStaffPos')">
-                🛍️ Sale, Tư Vấn & Tạo Đơn Bán Hàng
-            </button>
-            <button class="portal-tab-btn staff-tab staff-tab-btn" data-target="tabStaffOrders" onclick="window.switchStaffTab('tabStaffOrders')">
-                📞 Xác Nhận Trạng Thái Đơn Hàng
-            </button>
-            <button class="portal-tab-btn staff-tab staff-tab-btn" data-target="tabStaffInventory" onclick="window.switchStaffTab('tabStaffInventory')">
-                🪑 Quản Lý Kho & Kiểm Kê
-            </button>
-            <button class="portal-tab-btn staff-tab staff-tab-btn" data-target="tabStaffAddProduct" onclick="window.switchStaffTab('tabStaffAddProduct')">
-                ➕ Thêm Sản Phẩm Mới (Tải Ảnh Từ Máy)
-            </button>
+    <div id="staffTabContentOrders" class="hidden space-y-6">
+      
+      <!-- Filter Bar -->
+      <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-semibold mr-1">Lọc ca:</span>
+          <button onclick="setStaffOrderFilter('all')" data-status="all" class="staff-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-700 text-white shadow-sm">Tất cả</button>
+          <button onclick="setStaffOrderFilter('pending')" data-status="pending" class="staff-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">⏳ Chờ xử lý</button>
+          <button onclick="setStaffOrderFilter('confirmed')" data-status="confirmed" class="staff-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">📞 Đã xác nhận</button>
+          <button onclick="setStaffOrderFilter('shipping')" data-status="shipping" class="staff-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">🚚 Đang giao hàng</button>
+          <button onclick="setStaffOrderFilter('completed')" data-status="completed" class="staff-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">✅ Đã hoàn tất</button>
         </div>
-    </nav>
+
+        <input 
+          type="text" 
+          id="staffOrderSearchInput" 
+          oninput="handleStaffOrderSearch(this.value)" 
+          placeholder="🔍 Tìm mã đơn, tên, SĐT..." 
+          class="px-3 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-sky-600 w-full sm:w-60"
+        >
+      </div>
+
+      <!-- Orders Cards Grid -->
+      <div id="staffOrdersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Rendered via JavaScript -->
+      </div>
+
+    </div>
 
     <!-- ==============================================================================
-         3. MAIN CONTAINER
+         TAB 3: QUẢN LÝ KHO & KIỂM KÊ (Staff Inventory)
          ============================================================================== -->
-    <main class="portal-container" id="staffMainContent">
+    <div id="staffTabContentInventory" class="hidden space-y-6">
+      
+      <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <span>🪑</span> Kiểm Kê Kho Hàng Gỗ Tự Nhiên
+          </h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Kiểm tra thực tế số lượng hàng sẵn sàng trong xưởng, cập nhật 1 chạm</p>
+        </div>
+        <input 
+          type="text" 
+          id="staffInventorySearch" 
+          oninput="handleStaffInventorySearch(this.value)" 
+          placeholder="🔍 Tìm theo tên sản phẩm, loại gỗ..." 
+          class="px-3 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-sky-600 w-full sm:w-64"
+        >
+      </div>
 
-        <!-- THỐNG KÊ NHANH CA TRỰC -->
-        <div class="stat-cards-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
-            <div class="stat-card stat-accent-amber" style="padding:16px;">
-                <span class="stat-card-label">⏳ Đơn mới cần gọi:</span>
-                <span class="stat-card-val" id="staffKpiPending" style="color:#b45309;">0</span>
-            </div>
-            <div class="stat-card stat-accent-purple" style="padding:16px;">
-                <span class="stat-card-label">🚚 Đang trên đường giao:</span>
-                <span class="stat-card-val" id="staffKpiShipping" style="color:#6d28d9;">0</span>
-            </div>
-            <div class="stat-card stat-accent-green" style="padding:16px;">
-                <span class="stat-card-label">✅ Đã giao hoàn tất:</span>
-                <span class="stat-card-val" id="staffKpiCompleted" style="color:#15803d;">0</span>
-            </div>
-            <div class="stat-card stat-accent-red" style="padding:16px;">
-                <span class="stat-card-label">❌ Đơn đã hủy:</span>
-                <span class="stat-card-val" id="staffKpiCancelled" style="color:#b91c1c;">0</span>
-            </div>
+      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+              <tr>
+                <th class="p-3.5 w-16">Ảnh</th>
+                <th class="p-3.5">Tên sản phẩm</th>
+                <th class="p-3.5">Loại gỗ</th>
+                <th class="p-3.5">Giá bán lẻ</th>
+                <th class="p-3.5">Tồn kho (1 chạm)</th>
+                <th class="p-3.5 text-right">Tình trạng</th>
+              </tr>
+            </thead>
+            <tbody id="staffInventoryTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+              <!-- Rendered via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==============================================================================
+         TAB 4: THÊM SẢN PHẨM MỚI (TẢI ẢNH TỪ MÁY TÍNH)
+         ============================================================================== -->
+    <div id="staffTabContentAddProduct" class="hidden space-y-6">
+      <div class="max-w-2xl mx-auto bg-white dark:bg-zinc-900 p-6 sm:p-8 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+        
+        <div class="border-b border-gray-100 dark:border-zinc-800 pb-4 mb-6">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <span>➕</span> Thêm Mẫu Đồ Gỗ Mới & Tải Ảnh Trực Tiếp
+          </h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Đăng mẫu sản phẩm mới lên website mua sắm cho khách hàng xem và đặt mua</p>
         </div>
 
-        <!-- TAB 1: SALE & TƯ VẤN & TẠO ĐƠN BÁN HÀNG -->
-        <div class="portal-tab-pane active" id="tabStaffPos">
-            <div style="display:grid; grid-template-columns: 1.2fr 1.8fr; gap:20px;">
-                <!-- Form Tạo Đơn Hàng Nhanh (POS Bán Hàng) -->
-                <div class="portal-card">
-                    <div class="portal-card-header">
-                        <div>
-                            <h2 class="portal-card-title">🛍️ Tạo Đơn Bán Hàng (Hotline / Tại Quầy)</h2>
-                            <p class="portal-card-subtitle">Chốt đơn cho khách gọi điện hoặc mua trực tiếp - Lưu thẳng vào Supabase</p>
-                        </div>
-                    </div>
-
-                    <form id="formStaffPosOrder">
-                        <div class="form-group">
-                            <label>Chọn sản phẩm nội thất gỗ *</label>
-                            <select id="posSelectProduct" class="form-control" required>
-                                <option value="">-- Chọn mẫu gỗ trong kho --</option>
-                            </select>
-                        </div>
-
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-                            <div class="form-group">
-                                <label>Số lượng mua *</label>
-                                <input type="number" id="posQuantity" class="form-control" value="1" min="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Hình thức thanh toán *</label>
-                                <select id="posPayment" class="form-control" required>
-                                    <option value="cod">💵 Thu tiền khi nhận (COD)</option>
-                                    <option value="banking">💳 Quét mã VietQR chuyển khoản</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Họ và tên khách hàng *</label>
-                            <input type="text" id="posCustName" class="form-control" placeholder="Nguyễn Văn A" required>
-                        </div>
-
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-                            <div class="form-group">
-                                <label>Số điện thoại khách *</label>
-                                <input type="tel" id="posCustPhone" class="form-control" placeholder="0912 345 678" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Email nhận hóa đơn</label>
-                                <input type="email" id="posCustEmail" class="form-control" placeholder="khach@gmail.com">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Địa chỉ giao hàng tận nhà *</label>
-                            <input type="text" id="posCustAddress" class="form-control" placeholder="Số nhà, đường, quận/huyện, tỉnh thành" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Ghi chú tư vấn / Yêu cầu lắp đặt</label>
-                            <input type="text" id="posOrderNote" class="form-control" placeholder="Ví dụ: Khách dặn giao sau 18h tối...">
-                        </div>
-
-                        <div id="posPreviewTotal" style="background:#f8fafc; border:1px solid var(--border-color); border-radius:6px; padding:12px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:13px; font-weight:600; color:var(--text-muted);">Thành tiền tạm tính:</span>
-                            <strong id="posTotalPriceVal" style="font-size:17px; color:var(--brand-red);">0 VNĐ</strong>
-                        </div>
-
-                        <button type="submit" id="btnSubmitPosOrder" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:15px; background:var(--brand-staff);">
-                            🚀 Tạo Đơn Hàng & Đưa Lên Hệ Thống
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Bảng Tra Cứu Thông Số Đồ Gỗ Để Báo Giá & Tư Vấn -->
-                <div class="portal-card">
-                    <div class="portal-card-header">
-                        <div>
-                            <h2 class="portal-card-title">📖 Sổ Tay Tra Cứu Thông Số & Báo Giá Khách</h2>
-                            <p class="portal-card-subtitle">Xem quy cách kích thước, loại gỗ và số lượng kho để tư vấn nhanh khi nghe hotline</p>
-                        </div>
-                        <input type="text" id="posConsultSearch" class="form-control" placeholder="🔍 Tra cứu tên gỗ, kích thước..." style="width:240px;">
-                    </div>
-
-                    <div id="staffConsultTableContainer">
-                        <!-- Bảng tra cứu tư vấn -->
-                    </div>
-                </div>
+        <form onsubmit="handleStaffCreateProduct(event)" class="space-y-4 text-xs">
+          
+          <!-- Drag & Drop Zone for Image Upload from PC -->
+          <div>
+            <label class="block font-semibold mb-1 text-gray-700 dark:text-zinc-200">Ảnh sản phẩm * (Tải trực tiếp từ máy tính hoặc dán URL)</label>
+            
+            <div id="staffDropzone" class="border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-sky-500 rounded-xl p-6 text-center cursor-pointer bg-gray-50/50 dark:bg-zinc-800/40 transition">
+              <input type="file" id="staffFileInput" accept="image/*" class="hidden" onchange="handleStaffFileSelected(this.files[0])">
+              <div onclick="document.getElementById('staffFileInput').click()">
+                <div class="text-3xl mb-2">📸</div>
+                <div class="font-bold text-sm text-gray-700 dark:text-zinc-200">Kéo thả ảnh vào đây hoặc <span class="text-sky-600 underline">Bấm để chọn tệp từ máy tính</span></div>
+                <p class="text-gray-400 text-[11px] mt-1">Hỗ trợ JPG, PNG, WEBP (Tự động nạp xem trước)</p>
+              </div>
             </div>
-        </div>
 
-        <!-- TAB 2: XÁC NHẬN TRẠNG THÁI ĐƠN HÀNG -->
-        <div class="portal-tab-pane" id="tabStaffOrders">
-            <div class="portal-card">
-                <div class="portal-card-header">
-                    <div>
-                        <h2 class="portal-card-title">📦 Danh Sách Đơn Hàng Cần Xử Lý</h2>
-                        <p class="portal-card-subtitle">Bấm số điện thoại để gọi ngay cho khách - Bấm nút 1 chạm để cập nhật tiến độ giao</p>
-                    </div>
-                    <div style="display:flex; gap:12px; align-items:center;">
-                        <input type="text" id="staffOrderSearchInput" class="form-control" placeholder="🔍 Tìm theo SĐT, tên, mã đơn..." style="width:260px;">
-                    </div>
-                </div>
-
-                <!-- Thanh lọc nhanh trạng thái -->
-                <div class="staff-filter-pills-bar" style="margin-bottom:20px;">
-                    <button class="staff-filter-pill active" data-status="all">Tất cả đơn</button>
-                    <button class="staff-filter-pill" data-status="pending">⏳ Chờ xử lý</button>
-                    <button class="staff-filter-pill" data-status="confirmed">📞 Đã xác nhận</button>
-                    <button class="staff-filter-pill" data-status="shipping">🚚 Đang giao hàng</button>
-                    <button class="staff-filter-pill" data-status="completed">✅ Đã giao xong</button>
-                    <button class="staff-filter-pill" data-status="cancelled">❌ Đã hủy</button>
-                </div>
-
-                <!-- Lưới danh sách thẻ đơn hàng -->
-                <div id="staffOrdersCardsList" class="staff-orders-grid">
-                    <!-- Danh sách thẻ đơn hàng được nạp tự động -->
-                </div>
+            <!-- Preview Card -->
+            <div id="staffPreviewBox" class="hidden mt-2 p-3 rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/60 flex items-center gap-4">
+              <img id="staffPreviewImg" src="" alt="Preview" class="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-zinc-700">
+              <div class="flex-1">
+                <div class="text-emerald-600 font-bold text-xs flex items-center gap-1"><span>✅</span> Đã nạp ảnh thành công từ máy tính</div>
+                <button type="button" onclick="removeStaffUploadedImage()" class="mt-1 text-xs text-red-600 hover:underline">Gỡ ảnh này & chọn ảnh khác</button>
+              </div>
             </div>
-        </div>
 
-        <!-- TAB 3: QUẢN LÝ KHO & KIỂM KÊ -->
-        <div class="portal-tab-pane" id="tabStaffInventory">
-            <div class="portal-card">
-                <div class="portal-card-header">
-                    <div>
-                        <h2 class="portal-card-title">🪑 Quản Lý Kho & Kiểm Kê Hàng Sẵn</h2>
-                        <p class="portal-card-subtitle">Kiểm tra tồn kho và cập nhật số lượng khi xuất hàng trực tiếp</p>
-                    </div>
-                    <div>
-                        <input type="text" id="staffInventorySearch" class="form-control" placeholder="🔍 Tìm tên sản phẩm, loại gỗ..." style="width:280px;">
-                    </div>
-                </div>
-
-                <div id="staffInventoryTableContainer">
-                    <!-- Bảng tồn kho nạp tự động -->
-                </div>
+            <div class="mt-2">
+              <span class="text-gray-400 text-[11px]">Hoặc dán link URL ảnh online (nếu có):</span>
+              <input type="url" id="staffUrlInput" placeholder="https://images.unsplash.com/photo-..." class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-sky-600">
             </div>
-        </div>
+          </div>
 
-        <!-- TAB 4: THÊM SẢN PHẨM MỚI (TẢI ẢNH TỪ MÁY LÊN WEB) -->
-        <div class="portal-tab-pane" id="tabStaffAddProduct">
-            <div class="portal-card" style="max-width: 860px; margin: 0 auto;">
-                <div class="portal-card-header">
-                    <div>
-                        <h2 class="portal-card-title">➕ Thêm Mẫu Đồ Gỗ Mới Vào Website</h2>
-                        <p class="portal-card-subtitle">Nhân viên nhập thông tin sản phẩm và tải ảnh từ máy tính hoặc điện thoại lên web</p>
-                    </div>
-                </div>
-
-                <form id="formStaffAddProduct">
-                    <!-- KHUNG TẢI ẢNH TỪ TRONG MÁY LÊN WEB -->
-                    <div class="form-group">
-                        <label style="font-size:14px; font-weight:700; color:var(--brand-staff);">
-                            🖼️ Hình Ảnh Sản Phẩm (Tải ảnh từ máy tính hoặc dán URL) *
-                        </label>
-                        
-                        <!-- File Upload Input ẩn -->
-                        <input type="file" id="staffProductFileInput" accept="image/*" style="display:none;">
-
-                        <!-- Vùng bấm chọn file / kéo thả -->
-                        <div class="image-upload-zone" id="staffDropzone" onclick="document.getElementById('staffProductFileInput').click()">
-                            <div style="font-size:36px; margin-bottom:6px;">📁</div>
-                            <strong style="font-size:14.5px; color:var(--text-main);">Bấm vào đây để chọn tệp ảnh từ máy tính / điện thoại</strong>
-                            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">
-                                Hỗ trợ JPG, PNG, WEBP, GIF. Ảnh sẽ được xử lý tự động và lưu lên hệ thống.
-                            </p>
-                            <button type="button" class="btn-secondary" style="margin-top:10px; pointer-events:none; font-size:13px; font-weight:700;">
-                                📂 Chọn tệp ảnh từ thiết bị
-                            </button>
-                        </div>
-
-                        <!-- Khung xem trước ảnh đã tải lên -->
-                        <div id="staffImagePreviewContainer" style="display:none; text-align:center; margin-bottom:14px;">
-                            <div class="image-preview-wrapper">
-                                <img id="staffImagePreview" class="image-preview-img" src="" alt="Xem trước ảnh">
-                                <button type="button" class="btn-remove-preview" id="btnRemoveStaffImage" title="Hủy ảnh này">&times;</button>
-                            </div>
-                            <div style="font-size:12px; color:#15803d; font-weight:600; margin-top:4px;">
-                                ✅ Đã tải ảnh từ máy tính thành công!
-                            </div>
-                        </div>
-
-                        <!-- Lựa chọn phụ: Dán URL ngoài -->
-                        <div style="margin-top:8px;">
-                            <label style="font-size:12px; color:var(--text-muted);">Hoặc dán link ảnh URL từ internet:</label>
-                            <input type="url" id="staffImageUrlInput" class="form-control" placeholder="https://images.unsplash.com/photo-...">
-                        </div>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px;">
-                        <div class="form-group">
-                            <label>Tên sản phẩm gỗ *</label>
-                            <input type="text" id="staffNewProdName" class="form-control" required placeholder="Ví dụ: Bàn Trà Gỗ Sồi Nhật Bản">
-                        </div>
-                        <div class="form-group">
-                            <label>Danh mục nội thất *</label>
-                            <select id="staffNewProdCategory" class="form-control" required>
-                                <option value="phong-khach">Phòng Khách</option>
-                                <option value="phong-ngu">Phòng Ngủ</option>
-                                <option value="phong-an">Phòng Ăn & Bếp</option>
-                                <option value="lam-viec">Làm Việc & Học Tập</option>
-                                <option value="decor">Trang Trí & Decor</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px;">
-                        <div class="form-group">
-                            <label>Chất liệu gỗ tự nhiên *</label>
-                            <input type="text" id="staffNewProdWood" class="form-control" required placeholder="Gỗ Sồi Nga, Teak, Óc Chó...">
-                        </div>
-                        <div class="form-group">
-                            <label>Giá bán niêm yết (VNĐ) *</label>
-                            <input type="number" id="staffNewProdPrice" class="form-control" required placeholder="2450000">
-                        </div>
-                        <div class="form-group">
-                            <label>Giá gốc / Khuyến mãi (VNĐ)</label>
-                            <input type="number" id="staffNewProdOriginalPrice" class="form-control" placeholder="2950000">
-                        </div>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px;">
-                        <div class="form-group">
-                            <label>Kích thước quy cách (DxRxC) *</label>
-                            <input type="text" id="staffNewProdDimensions" class="form-control" required placeholder="100 x 50 x 38 cm">
-                        </div>
-                        <div class="form-group">
-                            <label>Số lượng tồn kho ban đầu *</label>
-                            <input type="number" id="staffNewProdStock" class="form-control" required value="20">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Mô tả ngắn hiển thị ở danh mục</label>
-                        <input type="text" id="staffNewProdShortDesc" class="form-control" placeholder="Mặt bàn gỗ sồi bo góc tròn an toàn, phong cách tối giản">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Mô tả chi tiết và kỹ thuật chế tác gỗ</label>
-                        <textarea id="staffNewProdDesc" class="form-control" rows="3" placeholder="Sản phẩm mộng gỗ truyền thống, sơn lót an toàn gốc nước, chống cong vênh mối mọt..."></textarea>
-                    </div>
-
-                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
-                        <button type="submit" id="btnSubmitStaffAddProduct" class="btn-primary" style="background:var(--brand-staff); padding:12px 24px; font-size:15px;">
-                            🚀 Lưu Sản Phẩm Lên Website Khách Hàng (Supabase)
-                        </button>
-                    </div>
-                </form>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-semibold mb-1">Tên sản phẩm *</label>
+              <input type="text" id="staffProdName" required placeholder="Bàn ăn chân vát 6 ghế" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-sky-600">
             </div>
-        </div>
+            <div>
+              <label class="block font-semibold mb-1">Không gian / Danh mục *</label>
+              <select id="staffProdCategory" required class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-sky-600">
+                <option value="Phòng Khách">Phòng Khách</option>
+                <option value="Phòng Ngủ">Phòng Ngủ</option>
+                <option value="Phòng Ăn">Phòng Ăn</option>
+                <option value="Phòng Làm Việc">Phòng Làm Việc</option>
+                <option value="Tủ & Kệ">Tủ & Kệ</option>
+              </select>
+            </div>
+          </div>
 
-    </main>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-semibold mb-1">Chất liệu gỗ *</label>
+              <input type="text" id="staffProdWood" required placeholder="Gỗ Sồi Trắng Bắc Mỹ" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-sky-600">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">Giá bán lẻ (VNĐ) *</label>
+              <input type="number" id="staffProdPrice" required min="10000" placeholder="5800000" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white font-mono focus:outline-none focus:border-sky-600">
+            </div>
+          </div>
 
-    <!-- Inline fallback chuyển tab tức thì -->
-    <script>
-        window.switchStaffTab = function(targetId) {
-            document.querySelectorAll('.staff-tab, .staff-tab-btn, .portal-tab-btn').forEach(function(b) {
-                b.classList.toggle('active', b.getAttribute('data-target') === targetId);
-            });
-            document.querySelectorAll('.portal-tab-pane').forEach(function(p) {
-                p.classList.toggle('active', p.id === targetId);
-            });
-        };
-    </script>
+          <div>
+            <label class="block font-semibold mb-1">Số lượng tồn kho sẵn *</label>
+            <input type="number" id="staffProdStock" required min="0" value="10" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white font-mono focus:outline-none focus:border-sky-600">
+          </div>
 
-    <!-- Script điều khiển chính -->
-    <script type="module" src="js/staff-page.js"></script>
+          <div class="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-end">
+            <button type="submit" class="px-6 py-2.5 rounded-lg bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs sm:text-sm shadow transition">
+              🚀 Lưu Sản Phẩm Lên Cửa Hàng
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="fixed top-16 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- STANDALONE JAVASCRIPT -->
+  <script>
+    let STAFF_THEME = localStorage.getItem('moho_theme') || localStorage.getItem('morioo_theme') || 'light';
+    function initTheme() {
+      if (STAFF_THEME === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+      }
+      updateThemeIcons();
+    }
+    function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        STAFF_THEME = 'light';
+      } else {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        STAFF_THEME = 'dark';
+      }
+      localStorage.setItem('moho_theme', STAFF_THEME);
+      localStorage.setItem('morioo_theme', STAFF_THEME);
+      updateThemeIcons();
+      showToast(STAFF_THEME === 'dark' ? '🌙 Chế độ tối' : '☀️ Chế độ sáng', 'info');
+    }
+    function updateThemeIcons() {
+      const sun = document.querySelector('.sun-icon');
+      const moon = document.querySelector('.moon-icon');
+      if (STAFF_THEME === 'dark') {
+        sun?.classList.remove('hidden');
+        moon?.classList.add('hidden');
+      } else {
+        sun?.classList.add('hidden');
+        moon?.classList.remove('hidden');
+      }
+    }
+
+    function formatPrice(num) {
+      return new Intl.NumberFormat('vi-VN').format(num) + '₫';
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-zinc-900 dark:bg-zinc-700';
+      toast.className = `${bg} text-white text-xs px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Default Mock Data
+    let STAFF_PRODUCTS = [
+      { id: "p-1", name: "Giường Ngủ Gỗ Sồi Tatami Có Hộc Kéo", category: "Phòng Ngủ", wood_type: "Gỗ Sồi Trắng Bắc Mỹ", price: 8990000, stock: 15, image_url: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-2", name: "Ghế Sofa Bành Thư Giãn Wabi-Sabi", category: "Phòng Khách", wood_type: "Gỗ Tần Bì & Vải Linen", price: 3450000, stock: 12, image_url: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-3", name: "Bàn Trà Tròn Gỗ Sồi Chân Thấp Kiểu Nhật", category: "Phòng Khách", wood_type: "Gỗ Sồi Tự Nhiên", price: 2450000, stock: 24, image_url: "https://images.unsplash.com/photo-1533090161767-e6ffed986b88?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-4", name: "Kệ Tivi Gỗ Sồi Tối Giản 3 Ngăn Kéo", category: "Phòng Khách", wood_type: "Gỗ Sồi FAS", price: 4850000, stock: 8, image_url: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-5", name: "Bàn Ăn Chân Thuôn Gỗ Sồi 4 Ghế", category: "Phòng Ăn", wood_type: "Gỗ Sồi Trắng", price: 7900000, stock: 10, image_url: "https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-6", name: "Bàn Làm Việc Gỗ Sồi Nhỏ Gọn Có Ngăn Kéo", category: "Phòng Làm Việc", wood_type: "Gỗ Sồi Tự Nhiên", price: 4150000, stock: 20, image_url: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-7", name: "Kệ Sách Gỗ Tự Nhiên 4 Tầng Modul", category: "Phòng Làm Việc", wood_type: "Gỗ Tần Bì Ash", price: 3200000, stock: 16, image_url: "https://images.unsplash.com/photo-1594671581654-27d5303d3d45?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-8", name: "Tủ Quần Áo Gỗ Sồi Cửa Lùa Wabi-Sabi", category: "Phòng Ngủ", wood_type: "Gỗ Sồi & Nan Gỗ Thông", price: 14500000, stock: 6, image_url: "https://images.unsplash.com/photo-1558997519-83ea9252def8?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-9", name: "Bộ Ấm Chén Trà Gốm Sứ Men Mộc Trắng", category: "Tủ & Kệ", wood_type: "Gốm Sứ & Gỗ Sồi", price: 680000, stock: 50, image_url: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-10", name: "Tab Đầu Giường Gỗ Sồi 1 Ngăn Kéo", category: "Phòng Ngủ", wood_type: "Gỗ Sồi FAS", price: 1650000, stock: 30, image_url: "https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-11", name: "Đèn Cây Gỗ Sồi Chao Vải Linen", category: "Tủ & Kệ", wood_type: "Gỗ Sồi & Vải", price: 1890000, stock: 22, image_url: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-12", name: "Đôn Tròn Gỗ Sồi Bọc Nệm Thô", category: "Phòng Khách", wood_type: "Gỗ Sồi & Linen", price: 1250000, stock: 18, image_url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=400&q=80" }
+    ];
+
+    let STAFF_ORDERS = [
+      { order_code: "MR-2610-8491", customer_name: "Nguyễn Văn Tuấn", customer_phone: "0901 234 567", customer_address: "162 Lê Văn Việt, Tăng Nhơn Phú B, TP. Thủ Đức, TP.HCM", total_amount: 8990000, payment_method: "BANK_TRANSFER", status: "completed", created_at: "2026-10-28 14:30" },
+      { order_code: "MR-2610-3829", customer_name: "Trần Thị Mai", customer_phone: "0912 345 678", customer_address: "Số 56 Ngõ 86 Phố Chùa Hà, Cầu Giấy, Hà Nội", total_amount: 5290000, payment_method: "BANK_TRANSFER", status: "shipping", created_at: "2026-10-29 09:15" },
+      { order_code: "MR-2610-7164", customer_name: "Phạm Hoàng Long", customer_phone: "0987 654 321", customer_address: "Chung cư Vinhomes Central Park, P.22, Bình Thạnh, TP.HCM", total_amount: 2450000, payment_method: "COD", status: "confirmed", created_at: "2026-10-29 16:45" },
+      { order_code: "MR-2610-9052", customer_name: "Lê Thu Hương", customer_phone: "0934 567 890", customer_address: "88 Nguyễn Thị Minh Khai, P.6, Quận 3, TP.HCM", total_amount: 7150000, payment_method: "BANK_TRANSFER", status: "pending", created_at: "2026-10-30 08:20" },
+      { order_code: "MR-2610-1205", customer_name: "Vũ Đình Trọng", customer_phone: "0978 112 233", customer_address: "45 Trần Phú, Phường Mộ Lao, Hà Đông, Hà Nội", total_amount: 680000, payment_method: "COD", status: "completed", created_at: "2026-10-30 11:05" }
+    ];
+
+    let ACTIVE_STAFF_FILTER = 'all';
+    let UPLOADED_BASE64_IMG = '';
+
+    function switchStaffTab(tabName) {
+      const tabs = ['pos', 'orders', 'inventory', 'addProduct'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`staffTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const content = document.getElementById(`staffTabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (t === tabName) {
+          content?.classList.remove('hidden');
+          btn?.classList.add('border-b-2', 'border-sky-600', 'text-sky-700', 'dark:text-sky-400', 'font-bold');
+          btn?.classList.remove('text-gray-500');
+        } else {
+          content?.classList.add('hidden');
+          btn?.classList.remove('border-b-2', 'border-sky-600', 'text-sky-700', 'dark:text-sky-400', 'font-bold');
+          btn?.classList.add('text-gray-500');
+        }
+      });
+    }
+
+    function loadStaffData() {
+      const localProds = localStorage.getItem('morioo_products');
+      if (localProds) {
+        try { STAFF_PRODUCTS = JSON.parse(localProds); } catch (e) {}
+      }
+      const localOrds = localStorage.getItem('morioo_orders');
+      if (localOrds) {
+        try { STAFF_ORDERS = JSON.parse(localOrds); } catch (e) {}
+      }
+
+      updateStaffKpiMetrics();
+      populatePosDropdown();
+      renderPosConsultTable();
+      renderStaffOrdersGrid();
+      renderStaffInventoryTable();
+    }
+
+    function updateStaffKpiMetrics() {
+      const pending = STAFF_ORDERS.filter(o => o.status === 'pending').length;
+      const shipping = STAFF_ORDERS.filter(o => o.status === 'shipping').length;
+      const completed = STAFF_ORDERS.filter(o => o.status === 'completed').length;
+      const cancelled = STAFF_ORDERS.filter(o => o.status === 'cancelled').length;
+
+      document.getElementById('staffKpiPending').textContent = pending;
+      document.getElementById('staffKpiShipping').textContent = shipping;
+      document.getElementById('staffKpiCompleted').textContent = completed;
+      document.getElementById('staffKpiCancelled').textContent = cancelled;
+
+      document.getElementById('staffOrdersBadge').textContent = STAFF_ORDERS.length;
+      document.getElementById('staffInventoryBadge').textContent = STAFF_PRODUCTS.length;
+    }
+
+    function populatePosDropdown() {
+      const sel = document.getElementById('posSelectProduct');
+      if (!sel) return;
+      sel.innerHTML = `<option value="">-- Chọn mẫu gỗ trong kho --</option>` +
+        STAFF_PRODUCTS.map(p => `
+          <option value="${p.id}" data-price="${p.price}" data-name="${p.name}" data-stock="${p.stock || 10}">
+            ${p.name} - ${formatPrice(p.price)} (Còn: ${p.stock || 10})
+          </option>
+        `).join('');
+      updatePosTotal();
+    }
+
+    function updatePosTotal() {
+      const sel = document.getElementById('posSelectProduct');
+      const qty = Number(document.getElementById('posQuantity')?.value || 1);
+      const totalEl = document.getElementById('posTotalPriceVal');
+      if (!sel || !totalEl) return;
+      const opt = sel.options[sel.selectedIndex];
+      const price = Number(opt?.dataset.price || 0);
+      totalEl.textContent = formatPrice(price * qty);
+    }
+
+    function handlePosSearch(query) {
+      const q = (query || '').toLowerCase().trim();
+      renderPosConsultTable(q);
+    }
+
+    function renderPosConsultTable(query = '') {
+      const tbody = document.getElementById('posConsultTableBody');
+      if (!tbody) return;
+
+      let filtered = STAFF_PRODUCTS;
+      if (query) {
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(query) || (p.wood_type && p.wood_type.toLowerCase().includes(query)));
+      }
+
+      tbody.innerHTML = filtered.map(p => `
+        <tr class="hover:bg-gray-50/50 dark:hover:bg-zinc-800/40 transition">
+          <td class="p-3">
+            <img src="${p.image_url}" alt="${p.name}" class="w-10 h-10 object-cover rounded-md border border-gray-200 dark:border-zinc-700">
+          </td>
+          <td class="p-3">
+            <div class="font-bold text-gray-900 dark:text-white line-clamp-1">${p.name}</div>
+            <div class="text-[10px] text-gray-400">${p.category}</div>
+          </td>
+          <td class="p-3 text-amber-900 dark:text-amber-300 font-semibold">${p.wood_type}</td>
+          <td class="p-3 font-bold font-mono text-red-600 dark:text-red-400">${formatPrice(p.price)}</td>
+          <td class="p-3 text-right">
+            <span class="px-2 py-0.5 rounded text-[11px] font-bold ${p.stock > 0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-red-100 text-red-800'}">
+              ${p.stock > 0 ? `Còn ${p.stock}` : 'Hết hàng'}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function handlePosSubmit(e) {
+      e.preventDefault();
+      const sel = document.getElementById('posSelectProduct');
+      const opt = sel.options[sel.selectedIndex];
+      if (!opt || !opt.value) {
+        showToast('Vui lòng chọn 1 sản phẩm gỗ!', 'error');
+        return;
+      }
+
+      const prodName = opt.dataset.name;
+      const price = Number(opt.dataset.price);
+      const qty = Number(document.getElementById('posQuantity').value || 1);
+      const total = price * qty;
+
+      const newOrder = {
+        order_code: "MR-" + Math.floor(1000 + Math.random() * 9000),
+        customer_name: document.getElementById('posCustName').value.trim(),
+        customer_phone: document.getElementById('posCustPhone').value.trim(),
+        customer_address: document.getElementById('posCustAddress').value.trim(),
+        payment_method: document.getElementById('posPayment').value,
+        total_amount: total,
+        status: "pending",
+        created_at: new Date().toLocaleString("vi-VN")
+      };
+
+      STAFF_ORDERS.unshift(newOrder);
+      localStorage.setItem('morioo_orders', JSON.stringify(STAFF_ORDERS));
+
+      // Subtract stock
+      const prod = STAFF_PRODUCTS.find(p => p.id === opt.value);
+      if (prod) {
+        prod.stock = Math.max(0, (prod.stock || 10) - qty);
+        localStorage.setItem('morioo_products', JSON.stringify(STAFF_PRODUCTS));
+      }
+
+      showToast(`🎉 Đã tạo đơn #${newOrder.order_code} thành công!`, 'success');
+      e.target.reset();
+      loadStaffData();
+      switchStaffTab('orders');
+    }
+
+    function setStaffOrderFilter(status) {
+      ACTIVE_STAFF_FILTER = status;
+      document.querySelectorAll('.staff-filter-btn').forEach(btn => {
+        if (btn.dataset.status === status) {
+          btn.className = 'staff-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-700 text-white shadow-sm';
+        } else {
+          btn.className = 'staff-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300';
+        }
+      });
+      renderStaffOrdersGrid();
+    }
+
+    function handleStaffOrderSearch(query) {
+      renderStaffOrdersGrid(query.toLowerCase().trim());
+    }
+
+    function renderStaffOrdersGrid(searchQuery = '') {
+      const grid = document.getElementById('staffOrdersGrid');
+      if (!grid) return;
+
+      let filtered = STAFF_ORDERS;
+      if (ACTIVE_STAFF_FILTER !== 'all') {
+        filtered = filtered.filter(o => o.status === ACTIVE_STAFF_FILTER);
+      }
+      if (searchQuery) {
+        filtered = filtered.filter(o => 
+          o.order_code.toLowerCase().includes(searchQuery) ||
+          o.customer_name.toLowerCase().includes(searchQuery) ||
+          o.customer_phone.includes(searchQuery)
+        );
+      }
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full p-10 text-center text-gray-400 text-xs bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800">Không có đơn hàng nào trong mục này.</div>`;
+        return;
+      }
+
+      const statusMap = {
+        'pending': { text: '⏳ Chờ xử lý', color: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400' },
+        'confirmed': { text: '📞 Đã xác nhận', color: 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-400' },
+        'shipping': { text: '🚚 Đang giao hàng', color: 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-400' },
+        'completed': { text: '✅ Hoàn tất', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400' },
+        'cancelled': { text: '❌ Đã hủy', color: 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400' }
+      };
+
+      grid.innerHTML = filtered.map(o => {
+        const st = statusMap[o.status] || { text: o.status, color: 'bg-gray-100 text-gray-700' };
+        return `
+          <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm p-4 flex flex-col justify-between hover:shadow-md transition">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-zinc-800">
+                <div>
+                  <span class="font-mono font-bold text-amber-800 dark:text-amber-400 text-sm">#${o.order_code}</span>
+                  <div class="text-[10px] text-gray-400 mt-0.5">🕒 ${o.created_at}</div>
+                </div>
+                <span class="${st.color} px-2 py-0.5 rounded text-[11px] font-bold">${st.text}</span>
+              </div>
+
+              <div class="py-3 space-y-1.5 text-xs">
+                <div class="flex items-center justify-between">
+                  <strong class="text-gray-900 dark:text-white text-sm">👤 ${o.customer_name}</strong>
+                  <a href="tel:${o.customer_phone}" class="text-sky-700 dark:text-sky-400 font-mono font-bold bg-sky-50 dark:bg-zinc-800 px-2 py-0.5 rounded hover:underline">
+                    📞 ${o.customer_phone}
+                  </a>
+                </div>
+                <div class="text-gray-500 dark:text-gray-400 truncate" title="${o.customer_address}">📍 ${o.customer_address}</div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between py-2.5 border-t border-gray-100 dark:border-zinc-800 text-xs">
+                <span class="font-semibold text-gray-500">${o.payment_method === 'BANK_TRANSFER' ? '🏦 VietQR' : '💵 COD'}</span>
+                <span class="font-mono font-black text-red-600 dark:text-red-400 text-base">${formatPrice(o.total_amount)}</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-1.5 pt-2 border-t border-gray-100 dark:border-zinc-800 text-[11px] font-bold">
+                <button onclick="changeOrderStatusStaff('${o.order_code}', 'confirmed')" class="py-1.5 px-2 rounded bg-sky-50 hover:bg-sky-100 dark:bg-zinc-800 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-zinc-700">📞 Đã gọi</button>
+                <button onclick="changeOrderStatusStaff('${o.order_code}', 'shipping')" class="py-1.5 px-2 rounded bg-purple-50 hover:bg-purple-100 dark:bg-zinc-800 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-zinc-700">🚚 Giao bưu tá</button>
+                <button onclick="changeOrderStatusStaff('${o.order_code}', 'completed')" class="py-1.5 px-2 rounded bg-emerald-50 hover:bg-emerald-100 dark:bg-zinc-800 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-zinc-700">✅ Giao xong</button>
+                <button onclick="changeOrderStatusStaff('${o.order_code}', 'cancelled')" class="py-1.5 px-2 rounded bg-rose-50 hover:bg-rose-100 dark:bg-zinc-800 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-zinc-700">❌ Hủy đơn</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function changeOrderStatusStaff(code, status) {
+      const ord = STAFF_ORDERS.find(o => o.order_code === code);
+      if (ord) {
+        ord.status = status;
+        localStorage.setItem('morioo_orders', JSON.stringify(STAFF_ORDERS));
+        showToast(`Đã chuyển đơn #${code} sang trạng thái mới!`, 'success');
+        updateStaffKpiMetrics();
+        renderStaffOrdersGrid();
+      }
+    }
+
+    function handleStaffInventorySearch(query) {
+      renderStaffInventoryTable(query.toLowerCase().trim());
+    }
+
+    function renderStaffInventoryTable(query = '') {
+      const tbody = document.getElementById('staffInventoryTableBody');
+      if (!tbody) return;
+
+      let filtered = STAFF_PRODUCTS;
+      if (query) {
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(query) || (p.wood_type && p.wood_type.toLowerCase().includes(query)));
+      }
+
+      tbody.innerHTML = filtered.map(p => `
+        <tr class="hover:bg-gray-50/50 dark:hover:bg-zinc-800/40 transition">
+          <td class="p-3.5">
+            <img src="${p.image_url}" alt="${p.name}" class="w-12 h-12 object-cover rounded-lg border border-gray-200 dark:border-zinc-700">
+          </td>
+          <td class="p-3.5">
+            <div class="font-bold text-gray-900 dark:text-white text-xs sm:text-sm line-clamp-1">${p.name}</div>
+            <div class="text-[11px] text-gray-400">${p.category}</div>
+          </td>
+          <td class="p-3.5 text-xs text-amber-900 dark:text-amber-300 font-semibold">${p.wood_type}</td>
+          <td class="p-3.5 font-bold font-mono text-red-600 dark:text-red-400 text-sm">${formatPrice(p.price)}</td>
+          <td class="p-3.5">
+            <div class="inline-flex items-center border border-gray-300 dark:border-zinc-700 rounded overflow-hidden">
+              <button onclick="staffStepStock('${p.id}', -1)" class="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-700 dark:text-zinc-300">-</button>
+              <span class="px-3 font-mono font-bold text-xs">${p.stock || 10}</span>
+              <button onclick="staffStepStock('${p.id}', 1)" class="px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-700 dark:text-zinc-300">+</button>
+            </div>
+          </td>
+          <td class="p-3.5 text-right">
+            <span class="px-2 py-0.5 rounded text-[11px] font-bold ${p.stock > 0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-red-100 text-red-800'}">
+              ${p.stock > 0 ? `Còn ${p.stock}` : 'Hết hàng'}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function staffStepStock(id, delta) {
+      const prod = STAFF_PRODUCTS.find(p => p.id === id);
+      if (prod) {
+        prod.stock = Math.max(0, (prod.stock || 0) + delta);
+        localStorage.setItem('morioo_products', JSON.stringify(STAFF_PRODUCTS));
+        showToast(`Tồn kho "${prod.name}": ${prod.stock}`, 'success');
+        renderStaffInventoryTable();
+        populatePosDropdown();
+        renderPosConsultTable();
+      }
+    }
+
+    // Image Upload from PC
+    function handleStaffFileSelected(file) {
+      if (!file || !file.type.startsWith('image/')) {
+        showToast('Vui lòng chọn tệp hình ảnh hợp lệ!', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        UPLOADED_BASE64_IMG = e.target.result;
+        document.getElementById('staffPreviewImg').src = UPLOADED_BASE64_IMG;
+        document.getElementById('staffPreviewBox').classList.remove('hidden');
+        document.getElementById('staffDropzone').classList.add('hidden');
+        showToast('Đã nạp ảnh từ máy tính thành công!', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeStaffUploadedImage() {
+      UPLOADED_BASE64_IMG = '';
+      document.getElementById('staffFileInput').value = '';
+      document.getElementById('staffPreviewBox').classList.add('hidden');
+      document.getElementById('staffDropzone').classList.remove('hidden');
+    }
+
+    function handleStaffCreateProduct(e) {
+      e.preventDefault();
+      const finalImg = UPLOADED_BASE64_IMG || document.getElementById('staffUrlInput').value.trim() || "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=400&q=80";
+
+      const newP = {
+        id: "p-" + Date.now(),
+        name: document.getElementById('staffProdName').value.trim(),
+        category: document.getElementById('staffProdCategory').value,
+        wood_type: document.getElementById('staffProdWood').value.trim(),
+        price: Number(document.getElementById('staffProdPrice').value),
+        stock: Number(document.getElementById('staffProdStock').value || 10),
+        image_url: finalImg
+      };
+
+      STAFF_PRODUCTS.unshift(newP);
+      localStorage.setItem('morioo_products', JSON.stringify(STAFF_PRODUCTS));
+      window.dispatchEvent(new CustomEvent('product-list-changed'));
+      showToast(`Đã thêm sản phẩm "${newP.name}" thành công!`, 'success');
+      e.target.reset();
+      removeStaffUploadedImage();
+      loadStaffData();
+      switchStaffTab('inventory');
+    }
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'morioo_products' || e.key === 'morioo_orders') {
+        loadStaffData();
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      loadStaffData();
+    });
+  </script>
 </body>
 </html>
