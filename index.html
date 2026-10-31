@@ -7,6 +7,11 @@
     <meta name="description" content="Khám phá bộ sưu tập nội thất gỗ sồi tự nhiên MORIOO phong cách tối giản Wabi-Sabi: giường ngủ tatami, ghế thư giãn, bàn trà, kệ tivi. Kết nối trực tiếp cơ sở dữ liệu Supabase Cloud toàn cầu.">
     <link rel="icon" type="image/svg+xml" href="assets/images/logo-morioo.svg">
     
+    <!-- Google Fonts: Be Vietnam Pro & Montserrat for crisp Vietnamese typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
     <!-- CSS Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/components.css">
@@ -128,12 +133,43 @@
     </header>
 
     <!-- ==============================================================================
-         3. HERO ROOM SHOWCASE (ẢNH PHÒNG MẪU KÈM ĐIỂM GHIM TƯƠNG TÁC)
+         3. HERO ROOM SHOWCASE (BỘ SƯU TẬP VLINE - LƯU GIỮ NÉT XƯA TRONG KHÔNG GIAN ĐƯƠNG ĐẠI)
          ============================================================================== -->
-    <section class="hero-showcase">
-        <a href="#catalogSection" class="hero-media-wrapper" title="Xem Bộ Sưu Tập Nội Thất MORIOO">
+    <section class="hero-showcase" id="heroShowcase">
+        <div class="hero-banner-container">
+            <!-- Background Image -->
             <img src="assets/images/hero-room-banner.png" alt="Không gian phòng khách nội thất đương đại MORIOO - Lưu giữ nét xưa trong không gian đương đại" class="hero-banner-img">
-        </a>
+            
+            <!-- Soft mist gradient overlay -->
+            <div class="hero-gradient-overlay"></div>
+
+            <!-- Content Card overlay (Crisp typography & Interactive button) -->
+            <div class="hero-content-overlay">
+                <div class="hero-text-card">
+                    <!-- VLINE Badge -->
+                    <div class="hero-vline-badge">VLINE</div>
+
+                    <!-- Main Heading (Crisp & High-Contrast) -->
+                    <h1 class="hero-headline">
+                        Lưu Giữ Nét Xưa<br>
+                        Trong Không Gian Đương<br>
+                        Đại
+                    </h1>
+
+                    <!-- Categories / Subtitle -->
+                    <p class="hero-subline">
+                        Phòng Khách &nbsp;|&nbsp; Phòng Ngủ &nbsp;|&nbsp; Phòng Ăn
+                    </p>
+
+                    <!-- Interactive Action Button (Crisp & Hover Effect) -->
+                    <div class="hero-action-row">
+                        <a href="#catalogSection" class="hero-cta-btn" id="heroCtaBtn">
+                            XEM CHI TIẾT
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
 
     <!-- ==============================================================================
@@ -201,11 +237,7 @@
                         </div>
                     </div>
 
-                    <div>
-                        <button class="btn-open-admin btn-brand-outline" style="font-size:12px; padding:6px 14px; border:1px solid #ccc; border-radius:4px;">
-                            + Thêm sản phẩm (Admin)
-                        </button>
-                    </div>
+                    
                 </div>
             </div>
 

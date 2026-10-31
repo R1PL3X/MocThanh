@@ -32,6 +32,10 @@
     padding: 0;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: var(--font-family);
     background-color: var(--bg-page);
@@ -365,28 +369,181 @@ img {
 }
 
 /* ==============================================================================
-   3. HERO ROOM SHOWCASE SECTION (CHÍNH XÁC NHƯ ẢNH ĐÍNH KÈM)
+   3. HERO ROOM SHOWCASE SECTION (BỘ SƯU TẬP VLINE - CHỮ NÉT & NÚT BẤM SẮC SẢO)
    ============================================================================== */
 .hero-showcase {
     position: relative;
     width: 100%;
-    background-color: #eae5de;
+    background-color: #f2ede7;
     overflow: hidden;
 }
 
-.hero-media-wrapper {
+.hero-banner-container {
     position: relative;
     width: 100%;
-    display: block;
+    min-height: 400px;
+    max-height: 540px;
+    display: flex;
+    align-items: center;
     overflow: hidden;
-    cursor: pointer;
 }
 
 .hero-banner-img {
     width: 100%;
-    height: auto;
+    height: 100%;
+    min-height: 400px;
+    max-height: 540px;
     display: block;
     object-fit: cover;
+    object-position: center right;
+}
+
+.hero-gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to right,
+        rgba(238, 235, 230, 0.96) 0%,
+        rgba(238, 235, 230, 0.90) 24%,
+        rgba(238, 235, 230, 0.60) 44%,
+        rgba(238, 235, 230, 0.20) 64%,
+        transparent 80%
+    );
+    pointer-events: none;
+}
+
+.hero-content-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.hero-text-card {
+    pointer-events: auto;
+    max-width: 580px;
+    padding-left: clamp(24px, 8vw, 110px);
+    padding-right: 24px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.hero-vline-badge {
+    display: inline-block;
+    border: 1.5px solid #8c502b;
+    border-radius: 4px;
+    padding: 3px 12px;
+    font-family: 'Montserrat', var(--font-family);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #8c502b;
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.hero-headline {
+    font-family: 'Be Vietnam Pro', 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: clamp(26px, 3.4vw, 44px);
+    font-weight: 800;
+    line-height: 1.18;
+    color: #7b4324;
+    letter-spacing: -0.4px;
+    margin: 0 0 12px 0;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.hero-subline {
+    font-family: 'Be Vietnam Pro', 'Montserrat', var(--font-family);
+    font-size: clamp(12px, 1.1vw, 15px);
+    font-weight: 600;
+    color: #8c502b;
+    margin: 0 0 22px 0;
+    letter-spacing: 0.3px;
+    opacity: 0.95;
+    -webkit-font-smoothing: antialiased;
+}
+
+.hero-action-row {
+    margin-top: 6px;
+}
+
+.hero-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 24px;
+    border: 1.5px solid #333333;
+    border-radius: 4px;
+    font-family: 'Montserrat', var(--font-family);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #222222;
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.25s ease;
+    text-decoration: none;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.hero-cta-btn:hover {
+    background-color: #222222;
+    color: #ffffff;
+    border-color: #222222;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+.hero-cta-btn:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .hero-banner-container {
+        min-height: 320px;
+        max-height: 420px;
+    }
+    .hero-banner-img {
+        min-height: 320px;
+        max-height: 420px;
+    }
+    .hero-gradient-overlay {
+        background: linear-gradient(
+            to right,
+            rgba(238, 235, 230, 0.97) 0%,
+            rgba(238, 235, 230, 0.92) 55%,
+            rgba(238, 235, 230, 0.40) 82%,
+            transparent 100%
+        );
+    }
+    .hero-text-card {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    .hero-headline {
+        font-size: 24px;
+        line-height: 1.2;
+    }
+    .hero-subline {
+        font-size: 12px;
+        margin-bottom: 16px;
+    }
+    .hero-cta-btn {
+        padding: 8px 18px;
+        font-size: 11px;
+    }
 }
 
 /* Overlay Shoppable Hotspots */
