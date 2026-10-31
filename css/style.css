@@ -123,7 +123,7 @@ img {
 }
 
 /* ==============================================================================
-   2. MAIN RED HEADER BAR (MÀU ĐỎ MUJI ĐẶC TRƯNG)
+   2. MAIN RED HEADER BAR (MÀU ĐỎ MORIOO ĐẶC TRƯNG - BỐ CỤC CÂN ĐỐI KHÔNG BỊ TEO)
    ============================================================================== */
 .main-header {
     background-color: var(--muji-red);
@@ -134,15 +134,22 @@ img {
     box-shadow: 0 3px 10px rgba(0,0,0,0.12);
 }
 
+.main-header .container {
+    max-width: 1560px;
+    width: 100%;
+    padding: 0 24px;
+}
+
 .header-inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
     height: 64px;
-    gap: 20px;
+    gap: 16px;
+    width: 100%;
 }
 
-/* Logo MUJI */
+/* Brand Logo MORIOO */
 .brand-logo {
     display: flex;
     align-items: center;
@@ -150,6 +157,13 @@ img {
     text-decoration: none;
     color: #ffffff;
     flex-shrink: 0;
+}
+
+.brand-logo img {
+    height: 38px;
+    width: auto;
+    max-width: 150px;
+    display: block;
 }
 
 .logo-text-wrap {
@@ -170,11 +184,17 @@ img {
     letter-spacing: 2px;
 }
 
-/* Navigation Menu */
+/* Navigation Menu - Cân đối, nhỏ gọn, không lấn át thanh tìm kiếm */
+.main-header nav {
+    display: flex;
+    align-items: center;
+    flex-shrink: 1;
+}
+
 .nav-menu {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -182,6 +202,8 @@ img {
 
 .nav-menu li {
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .nav-menu li a,
@@ -189,15 +211,15 @@ img {
     color: #ffffff !important;
     background: transparent !important;
     border: none !important;
-    font-size: 14.5px;
+    font-size: 13.5px;
     font-weight: 600;
-    padding: 8px 12px;
+    padding: 6px 9px;
     border-radius: 4px;
     transition: var(--transition);
     white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 3px;
     text-decoration: none;
     cursor: pointer;
 }
@@ -206,14 +228,14 @@ img {
 .nav-menu li a.active,
 .nav-link-item:hover,
 .nav-link-item.active {
-    background-color: rgba(255, 255, 255, 0.22) !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
     color: #ffffff !important;
 }
 
 .nav-menu .caret {
-    font-size: 10px;
-    opacity: 0.85;
-    margin-left: 2px;
+    font-size: 9px;
+    opacity: 0.8;
+    margin-left: 1px;
     transition: transform 0.2s ease;
 }
 
@@ -231,35 +253,47 @@ img {
     margin-left: 2px;
 }
 
-/* Search Bar (Giống thanh tìm kiếm trong ảnh) */
+/* Search Bar (Rộng rãi, cân đối, chống co cụm bị bé) */
 .header-search {
-    flex: 1;
-    max-width: 360px;
+    flex: 1 1 260px;
+    min-width: 220px;
+    max-width: 340px;
     position: relative;
     display: flex;
     align-items: center;
+    flex-shrink: 0;
+    margin: 0 4px;
 }
 
 .search-input-box {
     width: 100%;
+    min-width: 220px;
     background-color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    padding: 8px 36px 8px 34px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 8px 34px 8px 34px;
     font-size: 13px;
-    color: #333333;
+    color: #27272a;
     outline: none;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
 }
 
 .search-input-box::placeholder {
-    color: #777777;
+    color: #71717a;
+    font-size: 12.5px;
+}
+
+.search-input-box:focus {
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6), 0 2px 8px rgba(0,0,0,0.15);
+    border-color: #ffffff;
 }
 
 .search-icon-left {
     position: absolute;
     left: 10px;
-    color: #666666;
+    color: #71717a;
     pointer-events: none;
     display: flex;
     align-items: center;
@@ -268,7 +302,7 @@ img {
 .search-clear-btn {
     position: absolute;
     right: 8px;
-    color: #777777;
+    color: #71717a;
     font-size: 16px;
     font-weight: 700;
     width: 20px;
@@ -277,15 +311,18 @@ img {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    cursor: pointer;
+    background: transparent;
+    border: none;
     transition: var(--transition);
 }
 
 .search-clear-btn:hover {
     color: #111;
-    background-color: #eee;
+    background-color: #e4e4e7;
 }
 
-/* Header Action Buttons */
+/* Header Action Buttons (Giỏ hàng) */
 .header-actions {
     display: flex;
     align-items: center;
@@ -300,12 +337,16 @@ img {
     align-items: center;
     justify-content: center;
     padding: 8px;
-    border-radius: 4px;
+    border-radius: 6px;
     transition: var(--transition);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
 }
 
 .btn-header-cart:hover {
-    background-color: rgba(255, 255, 255, 0.16);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .cart-count-badge {
@@ -318,54 +359,12 @@ img {
     font-weight: 700;
     min-width: 18px;
     height: 18px;
-    border-radius: 9px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
-/* Supabase Quick Status in Header */
-.supabase-header-status {
+    border-radius: 50%;
     display: flex;
     align-items: center;
-}
-
-.supabase-status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.3);
-    background: rgba(0,0,0,0.15);
-    color: #ffffff;
-    transition: var(--transition);
-}
-
-.supabase-status-badge:hover {
-    background: rgba(0,0,0,0.35);
-}
-
-.supabase-status-badge .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.supabase-status-badge.online .dot {
-    background-color: #2ec4b6;
-    box-shadow: 0 0 6px #2ec4b6;
-}
-
-.supabase-status-badge.offline .dot {
-    background-color: #ffd166;
-    box-shadow: 0 0 6px #ffd166;
+    justify-content: center;
+    border: 2px solid var(--muji-red);
+    line-height: 1;
 }
 
 /* ==============================================================================
@@ -1278,5 +1277,62 @@ img {
     to {
         opacity: 1;
         transform: scale(1);
+    }
+}
+
+/* Header Responsive Media Queries */
+@media (max-width: 1366px) {
+    .nav-menu {
+        gap: 2px;
+    }
+    .nav-menu li a,
+    .nav-link-item {
+        font-size: 12.5px;
+        padding: 5px 7px;
+    }
+    .header-search {
+        min-width: 190px;
+        max-width: 250px;
+    }
+}
+
+@media (max-width: 1160px) {
+    .main-header {
+        padding-bottom: 6px;
+    }
+    .header-inner {
+        height: auto;
+        padding: 8px 0;
+        row-gap: 8px;
+        flex-wrap: wrap;
+    }
+    .brand-logo {
+        order: 1;
+    }
+    .header-search {
+        order: 2;
+        flex: 1 1 240px;
+        min-width: 200px;
+        max-width: 480px;
+        margin: 0;
+    }
+    .header-actions {
+        order: 3;
+    }
+    .main-header nav {
+        order: 4;
+        width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        padding-top: 4px;
+    }
+    .main-header nav::-webkit-scrollbar {
+        display: none;
+    }
+    .nav-menu {
+        flex-wrap: nowrap;
+        width: max-content;
+        gap: 6px;
     }
 }
