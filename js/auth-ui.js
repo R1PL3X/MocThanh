@@ -216,15 +216,59 @@ function updateTopBarUserUI() {
 
 function autofillCheckoutUser() {
     const user = auth.getCurrentUser();
-    if (!user) return;
-
     const nameInput = document.getElementById("customerName");
     const phoneInput = document.getElementById("customerPhone");
     const emailInput = document.getElementById("customerEmail");
+    const checkoutNotice = document.getElementById("checkoutRoleNotice");
 
-    if (nameInput && !nameInput.value) nameInput.value = user.full_name || "";
-    if (phoneInput && !phoneInput.value) phoneInput.value = user.phone || "";
-    if (emailInput && !emailInput.value) emailInput.value = user.email || "";
+    // Staff or Admin logged in: DO NOT autofill staff credentials into customer checkout!
+    if (user && (user.role === "admin" || user.role === "staff")) {
+        const staffAdminNames = [
+            "lê văn nhân viên", "quản trị viên morioo", "admin morioo tối cao", "admin", "nhân viên",
+            (user.full_name || "").toLowerCase().trim()
+        ];
+        if (nameInput && staffAdminNames.includes((nameInput.value || "").toLowerCase().trim())) {
+            nameInput.value = "";
+        }
+        if (emailInput && ["nhanvien@morioo.vn", "admin@morioo.vn", (user.email || "").toLowerCase().trim()].includes((emailInput.value || "").toLowerCase().trim())) {
+            emailInput.value = "";
+        }
+        if (phoneInput && ["0912345678", "0901234567", (user.phone || "").trim()].includes((phoneInput.value || "").trim())) {
+            phoneInput.value = "";
+        }
+
+        if (checkoutNotice) {
+            checkoutNotice.style.display = "block";
+            checkoutNotice.innerHTML = `
+                <div style="background:#fff8e1; border:1px solid #ffe082; color:#8d6e63; padding:10px 14px; border-radius:8px; font-size:12px; margin-bottom:14px; line-height:1.5;">
+                    👔 Bạn đang đăng nhập bằng tài khoản <strong>${user.role === 'admin' ? '👑 Quản Trị Viên' : '💼 Nhân Viên'}</strong> (${user.full_name}).<br>
+                    Vui lòng nhập <strong>Họ tên và SĐT của Khách Hàng</strong> để đơn hàng lưu đúng tên khách, không gán nhầm tên nhân viên.
+                </div>
+            `;
+        }
+        return;
+    }
+
+    // Only genuine customer accounts get autofilled
+    if (user && user.role === "customer") {
+        if (nameInput && !nameInput.value) nameInput.value = user.full_name || "";
+        if (phoneInput && !phoneInput.value) phoneInput.value = user.phone || "";
+        if (emailInput && !emailInput.value) emailInput.value = user.email || "";
+
+        if (checkoutNotice) {
+            checkoutNotice.style.display = "block";
+            checkoutNotice.innerHTML = `
+                <div style="background:#e8f5e9; border:1px solid #c8e6c9; color:#2e7d32; padding:8px 12px; border-radius:8px; font-size:12px; margin-bottom:14px;">
+                    👤 Đặt hàng với tài khoản khách hàng: <strong>${user.full_name}</strong> (${user.email || user.phone})
+                </div>
+            `;
+        }
+    } else {
+        if (checkoutNotice) {
+            checkoutNotice.style.display = "none";
+            checkoutNotice.innerHTML = "";
+        }
+    }
 }
 
 async function renderCustomerOrders() {

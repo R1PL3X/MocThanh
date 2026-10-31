@@ -112,7 +112,7 @@
 
         <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-xs font-bold text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700">
           <span>💼</span>
-          <span>Lê Văn Nhân Viên</span>
+          <span id="staffHeaderUserName">Lê Văn Nhân Viên</span>
         </div>
       </div>
     </div>
@@ -925,6 +925,16 @@
             updateStaffKpiMetrics();
             renderStaffOrdersGrid();
           }
+        } else if (event.data.type === 'ORDER_STAFF_ASSIGNED') {
+          const ord = STAFF_ORDERS.find(o => o.order_code === event.data.orderCode);
+          if (ord) {
+            ord.confirmed_by_staff_id = event.data.staffId;
+            ord.confirmed_by_staff_name = event.data.staffName;
+            if (event.data.note) ord.note = event.data.note;
+            localStorage.setItem('morioo_orders', JSON.stringify(STAFF_ORDERS));
+            updateStaffKpiMetrics();
+            renderStaffOrdersGrid();
+          }
         } else if (event.data.type === 'PRODUCT_ADDED' || event.data.type === 'PRODUCT_UPDATED' || event.data.type === 'PRODUCT_DELETED' || event.data.type === 'STOCK_UPDATED') {
           console.log('[Staff Sync] Nhận tín hiệu đồng bộ sản phẩm:', event.data.type);
           loadStaffProductsFromSupabase();
@@ -1153,20 +1163,35 @@
                 <span class="${st.color} px-2 py-0.5 rounded text-[11px] font-bold">${st.text}</span>
               </div>
 
-              <div class="py-3 space-y-1.5 text-xs">
-                <div class="flex items-center justify-between">
-                  <strong class="text-gray-900 dark:text-white text-sm">👤 ${o.customer_name}</strong>
-                  <a href="tel:${o.customer_phone}" class="text-sky-700 dark:text-sky-400 font-mono font-bold bg-sky-50 dark:bg-zinc-800 px-2 py-0.5 rounded hover:underline">
-                    📞 ${o.customer_phone}
-                  </a>
-                </div>
-                <div class="text-gray-500 dark:text-gray-400 truncate" title="${o.customer_address}">📍 ${o.customer_address}</div>
-                ${o.confirmed_by_staff_name ? `
-                  <div class="mt-1 flex items-center justify-between text-[10px] bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 px-2 py-0.5 rounded font-semibold border border-sky-200 dark:border-sky-800">
-                    <span>⭐ KPI: ${o.confirmed_by_staff_name}</span>
-                    <span>${o.confirmed_at || 'Đã ghi nhận'}</span>
+              <div class="py-3 space-y-2 text-xs">
+                <!-- Thông tin người mua (Khách hàng) -->
+                <div class="bg-gray-50 dark:bg-zinc-800/60 p-2.5 rounded-lg border border-gray-100 dark:border-zinc-800">
+                  <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Khách Hàng Đặt Mua</div>
+                  <div class="flex items-center justify-between">
+                    <strong class="text-gray-900 dark:text-white text-sm flex items-center gap-1.5">
+                      <span>👤</span> <span>${o.customer_name || 'Khách Hàng'}</span>
+                    </strong>
+                    <a href="tel:${o.customer_phone}" class="text-sky-700 dark:text-sky-400 font-mono font-bold bg-white dark:bg-zinc-900 border border-sky-200 dark:border-zinc-700 px-2 py-0.5 rounded hover:underline text-xs">
+                      📞 ${o.customer_phone}
+                    </a>
                   </div>
-                ` : ''}
+                  <div class="text-gray-500 dark:text-gray-400 text-[11px] truncate mt-1" title="${o.customer_address}">📍 ${o.customer_address}</div>
+                </div>
+
+                <!-- Phụ trách / Trạng thái xử lý KPI của Nhân viên -->
+                <div class="text-[11px]">
+                  ${o.confirmed_by_staff_name ? `
+                    <div class="flex items-center justify-between bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 px-2.5 py-1.5 rounded-lg font-semibold border border-sky-200 dark:border-sky-800">
+                      <span class="flex items-center gap-1">💼 <span>NV Phụ Trách: <strong>${o.confirmed_by_staff_name}</strong></span></span>
+                      <span class="text-[10px] text-sky-600 dark:text-sky-400">${o.confirmed_at || 'Đã ghi nhận'}</span>
+                    </div>
+                  ` : `
+                    <div class="flex items-center justify-between bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 px-2.5 py-1.5 rounded-lg font-semibold border border-amber-200 dark:border-amber-900">
+                      <span>⏳ Đơn mới online</span>
+                      <span class="text-[10px] text-amber-600 dark:text-amber-400 italic">Chưa có NV nhận đơn</span>
+                    </div>
+                  `}
+                </div>
               </div>
             </div>
 
@@ -1782,8 +1807,19 @@
       }
     }
 
+    function initStaffUserHeader() {
+      try {
+        const user = JSON.parse(localStorage.getItem('morioo_current_user') || 'null');
+        if (user && user.full_name) {
+          const el = document.getElementById('staffHeaderUserName');
+          if (el) el.textContent = user.full_name;
+        }
+      } catch(e) {}
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       initTheme();
+      initStaffUserHeader();
       checkHashTab();
       loadStaffData();
       startStaffAutoSync();

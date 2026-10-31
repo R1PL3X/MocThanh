@@ -4,6 +4,7 @@
 
 import { db } from "./supabase-client.js";
 import { cart } from "./cart.js";
+import { auth } from "./auth.js";
 import { initAdminControls } from "./admin.js";
 import { initAuthUI } from "./auth-ui.js";
 import "./services.js";
@@ -526,6 +527,7 @@ function initCheckout() {
         document.getElementById("cartOverlay")?.classList.remove("active");
         if (checkoutModal) {
             checkoutModal.classList.add("active");
+            window.dispatchEvent(new CustomEvent("auth-state-changed"));
             renderCheckoutSummary();
         }
     });
@@ -538,25 +540,55 @@ function initCheckout() {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
             const submitBtn = document.getElementById("btnSubmitOrder");
+
+            const custName = (document.getElementById("customerName")?.value || "").trim();
+            const custPhone = (document.getElementById("customerPhone")?.value || "").trim();
+            const custEmail = (document.getElementById("customerEmail")?.value || "").trim();
+            const shipAddr = (document.getElementById("customerAddress")?.value || "").trim();
+            const city = (document.getElementById("customerCity")?.value || "Toàn quốc").trim();
+
+            if (!custName) {
+                alert("Vui lòng điền họ và tên người nhận hàng (Khách hàng)!");
+                document.getElementById("customerName")?.focus();
+                return;
+            }
+            if (!custPhone) {
+                alert("Vui lòng điền số điện thoại người nhận hàng!");
+                document.getElementById("customerPhone")?.focus();
+                return;
+            }
+
+            // Warning if a staff or admin user accidentally submits their own staff account name
+            const currentUser = auth.getCurrentUser();
+            if (currentUser && (currentUser.role === 'staff' || currentUser.role === 'admin')) {
+                if (custName.toLowerCase() === (currentUser.full_name || "").toLowerCase()) {
+                    const confirmUseStaff = confirm(`Bạn đang nhập tên người nhận là "${custName}" (trùng với tên tài khoản nhân viên / quản trị). Bạn có chắc chắn muốn tạo đơn với tên này không hay muốn nhập tên Khách Hàng thực tế? Nhấn OK để tiếp tục, Cancel để nhập tên khách.`);
+                    if (!confirmUseStaff) {
+                        document.getElementById("customerName")?.focus();
+                        return;
+                    }
+                }
+            }
+
             submitBtn.disabled = true;
             submitBtn.innerHTML = `<span class="spinner"></span> Đang xử lý lưu đơn hàng...`;
 
             const orderPayload = {
-                customerName: (document.getElementById("customerName")?.value || "").trim(),
-                customerPhone: (document.getElementById("customerPhone")?.value || "").trim(),
-                customerEmail: (document.getElementById("customerEmail")?.value || "").trim(),
-                shippingAddress: (document.getElementById("customerAddress")?.value || "").trim(),
-                city: (document.getElementById("customerCity")?.value || "Toàn quốc").trim(),
+                customerName: custName,
+                customerPhone: custPhone,
+                customerEmail: custEmail,
+                shippingAddress: shipAddr,
+                city: city,
                 paymentMethod: document.querySelector("input[name='paymentMethod']:checked")?.value || "cod",
                 note: (document.getElementById("orderNote")?.value || "").trim(),
                 items: [...cart.items],
                 totalAmount: cart.getTotal(),
                 shippingFee: cart.getShippingFee(),
                 // Aliases for seamless compatibility
-                name: (document.getElementById("customerName")?.value || "").trim(),
-                phone: (document.getElementById("customerPhone")?.value || "").trim(),
-                email: (document.getElementById("customerEmail")?.value || "").trim(),
-                address: (document.getElementById("customerAddress")?.value || "").trim(),
+                name: custName,
+                phone: custPhone,
+                email: custEmail,
+                address: shipAddr,
                 total: cart.getTotal()
             };
 
