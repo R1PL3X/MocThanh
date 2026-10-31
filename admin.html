@@ -100,8 +100,8 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
     
-    <!-- 4 CORE METRICS CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-8">
+    <!-- 5 CORE METRICS CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
       
       <!-- Card 1: Doanh thu tích lũy -->
       <div 
@@ -119,32 +119,18 @@
         </div>
       </div>
 
-            <!-- Card 2: Quản lý KPI Nhân Viên Chốt Đơn -->
+      <!-- Card 2: Quản lý KPI Nhân Viên Chốt Đơn -->
       <div 
         id="cardStatKpi"
         onclick="switchAdminTab('kpi')" 
         class="cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition transform hover:-translate-y-0.5"
       >
         <div class="flex items-center justify-between">
-          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">⭐ KPI Chốt Đơn NV</span>
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">2. KPI Chốt Đơn NV</span>
           <span class="text-lg">🏆</span>
         </div>
         <div id="statKpiOrders" class="text-2xl font-black text-sky-600 dark:text-sky-400 mt-2 font-mono">0 đơn</div>
         <div id="subtextKpi" class="text-[11px] text-gray-400 mt-1">Bấm xem xếp hạng &rarr;</div>
-      </div>
-
-      <!-- Card 2: Tổng đơn đặt hàng -->
-      <div 
-        id="cardStatOrders"
-        onclick="switchAdminTab('orders')" 
-        class="cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition transform hover:-translate-y-0.5"
-      >
-        <div class="flex items-center justify-between">
-          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">2. Tổng đơn đặt hàng</span>
-          <span class="text-lg">📦</span>
-        </div>
-        <div id="statOrders" class="text-2xl font-black text-gray-900 dark:text-white mt-2 font-mono">0</div>
-        <div id="subtextOrders" class="text-[11px] text-gray-400 mt-1">Bấm để quản lý đơn &rarr;</div>
       </div>
 
       <!-- Card 3: Sản phẩm đang bán -->
@@ -210,16 +196,6 @@
       >
         <span>⭐ Quản Lý KPI Nhân Viên</span>
         <span id="kpiStaffCountBadge" class="bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-300 text-xs px-2 py-0.5 rounded-full font-bold">1</span>
-      </button>
-
-      <button 
-        type="button" 
-        id="tabOrdersBtn" 
-        onclick="switchAdminTab('orders')" 
-        class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap"
-      >
-        <span>📋 Quản Lý Đơn Hàng</span>
-        <span id="ordersCountBadge" class="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
       </button>
 
       <button 
@@ -383,61 +359,6 @@
             </thead>
             <tbody id="adminKpiTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
               <!-- Rendered via JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- ========================================================================= -->
-    <!-- TAB 2: QUẢN LÝ ĐƠN HÀNG (ORDERS MANAGEMENT) -->
-    <!-- ========================================================================= -->
-    <div id="tabOrdersContent" class="space-y-6 hidden">
-      <!-- FILTER & SEARCH BAR -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="text-xs text-gray-500 dark:text-gray-400 font-semibold mr-1">Lọc đơn:</span>
-          <button onclick="setOrderFilter('all')" data-filter="all" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-800 text-white shadow-sm">Tất cả</button>
-          <button onclick="setOrderFilter('pending')" data-filter="pending" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">⏳ Chờ xử lý</button>
-          <button onclick="setOrderFilter('shipping')" data-filter="shipping" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">🚚 Đang vận chuyển</button>
-          <button onclick="setOrderFilter('completed')" data-filter="completed" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">✅ Hoàn thành</button>
-          <button onclick="setOrderFilter('cancelled')" data-filter="cancelled" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300">❌ Đã hủy</button>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <div class="relative">
-            <input 
-              id="orderSearchInput" 
-              type="text" 
-              oninput="handleOrderSearch(this.value)" 
-              placeholder="Tìm mã đơn, tên, SĐT..." 
-              class="px-3 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-700 w-48 sm:w-60"
-            />
-          </div>
-          <button onclick="loadDataFromSupabase()" class="text-xs bg-amber-50 dark:bg-zinc-800 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition font-medium">
-            ⟳ Tải lại
-          </button>
-        </div>
-      </div>
-
-      <!-- MAIN ORDERS TABLE -->
-      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
-            <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
-              <tr>
-                <th class="p-3.5">Mã đơn & Ngày đặt</th>
-                <th class="p-3.5">Khách hàng & Địa chỉ</th>
-                <th class="p-3.5">Tổng tiền</th>
-                <th class="p-3.5">Thanh toán</th>
-                <th class="p-3.5">Cập nhật trạng thái</th>
-                <th class="p-3.5">Nhân Viên Xác Nhận (KPI)</th>
-                <th class="p-3.5 text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="adminOrdersTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
-              <!-- Loaded via JavaScript -->
             </tbody>
           </table>
         </div>
@@ -1559,7 +1480,9 @@
       const totalRev = validOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
 
       document.getElementById('statRevenue').textContent = formatPrice(totalRev);
-      document.getElementById('statOrders').textContent = ALL_ORDERS.length;
+      if (document.getElementById('statOrders')) {
+        document.getElementById('statOrders').textContent = ALL_ORDERS.length;
+      }
       document.getElementById('statProducts').textContent = ALL_PRODUCTS.length;
       document.getElementById('statQuotes').textContent = (ALL_SERVICES || []).length;
       if (document.getElementById('statAccounts')) {
@@ -1576,7 +1499,9 @@
         document.getElementById('kpiStaffCountBadge').textContent = staffCount;
       }
 
-      document.getElementById('ordersCountBadge').textContent = ALL_ORDERS.length;
+      if (document.getElementById('ordersCountBadge')) {
+        document.getElementById('ordersCountBadge').textContent = ALL_ORDERS.length;
+      }
       document.getElementById('productsCountBadge').textContent = ALL_PRODUCTS.length;
       document.getElementById('quotesCountBadge').textContent = (ALL_SERVICES || []).length;
       if (document.getElementById('accountsCountBadge')) {
@@ -1599,9 +1524,10 @@
     // TAB NAVIGATION
     // =========================================================================
     function switchAdminTab(tab) {
+      if (tab === 'orders') tab = 'revenue';
       CURRENT_TAB = tab;
 
-      const tabs = ['revenue', 'kpi', 'orders', 'products', 'quotes', 'accounts'];
+      const tabs = ['revenue', 'kpi', 'products', 'quotes', 'accounts'];
       tabs.forEach(t => {
         const content = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Content`);
         const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
@@ -3277,7 +3203,7 @@
     // Check URL Hash for direct Tab Navigation
     function checkHashTab() {
       const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (['revenue', 'kpi', 'orders', 'products', 'quotes', 'accounts'].includes(hash)) {
+      if (['revenue', 'kpi', 'products', 'quotes', 'accounts'].includes(hash)) {
         switchAdminTab(hash);
       }
     }
