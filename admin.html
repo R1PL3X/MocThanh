@@ -102,25 +102,10 @@
     </div>
   </header>
 
-  <!-- SUPABASE CLOUD ACTIVE BANNER -->
-  <div id="cloud-banner" class="bg-emerald-500/10 border-b border-emerald-300/80 dark:border-emerald-700/60 px-4 py-2 text-xs text-emerald-950 dark:text-emerald-200">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-      <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span><strong>Trạng thái: ĐÃ KẾT NỐI SUPABASE CLOUD TOÀN DIỆN</strong> &bull; Database: <code class="bg-emerald-100 dark:bg-zinc-800 px-1 py-0.5 rounded font-mono text-emerald-900 dark:text-emerald-300">vkhgbegximfhecwgfyow.supabase.co</code> &bull; Mọi thay đổi sản phẩm & đơn hàng được lưu trực tiếp lên Cloud và đồng bộ với website MORIOO.</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <button type="button" onclick="loadDataFromSupabase()" class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg shadow-xs transition text-xs whitespace-nowrap">
-          ⟳ Làm mới từ Cloud
-        </button>
-      </div>
-    </div>
-  </div>
-
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
     
     <!-- 4 CORE METRICS CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-8">
       
       <!-- Card 1: Doanh thu tích lũy -->
       <div 
@@ -136,6 +121,20 @@
         <div id="subtextRevenue" class="text-[11px] text-green-600 dark:text-green-400 mt-1 flex items-center gap-1 font-semibold">
           <span>●</span> Đang xem mục này
         </div>
+      </div>
+
+            <!-- Card 2: Quản lý KPI Nhân Viên Chốt Đơn -->
+      <div 
+        id="cardStatKpi"
+        onclick="switchAdminTab('kpi')" 
+        class="cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition transform hover:-translate-y-0.5"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">⭐ KPI Chốt Đơn NV</span>
+          <span class="text-lg">🏆</span>
+        </div>
+        <div id="statKpiOrders" class="text-2xl font-black text-sky-600 dark:text-sky-400 mt-2 font-mono">0 đơn</div>
+        <div id="subtextKpi" class="text-[11px] text-gray-400 mt-1">Bấm xem xếp hạng &rarr;</div>
       </div>
 
       <!-- Card 2: Tổng đơn đặt hàng -->
@@ -205,6 +204,16 @@
         class="pb-3 text-sm font-bold border-b-2 border-amber-800 text-amber-800 dark:text-amber-400 flex items-center gap-2 whitespace-nowrap"
       >
         <span>💰 Doanh Thu Tích Lũy</span>
+      </button>
+
+      <button 
+        type="button" 
+        id="tabKpiBtn" 
+        onclick="switchAdminTab('kpi')" 
+        class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap"
+      >
+        <span>⭐ Quản Lý KPI Nhân Viên</span>
+        <span id="kpiStaffCountBadge" class="bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-300 text-xs px-2 py-0.5 rounded-full font-bold">1</span>
       </button>
 
       <button 
@@ -313,6 +322,79 @@
     </div>
 
     <!-- ========================================================================= -->
+    <!-- TAB KPI: QUẢN LÝ KPI NHÂN VIÊN CHỐT ĐƠN (STAFF KPI MANAGEMENT) -->
+    <!-- ========================================================================= -->
+    <div id="tabKpiContent" class="space-y-6 hidden">
+      <!-- SUB METRICS GRID: TỔNG QUAN HIỆU SUẤT KPI -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">🏆 Nhân Viên Xuất Sắc Nhất</div>
+          <div id="kpiTopPerformerName" class="text-base font-bold text-amber-600 dark:text-amber-400 mt-1 truncate">Lê Văn Nhân Viên</div>
+          <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-semibold flex items-center gap-1">
+            <span>⭐</span> <span id="kpiTopPerformerRev">0₫</span> (<span id="kpiTopPerformerCount">0</span> đơn chốt)
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">📦 Đơn Đã Có NV Xác Nhận</div>
+          <div id="kpiTotalConfirmedOrders" class="text-xl font-bold text-sky-600 dark:text-sky-400 mt-1 font-mono">0 đơn</div>
+          <div class="text-[10px] text-gray-400 mt-1">Được nhân viên gọi chốt thành công</div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">💰 Doanh Số NV Đã Chốt</div>
+          <div id="kpiTotalConfirmedRevenue" class="text-xl font-bold text-red-600 dark:text-red-400 mt-1 font-mono">0₫</div>
+          <div class="text-[10px] text-gray-400 mt-1">Tổng tiền các đơn nhân viên xác nhận</div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">📈 Tỷ Lệ Chốt Thành Công</div>
+          <div id="kpiConversionRate" class="text-xl font-bold text-purple-600 dark:text-purple-400 mt-1 font-mono">100%</div>
+          <div class="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1 font-semibold">Tỷ lệ đơn giao xong • <span id="kpiActiveStaffCount">1/1 nhân viên</span></div>
+        </div>
+      </div>
+
+      <!-- MAIN KPI LEADERBOARD TABLE -->
+      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span>⭐</span> Bảng Theo Dõi & Đánh Giá KPI Từng Nhân Viên Xác Nhận Đơn
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Hệ thống tự động cộng dồn doanh số và số đơn vào KPI của từng nhân viên ngay khi nhân viên bấm xác nhận đơn hàng.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="renderAdminKpiTable()" class="text-xs bg-amber-50 dark:bg-zinc-800 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition flex items-center gap-1 font-medium">
+              ⟳ Cập nhật KPI
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+              <tr>
+                <th class="p-3.5">Hạng & Nhân Viên</th>
+                <th class="p-3.5">Bộ Phận / Vị Trí</th>
+                <th class="p-3.5 text-center">Đơn Đã Xác Nhận</th>
+                <th class="p-3.5 text-right">Doanh Số Mang Về (VNĐ)</th>
+                <th class="p-3.5">Tiến Độ Xử Lý</th>
+                <th class="p-3.5 text-center">Đánh Giá KPI</th>
+                <th class="p-3.5 text-right">Chi Tiết Đơn Hàng</th>
+              </tr>
+            </thead>
+            <tbody id="adminKpiTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========================================================================= -->
     <!-- TAB 2: QUẢN LÝ ĐƠN HÀNG (ORDERS MANAGEMENT) -->
     <!-- ========================================================================= -->
     <div id="tabOrdersContent" class="space-y-6 hidden">
@@ -354,6 +436,7 @@
                 <th class="p-3.5">Tổng tiền</th>
                 <th class="p-3.5">Thanh toán</th>
                 <th class="p-3.5">Cập nhật trạng thái</th>
+                <th class="p-3.5">Nhân Viên Xác Nhận (KPI)</th>
                 <th class="p-3.5 text-right">Thao tác</th>
               </tr>
             </thead>
@@ -703,6 +786,52 @@
   </main>
 
   <!-- ========================================================================= -->
+  <!-- MODAL: CHI TIẾT ĐƠN HÀNG DO NHÂN VIÊN XÁC NHẬN (KPI BREAKDOWN) -->
+  <!-- ========================================================================= -->
+  <div id="modalStaffOrdersDetail" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-zinc-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50/50 dark:bg-zinc-800/50">
+        <div>
+          <h3 id="modalStaffOrdersTitle" class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <span>📦</span> Danh Sách Đơn Hàng Đã Xác Nhận: <span id="modalStaffOrdersName" class="text-sky-600">Lê Văn Nhân Viên</span>
+          </h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Danh sách các đơn hàng được nhân viên này gọi xác nhận và chốt thành công.</p>
+        </div>
+        <button type="button" onclick="closeStaffOrdersDetailModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg font-bold p-1">✕</button>
+      </div>
+      
+      <div class="p-4 overflow-y-auto space-y-4">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+              <tr>
+                <th class="p-2.5">Mã đơn & Ngày đặt</th>
+                <th class="p-2.5">Khách hàng</th>
+                <th class="p-2.5">Số điện thoại</th>
+                <th class="p-2.5 text-right">Tổng tiền</th>
+                <th class="p-2.5 text-center">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody id="modalStaffOrdersTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="p-3 border-t border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800/50 flex justify-between items-center">
+        <div id="modalStaffOrdersSummary" class="text-xs font-semibold text-gray-700 dark:text-gray-300">
+          Tổng cộng: 0 đơn • 0₫
+        </div>
+        <button type="button" onclick="closeStaffOrdersDetailModal()" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-800 dark:text-white transition">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================================================= -->
   <!-- EDIT PRODUCT MODAL -->
   <!-- ========================================================================= -->
   <div id="editProductModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1024,7 +1153,7 @@
       };
     }
 
-    // Normalize order record
+    // Normalize order record (with Staff Confirmation KPI Tracking)
     function normalizeOrder(o) {
       let createdStr = o.created_at;
       try {
@@ -1032,6 +1161,20 @@
           createdStr = new Date(o.created_at).toLocaleString('vi-VN');
         }
       } catch(e) {}
+
+      const kpiRecords = JSON.parse(localStorage.getItem('morioo_staff_kpi_records') || '{}');
+      const rec = kpiRecords[o.order_code] || (o.id ? kpiRecords[o.id] : null);
+
+      let staffId = o.confirmed_by_staff_id || (rec ? rec.staff_id : null);
+      let staffName = o.confirmed_by_staff_name || (rec ? rec.staff_name : null);
+      let confirmedAt = o.confirmed_at || (rec ? rec.confirmed_at : null);
+
+      // Seed default confirmed orders for 'Lê Văn Nhân Viên' (acc-staff-1)
+      if (!staffId && ['MR-2610-8491', 'MR-2610-3829', 'MR-2610-7164', 'MR-2610-1205'].includes(o.order_code)) {
+        staffId = 'acc-staff-1';
+        staffName = 'Lê Văn Nhân Viên';
+        confirmedAt = o.created_at || '2026-10-29 17:00';
+      }
 
       return {
         id: o.id,
@@ -1042,7 +1185,10 @@
         total_amount: Number(o.total_amount) || 0,
         payment_method: (o.payment_method || 'BANK_TRANSFER').toUpperCase().includes('BANK') ? 'BANK_TRANSFER' : 'COD',
         status: o.status || 'pending',
-        created_at: createdStr || 'Vừa xong'
+        created_at: createdStr || 'Vừa xong',
+        confirmed_by_staff_id: staffId,
+        confirmed_by_staff_name: staffName,
+        confirmed_at: confirmedAt
       };
     }
 
@@ -1265,6 +1411,16 @@
         document.getElementById('statAccounts').textContent = ALL_ACCOUNTS.length;
       }
 
+      // KPI Metric summary
+      const confirmedOrdersCount = ALL_ORDERS.filter(o => o.confirmed_by_staff_id).length;
+      if (document.getElementById('statKpiOrders')) {
+        document.getElementById('statKpiOrders').textContent = confirmedOrdersCount + ' đơn';
+      }
+      if (document.getElementById('kpiStaffCountBadge')) {
+        const staffCount = ALL_ACCOUNTS.filter(a => a.role === 'staff' || a.role === 'admin').length;
+        document.getElementById('kpiStaffCountBadge').textContent = staffCount;
+      }
+
       document.getElementById('ordersCountBadge').textContent = ALL_ORDERS.length;
       document.getElementById('productsCountBadge').textContent = ALL_PRODUCTS.length;
       document.getElementById('quotesCountBadge').textContent = ALL_QUOTES.length;
@@ -1290,7 +1446,7 @@
     function switchAdminTab(tab) {
       CURRENT_TAB = tab;
 
-      const tabs = ['revenue', 'orders', 'products', 'quotes', 'accounts'];
+      const tabs = ['revenue', 'kpi', 'orders', 'products', 'quotes', 'accounts'];
       tabs.forEach(t => {
         const content = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Content`);
         const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
@@ -1318,7 +1474,7 @@
             card.className = "cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-amber-500/50 hover:shadow-md transition transform hover:-translate-y-0.5";
           }
           if (subtext) {
-            subtext.innerHTML = `Bấm để quản lý &rarr;`;
+            subtext.innerHTML = t === 'kpi' ? 'Bấm xem xếp hạng &rarr;' : `Bấm để quản lý &rarr;`;
             subtext.className = "text-[11px] text-gray-400 mt-1";
           }
         }
@@ -1402,6 +1558,284 @@
     }
 
     // =========================================================================
+    // TAB KPI: QUẢN LÝ KPI NHÂN VIÊN CHỐT ĐƠN (STAFF KPI MANAGEMENT)
+    // =========================================================================
+    function renderAdminKpiTable() {
+      const tbody = document.getElementById('adminKpiTableBody');
+      if (!tbody) return;
+
+      // Filter staff & admin accounts who can confirm orders
+      let staffList = ALL_ACCOUNTS.filter(a => a.role === 'staff' || a.role === 'admin');
+      if (staffList.length === 0) {
+        staffList = DEFAULT_ACCOUNTS.filter(a => a.role === 'staff' || a.role === 'admin');
+      }
+
+      // Calculate performance for each staff member
+      const staffStats = staffList.map(s => {
+        const confirmedOrders = ALL_ORDERS.filter(o => 
+          o.confirmed_by_staff_id === s.id || 
+          (!o.confirmed_by_staff_id && o.confirmed_by_staff_name === s.full_name)
+        );
+
+        const validOrders = confirmedOrders.filter(o => o.status !== 'cancelled');
+        const completedOrders = confirmedOrders.filter(o => o.status === 'completed');
+        const shippingOrders = confirmedOrders.filter(o => o.status === 'shipping');
+        const phoneConfirmedOrders = confirmedOrders.filter(o => o.status === 'confirmed');
+        const cancelledOrders = confirmedOrders.filter(o => o.status === 'cancelled');
+
+        const totalRevenue = validOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+        const convRate = confirmedOrders.length > 0 ? Math.round((completedOrders.length / confirmedOrders.length) * 100) : 0;
+
+        let kpiRating = '';
+        if (totalRevenue >= 15000000 || completedOrders.length >= 2) {
+          kpiRating = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-700">🌟 Xuất Sắc (Vượt KPI)</span>`;
+        } else if (confirmedOrders.length >= 1) {
+          kpiRating = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">✅ Đạt Chỉ Tiêu</span>`;
+        } else {
+          kpiRating = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-400 border border-gray-300 dark:border-zinc-700">⏳ Cần Tăng Tốc</span>`;
+        }
+
+        return {
+          staff: s,
+          orders: confirmedOrders,
+          totalCount: confirmedOrders.length,
+          completedCount: completedOrders.length,
+          shippingCount: shippingOrders.length,
+          phoneConfirmedCount: phoneConfirmedOrders.length,
+          cancelledCount: cancelledOrders.length,
+          revenue: totalRevenue,
+          convRate: convRate,
+          ratingBadge: kpiRating
+        };
+      });
+
+      // Sort by confirmed revenue desc, then order count desc
+      staffStats.sort((a, b) => b.revenue - a.revenue || b.totalCount - a.totalCount);
+
+      if (staffStats.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="p-8 text-center text-gray-400">
+              <div class="text-3xl mb-1.5">👥</div>
+              <div class="font-bold text-gray-600 dark:text-gray-300">Chưa có nhân viên nào trong hệ thống</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = staffStats.map((item, idx) => {
+        let rankBadge = '';
+        if (idx === 0) {
+          rankBadge = `<span class="text-amber-500 font-black text-sm">🥇 #1</span>`;
+        } else if (idx === 1) {
+          rankBadge = `<span class="text-slate-400 font-black text-sm">🥈 #2</span>`;
+        } else if (idx === 2) {
+          rankBadge = `<span class="text-amber-700 font-black text-sm">🥉 #3</span>`;
+        } else {
+          rankBadge = `<span class="text-gray-400 font-black text-sm">#${idx + 1}</span>`;
+        }
+
+        return `
+          <tr class="hover:bg-gray-50/50 dark:hover:bg-zinc-800/40 transition">
+            <td class="p-3.5">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-300 flex items-center justify-center font-bold text-xs shrink-0">
+                  ${item.staff.full_name ? item.staff.full_name.charAt(0) : 'N'}
+                </div>
+                <div>
+                  <div class="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                    <span>${item.staff.full_name}</span>
+                    ${rankBadge}
+                  </div>
+                  <div class="text-[11px] text-gray-400 font-mono">${item.staff.email}</div>
+                </div>
+              </div>
+            </td>
+            <td class="p-3.5">
+              <span class="px-2 py-0.5 rounded text-[11px] font-semibold ${item.staff.role === 'admin' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300' : 'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300'}">
+                ${item.staff.role === 'admin' ? '👑 Quản Trị Viên' : '💼 Nhân Viên Bán Hàng'}
+              </span>
+              <div class="text-[10px] text-gray-400 mt-0.5">${item.staff.department || 'Xử lý đơn hàng'}</div>
+            </td>
+            <td class="p-3.5 text-center font-mono font-black text-sm text-sky-600 dark:text-sky-400">
+              ${item.totalCount} đơn
+            </td>
+            <td class="p-3.5 text-right font-mono font-black text-sm text-red-600 dark:text-red-400">
+              ${formatPrice(item.revenue)}
+            </td>
+            <td class="p-3.5">
+              <div class="flex items-center gap-1.5 flex-wrap text-[11px]">
+                <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 font-medium">✅ ${item.completedCount} giao xong</span>
+                <span class="px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 font-medium">🚚 ${item.shippingCount} đang giao</span>
+                <span class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 font-medium">📞 ${item.phoneConfirmedCount} đã gọi</span>
+                ${item.cancelledCount > 0 ? `<span class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 font-medium">❌ ${item.cancelledCount} hủy</span>` : ''}
+              </div>
+            </td>
+            <td class="p-3.5 text-center">
+              ${item.ratingBadge}
+            </td>
+            <td class="p-3.5 text-right">
+              <button 
+                type="button" 
+                onclick="openStaffOrdersDetailModal('${item.staff.id}')" 
+                class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-zinc-700 rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-xs"
+              >
+                <span>📦 Xem ${item.totalCount} đơn</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      updateKpiCards(staffStats);
+    }
+
+    function updateKpiCards(staffStats) {
+      if (!staffStats) {
+        renderAdminKpiTable();
+        return;
+      }
+
+      // 1. Top Performer
+      const top = staffStats[0];
+      const elTopName = document.getElementById('kpiTopPerformerName');
+      const elTopRev = document.getElementById('kpiTopPerformerRev');
+      const elTopCount = document.getElementById('kpiTopPerformerCount');
+
+      if (top && top.totalCount > 0) {
+        if (elTopName) elTopName.textContent = top.staff.full_name;
+        if (elTopRev) elTopRev.textContent = formatPrice(top.revenue);
+        if (elTopCount) elTopCount.textContent = top.totalCount;
+      } else {
+        if (elTopName) elTopName.textContent = 'Chưa có dữ liệu';
+        if (elTopRev) elTopRev.textContent = '0₫';
+        if (elTopCount) elTopCount.textContent = '0';
+      }
+
+      // 2. Confirmed Orders Total
+      const totalConfirmed = ALL_ORDERS.filter(o => o.confirmed_by_staff_id).length;
+      const elTotalOrders = document.getElementById('kpiTotalConfirmedOrders');
+      if (elTotalOrders) elTotalOrders.textContent = `${totalConfirmed} đơn`;
+
+      // 3. Confirmed Revenue Total
+      const confirmedValidOrders = ALL_ORDERS.filter(o => o.confirmed_by_staff_id && o.status !== 'cancelled');
+      const totalConfirmedRevenue = confirmedValidOrders.reduce((s, o) => s + (Number(o.total_amount) || 0), 0);
+      const elTotalRev = document.getElementById('kpiTotalConfirmedRevenue');
+      if (elTotalRev) elTotalRev.textContent = formatPrice(totalConfirmedRevenue);
+
+      // 4. Conversion Rate
+      const completedCount = ALL_ORDERS.filter(o => o.confirmed_by_staff_id && o.status === 'completed').length;
+      const rate = totalConfirmed > 0 ? Math.round((completedCount / totalConfirmed) * 100) : 0;
+      const elRate = document.getElementById('kpiConversionRate');
+      if (elRate) elRate.textContent = `${rate}%`;
+
+      // Active staff count
+      const activeStaff = staffStats.filter(s => s.totalCount > 0).length;
+      const elActiveCount = document.getElementById('kpiActiveStaffCount');
+      if (elActiveCount) elActiveCount.textContent = `${activeStaff}/${staffStats.length} nhân viên`;
+
+      // Update top header card
+      const elStatKpi = document.getElementById('statKpiOrders');
+      if (elStatKpi) elStatKpi.textContent = `${totalConfirmed} đơn`;
+    }
+
+    function openStaffOrdersDetailModal(staffId) {
+      const staff = ALL_ACCOUNTS.find(a => a.id == staffId) || { id: staffId, full_name: 'Nhân viên' };
+      const orders = ALL_ORDERS.filter(o => 
+        o.confirmed_by_staff_id === staffId || 
+        (!o.confirmed_by_staff_id && o.confirmed_by_staff_name === staff.full_name)
+      );
+
+      const titleEl = document.getElementById('modalStaffOrdersName');
+      if (titleEl) titleEl.textContent = staff.full_name;
+
+      const tbody = document.getElementById('modalStaffOrdersTableBody');
+      if (tbody) {
+        if (orders.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">Nhân viên này chưa xác nhận đơn hàng nào.</td></tr>`;
+        } else {
+          const statusMap = {
+            'pending': { text: '⏳ Chờ xử lý', color: 'bg-amber-100 text-amber-800' },
+            'confirmed': { text: '📞 Đã xác nhận', color: 'bg-blue-100 text-blue-800' },
+            'shipping': { text: '🚚 Đang giao hàng', color: 'bg-purple-100 text-purple-800' },
+            'completed': { text: '✅ Hoàn tất', color: 'bg-emerald-100 text-emerald-800' },
+            'cancelled': { text: '❌ Đã hủy', color: 'bg-rose-100 text-rose-800' }
+          };
+
+          tbody.innerHTML = orders.map(o => {
+            const st = statusMap[o.status] || { text: o.status, color: 'bg-gray-100 text-gray-700' };
+            return `
+              <tr class="hover:bg-gray-50/50 dark:hover:bg-zinc-800/40 transition">
+                <td class="p-2.5 font-mono text-xs">
+                  <span class="font-bold text-amber-800 dark:text-amber-400">#${o.order_code}</span>
+                  <div class="text-[10px] text-gray-400">${o.created_at || ''}</div>
+                </td>
+                <td class="p-2.5 font-bold text-gray-900 dark:text-white">${o.customer_name}</td>
+                <td class="p-2.5 font-mono text-xs text-sky-700 dark:text-sky-400">${o.customer_phone}</td>
+                <td class="p-2.5 text-right font-mono font-bold text-red-600 dark:text-red-400">${formatPrice(o.total_amount)}</td>
+                <td class="p-2.5 text-center">
+                  <span class="${st.color} px-2 py-0.5 rounded text-[10px] font-bold">${st.text}</span>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      const summaryEl = document.getElementById('modalStaffOrdersSummary');
+      if (summaryEl) {
+        const validTotal = orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + (o.total_amount || 0), 0);
+        summaryEl.textContent = `Tổng cộng: ${orders.length} đơn • ${formatPrice(validTotal)}`;
+      }
+
+      const modal = document.getElementById('modalStaffOrdersDetail');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeStaffOrdersDetailModal() {
+      const modal = document.getElementById('modalStaffOrdersDetail');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function assignStaffToOrder(orderCode, staffId) {
+      const order = ALL_ORDERS.find(o => o.order_code === orderCode || o.id === orderCode);
+      if (!order) return;
+
+      const kpiRecords = JSON.parse(localStorage.getItem('morioo_staff_kpi_records') || '{}');
+
+      if (staffId) {
+        const staff = ALL_ACCOUNTS.find(a => a.id == staffId);
+        const staffName = staff ? staff.full_name : 'Nhân viên';
+        order.confirmed_by_staff_id = staffId;
+        order.confirmed_by_staff_name = staffName;
+        order.confirmed_at = order.confirmed_at || new Date().toLocaleString('vi-VN');
+
+        kpiRecords[order.order_code] = {
+          staff_id: staffId,
+          staff_name: staffName,
+          confirmed_at: order.confirmed_at
+        };
+        if (order.id) kpiRecords[order.id] = kpiRecords[order.order_code];
+
+        showToast(`🎯 Đã ghi nhận KPI chốt đơn #${order.order_code} cho "${staffName}"!`, 'success');
+      } else {
+        order.confirmed_by_staff_id = null;
+        order.confirmed_by_staff_name = null;
+        order.confirmed_at = null;
+        delete kpiRecords[order.order_code];
+        if (order.id) delete kpiRecords[order.id];
+        showToast(`Đã gỡ phân công KPI cho đơn #${order.order_code}`, 'info');
+      }
+
+      localStorage.setItem('morioo_staff_kpi_records', JSON.stringify(kpiRecords));
+      persistOrders();
+      renderAdminOrdersTable();
+      renderAdminKpiTable();
+      updateKpiCards();
+    }
+
+    // =========================================================================
     // TAB 2: QUẢN LÝ ĐƠN HÀNG (ORDERS)
     // =========================================================================
     function setOrderFilter(filter) {
@@ -1439,7 +1873,7 @@
       if (filtered.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="6" class="p-8 text-center text-gray-400">
+            <td colspan="7" class="p-8 text-center text-gray-400">
               <div class="text-3xl mb-1.5">📦</div>
               <div class="font-bold text-gray-600 dark:text-gray-300">Không có đơn hàng nào phù hợp</div>
             </td>
@@ -1448,7 +1882,16 @@
         return;
       }
 
-      tbody.innerHTML = filtered.map(o => `
+      const staffListForSelect = ALL_ACCOUNTS.filter(a => a.role === 'staff' || a.role === 'admin');
+
+      tbody.innerHTML = filtered.map(o => {
+        const staffOptions = staffListForSelect.map(s => `
+          <option value="${s.id}" ${o.confirmed_by_staff_id === s.id ? 'selected' : ''}>
+            👤 ${s.full_name} (${s.role === 'admin' ? 'Admin' : 'NV'})
+          </option>
+        `).join('');
+
+        return `
         <tr class="hover:bg-gray-50/50 dark:hover:bg-zinc-800/40 transition">
           <td class="p-3.5 font-mono text-xs">
             <span class="font-bold text-amber-800 dark:text-amber-400">#${o.order_code}</span>
@@ -1476,6 +1919,25 @@
               <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>❌ Đã hủy đơn</option>
             </select>
           </td>
+          <td class="p-3.5">
+            <div class="flex flex-col gap-1">
+              <select 
+                onchange="assignStaffToOrder('${o.order_code}', this.value)" 
+                class="text-xs px-2 py-1 rounded-lg border ${o.confirmed_by_staff_id ? 'border-sky-300 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 font-bold' : 'border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-500'} focus:outline-none focus:border-sky-600"
+              >
+                <option value="">-- Chưa gán NV --</option>
+                ${staffOptions}
+              </select>
+              ${o.confirmed_by_staff_name ? `
+                <div class="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>Đã ghi nhận: <strong class="text-sky-600 dark:text-sky-400">${o.confirmed_by_staff_name}</strong></span>
+                </div>
+              ` : `
+                <div class="text-[10px] text-gray-400 italic">Chưa tính KPI</div>
+              `}
+            </div>
+          </td>
           <td class="p-3.5 text-right">
             <button 
               onclick="deleteOrder('${o.order_code}')" 
@@ -1486,7 +1948,8 @@
             </button>
           </td>
         </tr>
-      `).join('');
+        `;
+      }).join('');
     }
 
     async function changeOrderStatus(orderCode, newStatus) {
@@ -2185,6 +2648,7 @@
     function renderAllData() {
       updateStatsCards();
       renderAdminRevenueTable();
+      renderAdminKpiTable();
       renderAdminOrdersTable();
       renderAdminProductsTable();
       renderAdminQuotesTable();
@@ -2242,7 +2706,7 @@
     // Check URL Hash for direct Tab Navigation
     function checkHashTab() {
       const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (['revenue', 'orders', 'products', 'quotes', 'accounts'].includes(hash)) {
+      if (['revenue', 'kpi', 'orders', 'products', 'quotes', 'accounts'].includes(hash)) {
         switchAdminTab(hash);
       }
     }

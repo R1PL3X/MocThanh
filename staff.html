@@ -592,9 +592,22 @@
         try {
           const list = JSON.parse(localOrds);
           const overrides = JSON.parse(localStorage.getItem('morioo_order_status_overrides') || '{}');
+          const kpiRecords = JSON.parse(localStorage.getItem('morioo_staff_kpi_records') || '{}');
+
           STAFF_ORDERS = list.map(o => {
             if (overrides[o.order_code]) o.status = overrides[o.order_code];
             if (overrides[o.id]) o.status = overrides[o.id];
+
+            const rec = kpiRecords[o.order_code] || (o.id ? kpiRecords[o.id] : null);
+            if (rec) {
+              o.confirmed_by_staff_id = rec.staff_id;
+              o.confirmed_by_staff_name = rec.staff_name;
+              o.confirmed_at = rec.confirmed_at;
+            } else if (!o.confirmed_by_staff_id && ['MR-2610-8491', 'MR-2610-3829', 'MR-2610-7164', 'MR-2610-1205'].includes(o.order_code)) {
+              o.confirmed_by_staff_id = 'acc-staff-1';
+              o.confirmed_by_staff_name = 'Lê Văn Nhân Viên';
+              o.confirmed_at = o.created_at || '2026-10-29 17:00';
+            }
             return o;
           });
         } catch (e) {}
@@ -692,6 +705,12 @@
       const qty = Number(document.getElementById('posQuantity').value || 1);
       const total = price * qty;
 
+      const currentStaff = JSON.parse(localStorage.getItem('morioo_current_user') || 'null') || {
+        id: "acc-staff-1",
+        full_name: "Lê Văn Nhân Viên",
+        role: "staff"
+      };
+
       const newOrder = {
         order_code: "MR-" + Math.floor(1000 + Math.random() * 9000),
         customer_name: document.getElementById('posCustName').value.trim(),
@@ -699,9 +718,20 @@
         customer_address: document.getElementById('posCustAddress').value.trim(),
         payment_method: document.getElementById('posPayment').value,
         total_amount: total,
-        status: "pending",
-        created_at: new Date().toLocaleString("vi-VN")
+        status: "confirmed",
+        created_at: new Date().toLocaleString("vi-VN"),
+        confirmed_by_staff_id: currentStaff.id,
+        confirmed_by_staff_name: currentStaff.full_name,
+        confirmed_at: new Date().toLocaleString("vi-VN")
       };
+
+      const kpiRecords = JSON.parse(localStorage.getItem('morioo_staff_kpi_records') || '{}');
+      kpiRecords[newOrder.order_code] = {
+        staff_id: currentStaff.id,
+        staff_name: currentStaff.full_name,
+        confirmed_at: newOrder.confirmed_at
+      };
+      localStorage.setItem('morioo_staff_kpi_records', JSON.stringify(kpiRecords));
 
       STAFF_ORDERS.unshift(newOrder);
       localStorage.setItem('morioo_orders', JSON.stringify(STAFF_ORDERS));
@@ -785,6 +815,12 @@
                   </a>
                 </div>
                 <div class="text-gray-500 dark:text-gray-400 truncate" title="${o.customer_address}">📍 ${o.customer_address}</div>
+                ${o.confirmed_by_staff_name ? `
+                  <div class="mt-1 flex items-center justify-between text-[10px] bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 px-2 py-0.5 rounded font-semibold border border-sky-200 dark:border-sky-800">
+                    <span>⭐ KPI: ${o.confirmed_by_staff_name}</span>
+                    <span>${o.confirmed_at || 'Đã ghi nhận'}</span>
+                  </div>
+                ` : ''}
               </div>
             </div>
 
@@ -814,9 +850,31 @@
         overrides[code] = status;
         if (ord.id) overrides[ord.id] = status;
         localStorage.setItem('morioo_order_status_overrides', JSON.stringify(overrides));
+
+        // Attribute order to staff for KPI management when confirmed, shipping, or completed
+        if (['confirmed', 'shipping', 'completed'].includes(status)) {
+          const currentStaff = JSON.parse(localStorage.getItem('morioo_current_user') || 'null') || {
+            id: "acc-staff-1",
+            full_name: "Lê Văn Nhân Viên",
+            role: "staff"
+          };
+          ord.confirmed_by_staff_id = ord.confirmed_by_staff_id || currentStaff.id;
+          ord.confirmed_by_staff_name = ord.confirmed_by_staff_name || currentStaff.full_name;
+          ord.confirmed_at = ord.confirmed_at || new Date().toLocaleString('vi-VN');
+
+          const kpiRecords = JSON.parse(localStorage.getItem('morioo_staff_kpi_records') || '{}');
+          kpiRecords[code] = {
+            staff_id: ord.confirmed_by_staff_id,
+            staff_name: ord.confirmed_by_staff_name,
+            confirmed_at: ord.confirmed_at
+          };
+          if (ord.id) kpiRecords[ord.id] = kpiRecords[code];
+          localStorage.setItem('morioo_staff_kpi_records', JSON.stringify(kpiRecords));
+        }
+
         localStorage.setItem('morioo_orders', JSON.stringify(STAFF_ORDERS));
         window.dispatchEvent(new CustomEvent('order-list-changed'));
-        showToast(`Đã chuyển đơn #${code} sang trạng thái mới!`, 'success');
+        showToast(`Đã chuyển đơn #${code} sang trạng thái mới & ghi nhận KPI!`, 'success');
         updateStaffKpiMetrics();
         renderStaffOrdersGrid();
       }
