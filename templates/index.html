@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MORIOO - Nội Thất Gỗ Tự Nhiên Chuẩn Phong Cách Tối Giản</title>
+    <meta name="description" content="Khám phá bộ sưu tập nội thất gỗ sồi tự nhiên MORIOO phong cách tối giản Wabi-Sabi: giường ngủ tatami, ghế thư giãn, bàn trà, kệ tivi. Kết nối trực tiếp cơ sở dữ liệu Supabase Cloud toàn cầu.">
+    <link rel="icon" type="image/svg+xml" href="assets/images/logo-morioo.svg">
+    
+    <!-- Google Fonts: Be Vietnam Pro & Montserrat for crisp Vietnamese typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+
+    <!-- Supabase JS Library (Chính thức qua CDN để kết nối Database Cloud) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <!-- ==============================================================================
+         1. TOP ANNOUNCEMENT BAR
+         ============================================================================== -->
+    <aside class="top-bar">
+        <div class="container">
+            <div class="top-announcement">
+                <span>Miễn phí vận chuyển cho mọi đơn hàng từ <span class="highlight">499.000 VNĐ</span> - Hotline <a href="tel:1900255579" class="highlight">1900 255 579</a></span>
+            </div>
+            <div class="top-bar-right">
+                <div class="top-lang-select" title="Chọn ngôn ngữ">
+                    <span>Tiếng Việt</span>
+                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M1 1L5 5L9 1"/>
+                    </svg>
+                </div>
+                <div class="top-auth-wrapper" id="topAuthWrapper">
+                    <!-- Nút khi chưa đăng nhập -->
+                    <button class="top-auth-link btn-open-auth-modal" id="btnOpenAuthModal" data-role="customer" title="Đăng nhập hoặc Đăng ký">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Đăng nhập | Đăng ký</span>
+                    </button>
+
+                    <!-- Dropdown khi đã đăng nhập -->
+                    <div class="user-dropdown" id="userDropdown" style="display:none;">
+                        <button class="user-dropdown-btn" id="userDropdownBtn">
+                            <span id="userRoleIcon">👤</span>
+                            <span id="userDisplayName">Khách hàng</span>
+                            <span class="user-badge" id="userRoleBadge">Khách</span>
+                            <svg width="9" height="5" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1L5 5L9 1"/></svg>
+                        </button>
+                        <div class="user-dropdown-menu" id="userDropdownMenu">
+                            <!-- Khách hàng -->
+                            <div id="customerMenuLinks">
+                                <a href="#" id="btnOpenCustomerOrders">📦 Đơn hàng của tôi</a>
+                            </div>
+                            <!-- Nhân viên -->
+                            <div id="staffMenuLinks" style="display:none;">
+                                <a href="staff.html" style="font-weight:700; color:#0284c7;">💼 Đến Trang Nhân Viên</a>
+                            </div>
+                            <!-- Admin tối cao (Chỉ Admin mới thấy khi đăng nhập) -->
+                            <div id="adminMenuLinks" style="display:none;">
+                                <a href="admin.html" style="font-weight:700; color:var(--brand-red);">👑 Đến Trang Quản Trị Admin</a>
+                                <a href="staff.html" style="color:#0284c7;">💼 Chuyển Xem Cổng Nhân Viên</a>
+                                <a href="#" class="btn-open-supabase-setup" style="color:#555; font-size:12px; display:block; margin-top:4px;">⚙️ Cấu Hình Database Cloud</a>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" id="btnLogout">Đăng xuất</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ==============================================================================
+         2. MAIN RED HEADER BAR (MÀU ĐỎ ĐẶC TRƯNG MORIOO)
+         ============================================================================== -->
+    <header class="main-header">
+        <div class="container header-inner">
+            <!-- Brand Logo MORIOO -->
+            <a href="#" class="brand-logo" title="MORIOO - Nội Thất Gỗ Tự Nhiên">
+                <img src="assets/images/logo-morioo.svg" alt="MORIOO Logo" width="165" height="42">
+            </a>
+
+            <!-- Navigation Links -->
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#catalog" class="nav-link-item active" data-category="all">Hàng Mới</a></li>
+                    <li><a href="#catalog" class="nav-link-item" data-category="phong-khach">Bán Chạy <span class="badge-hot">HOT</span></a></li>
+                    <li><a href="#catalog" class="nav-link-item" data-category="phong-ngu">Phòng Ngủ <span class="caret">▾</span></a></li>
+                    <li><a href="#catalog" class="nav-link-item" data-category="phong-khach">Phòng Khách <span class="caret">▾</span></a></li>
+                    <li><a href="#catalog" class="nav-link-item" data-category="phong-an">Phòng Ăn & Bếp <span class="caret">▾</span></a></li>
+                    <li><a href="#catalog" class="nav-link-item" data-category="lam-viec">Làm Việc <span class="caret">▾</span></a></li>
+                    <li><a href="#catalog" class="nav-link-item" data-category="tu-ke">Tủ & Kệ <span class="caret">▾</span></a></li>
+                    <li><a href="#catalog" class="nav-link-item" data-category="decor">Decor <span class="caret">▾</span></a></li>
+                    <li><a href="#servicesSection" class="nav-link-item" style="color:#fef08a; font-weight:700; background:rgba(255,255,255,0.12); border-radius:4px; padding:6px 10px;">🛎️ Dịch Vụ <span class="badge-hot" style="background:#dc2626;">5 GÓI</span></a></li>
+                </ul>
+            </nav>
+
+            <!-- Search Bar -->
+            <div class="header-search">
+                <span class="search-icon-left">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </span>
+                <input type="text" id="searchInput" class="search-input-box" placeholder="Bạn đang muốn tìm kiếm gì?" autocomplete="off">
+                <button type="button" id="searchClear" class="search-clear-btn" title="Xóa tìm kiếm">×</button>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="header-actions">
+                <button class="btn-header-cart btn-cart-toggle" title="Giỏ hàng">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                    <span class="cart-count-badge" id="headerCartBadge">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==============================================================================
+         3. HERO ROOM SHOWCASE (BỘ SƯU TẬP VLINE - LƯU GIỮ NÉT XƯA TRONG KHÔNG GIAN ĐƯƠNG ĐẠI)
+         ============================================================================== -->
+    <section class="hero-showcase" id="heroShowcase">
+        <div class="hero-banner-container">
+            <!-- Background Image -->
+            <img src="assets/images/hero-room-banner.png" alt="Không gian phòng khách nội thất đương đại MORIOO - Lưu giữ nét xưa trong không gian đương đại" class="hero-banner-img">
+            
+            <!-- Soft mist gradient overlay -->
+            <div class="hero-gradient-overlay"></div>
+
+            <!-- Content Card overlay (Crisp typography & Interactive button) -->
+            <div class="hero-content-overlay">
+                <div class="hero-text-card">
+                    <!-- VLINE Badge -->
+                    <div class="hero-vline-badge">VLINE</div>
+
+                    <!-- Main Heading (Crisp & High-Contrast) -->
+                    <h1 class="hero-headline">
+                        Lưu Giữ Nét Xưa<br>
+                        Trong Không Gian Đương<br>
+                        Đại
+                    </h1>
+
+                    <!-- Categories / Subtitle -->
+                    <p class="hero-subline">
+                        Phòng Khách &nbsp;|&nbsp; Phòng Ngủ &nbsp;|&nbsp; Phòng Ăn
+                    </p>
+
+                    <!-- Interactive Action Button (Crisp & Hover Effect) -->
+                    <div class="hero-action-row">
+                        <a href="#catalogSection" class="hero-cta-btn" id="heroCtaBtn">
+                            XEM CHI TIẾT
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==============================================================================
+         4. BREADCRUMB
+         ============================================================================== -->
+    <div class="breadcrumb-section">
+        <div class="container">
+            <nav class="breadcrumb-list">
+                <a href="#">Trang chủ</a>
+                <span class="breadcrumb-sep">&gt;</span>
+                <a href="#">Nhà Cửa Đời Sống</a>
+                <span class="breadcrumb-sep">&gt;</span>
+                <span class="breadcrumb-current">Đồ Nội Thất MORIOO</span>
+            </nav>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         6. CATALOG & PRODUCT GRID
+         ============================================================================== -->
+    <main class="catalog-section" id="catalogSection">
+        <div class="container">
+            <!-- Header Catalog -->
+            <div class="catalog-header">
+                <div class="catalog-title-row">
+                    <div>
+                        <h1 class="catalog-title">Bộ Sưu Tập Nội Thất Gỗ MORIOO</h1>
+                        <p class="catalog-subtitle">Tinh thần tối giản Wabi-Sabi hòa hợp cùng gỗ sồi tự nhiên mộc mạc và bền bỉ</p>
+                    </div>
+                    <span class="product-count-label" id="productCount">12 sản phẩm</span>
+                </div>
+
+                <!-- Category Tabs -->
+                <div class="category-tabs-bar">
+                    <button class="cat-tab active" data-category="all">Tất Cả</button>
+                    <button class="cat-tab" data-category="phong-khach">Phòng Khách</button>
+                    <button class="cat-tab" data-category="phong-ngu">Phòng Ngủ</button>
+                    <button class="cat-tab" data-category="phong-an">Phòng Ăn & Bếp</button>
+                    <button class="cat-tab" data-category="lam-viec">Góc Làm Việc</button>
+                    <button class="cat-tab" data-category="tu-ke">Tủ & Kệ</button>
+                    <button class="cat-tab" data-category="decor">Phụ Kiện Gỗ & Decor</button>
+                </div>
+
+                <!-- Controls Bar -->
+                <div class="catalog-controls">
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <span>Chất liệu:</span>
+                            <select id="woodTypeFilter" class="filter-select">
+                                <option value="all">Tất cả loại gỗ</option>
+                                <option value="Sồi">Gỗ Sồi Trắng Bắc Mỹ</option>
+                                <option value="Tần Bì">Gỗ Tần Bì Ash</option>
+                                <option value="Thông">Gỗ Thông Tự Nhiên</option>
+                                <option value="Linen">Vải Linen & Cotton Thô</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <span>Sắp xếp:</span>
+                            <select id="sortSelect" class="filter-select">
+                                <option value="default">Mới nhất</option>
+                                <option value="bestseller">Bán chạy nhất</option>
+                                <option value="price-asc">Giá: Thấp đến Cao</option>
+                                <option value="price-desc">Giá: Cao đến Thấp</option>
+                                <option value="rating">Đánh giá cao nhất</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    
+                </div>
+            </div>
+
+            <!-- Product Grid Container -->
+            <div class="product-grid" id="productGrid">
+                <!-- Tự động kết xuất bởi app.js -->
+            </div>
+        </div>
+    </main>
+
+    <!-- ==============================================================================
+         7. PHILOSOPHY SECTION (TRIẾT LÝ GỖ MORIOO)
+         ============================================================================== -->
+    <section class="philosophy-section">
+        <div class="container">
+            <div class="philosophy-grid">
+                <div class="philo-item">
+                    <div class="philo-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                        </svg>
+                    </div>
+                    <h3>100% Gỗ Tự Nhiên Tuyển Chọn</h3>
+                    <p>MORIOO sử dụng gỗ sồi trắng nhập khẩu Bắc Mỹ và gỗ tần bì tuyển chọn loại FAS, kết cấu mộng truyền thống vững chắc theo thời gian.</p>
+                </div>
+                <div class="philo-item">
+                    <div class="philo-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <h3>Dầu Lau Thực Vật An Toàn</h3>
+                    <p>Hoàn thiện thủ công bằng dầu sáp Osmo tự nhiên không chứa VOC hay hóa chất độc hại, bảo vệ gia đình và an toàn cho trẻ nhỏ.</p>
+                </div>
+                <div class="philo-item">
+                    <div class="philo-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Bảo Hành 36 Tháng</h3>
+                    <p>Cam kết bảo hành kết cấu 3 năm, bảo dưỡng định kỳ và hỗ trợ trọn đời sản phẩm. Miễn phí vận chuyển toàn quốc cho đơn từ 499k.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==============================================================================
+         8. DỊCH VỤ NỘI THẤT MAY ĐO & ĐỒNG HÀNH TOÀN DIỆN CÙNG MORIOO (5 DỊCH VỤ)
+         ============================================================================== -->
+    <section class="services-suite-section" id="servicesSection" style="padding: 70px 0; background: #faf8f5; border-top: 1px solid #ebd9c8; border-bottom: 1px solid #ebd9c8;">
+        <div class="container">
+            <div style="text-align: center; max-width: 820px; margin: 0 auto 46px;">
+                <span style="display:inline-block; font-size:11px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:#854d0e; background:#fef9c3; border:1px solid #fef08a; padding:4px 14px; border-radius:20px; margin-bottom:12px;">
+                    ✨ GIẢI PHÁP NỘI THẤT MAY ĐO TOÀN DIỆN
+                </span>
+                <h2 style="font-size: 32px; font-weight: 800; color: #27272a; margin-bottom: 12px; letter-spacing: -0.5px;">
+                    Dịch Vụ Đồng Hành Cùng Không Gian Sống Của Bạn
+                </h2>
+                <p style="font-size: 15px; color: #52525b; line-height: 1.7; margin: 0;">
+                    Từ ý tưởng phác thảo, tư vấn phong cách, đo ni đóng giày đến vận chuyển, lắp đặt chuẩn xác và bảo trì định kỳ trọn đời cùng MORIOO.
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+                <!-- Dịch vụ 1: Tư vấn nội thất -->
+                <div class="service-suite-card" style="background:#fff; border-radius:12px; border:1px solid #e4e4e7; padding:28px 24px; display:flex; flex-direction:column; box-shadow:0 2px 8px rgba(0,0,0,0.04); transition:all 0.25s ease;">
+                    <div style="font-size: 38px; margin-bottom: 16px;">🛋️</div>
+                    <span style="display:inline-block; align-self:flex-start; font-size:11px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:3px 10px; border-radius:12px; margin-bottom:12px;">
+                        Tư Vấn Miễn Phí 100%
+                    </span>
+                    <h3 style="font-size: 19px; font-weight: 800; color: #18181b; margin-bottom: 10px;">Dịch Vụ Tư Vấn Nội Thất</h3>
+                    <p style="font-size: 13.5px; color: #52525b; line-height: 1.6; margin-bottom: 16px; flex-grow: 1;">
+                        Khách hàng gửi nhu cầu, diện tích phòng, phong cách yêu thích và ngân sách. Nhân viên MORIOO tiếp nhận và tư vấn gợi ý sản phẩm phù hợp tối ưu nhất.
+                    </p>
+                    <ul style="list-style:none; padding:0; margin:0 0 20px; font-size:12.5px; color:#3f3f46; line-height:1.8;">
+                        <li><strong style="color:#15803d;">✓</strong> Phân tích diện tích & công năng phòng</li>
+                        <li><strong style="color:#15803d;">✓</strong> Định hình phong cách Zen / Wabi-Sabi</li>
+                        <li><strong style="color:#15803d;">✓</strong> Gợi ý sản phẩm vừa vặn với ngân sách</li>
+                    </ul>
+                    <button type="button" onclick="window.openServiceModal('tu-van')" class="btn-brand-primary" style="width:100%; padding:11px; border-radius:6px; font-weight:700; font-size:13px; text-align:center;">
+                        Nhận Tư Vấn Miễn Phí →
+                    </button>
+                </div>
+
+                <!-- Dịch vụ 2: Thiết kế và đặt đóng theo yêu cầu -->
+                <div class="service-suite-card" style="background:#fff; border-radius:12px; border:1px solid #e4e4e7; padding:28px 24px; display:flex; flex-direction:column; box-shadow:0 2px 8px rgba(0,0,0,0.04); transition:all 0.25s ease;">
+                    <div style="font-size: 38px; margin-bottom: 16px;">📐</div>
+                    <span style="display:inline-block; align-self:flex-start; font-size:11px; font-weight:700; color:#b45309; background:#fef3c7; padding:3px 10px; border-radius:12px; margin-bottom:12px;">
+                        May Đo Theo Hiện Trạng
+                    </span>
+                    <h3 style="font-size: 19px; font-weight: 800; color: #18181b; margin-bottom: 10px;">Thiết Kế & Đặt Đóng Theo Yêu Cầu</h3>
+                    <p style="font-size: 13.5px; color: #52525b; line-height: 1.6; margin-bottom: 16px; flex-grow: 1;">
+                        Lựa chọn kích thước chuẩn từng centimet, chất liệu gỗ sồi/tần bì/óc chó, màu lau dầu và kiểu dáng. Nhân viên tiếp nhận, báo giá minh bạch và xác nhận đơn thiết kế.
+                    </p>
+                    <ul style="list-style:none; padding:0; margin:0 0 20px; font-size:12.5px; color:#3f3f46; line-height:1.8;">
+                        <li><strong style="color:#15803d;">✓</strong> Tùy chọn kích thước Dài x Rộng x Cao</li>
+                        <li><strong style="color:#15803d;">✓</strong> Gỗ tự nhiên tuyển chọn, chống co ngót</li>
+                        <li><strong style="color:#15803d;">✓</strong> Báo giá chi tiết & chốt hợp đồng nhanh</li>
+                    </ul>
+                    <button type="button" onclick="window.openServiceModal('dat-dong')" class="btn-brand-primary" style="width:100%; padding:11px; border-radius:6px; font-weight:700; font-size:13px; text-align:center;">
+                        Đặt Đóng Theo Yêu Cầu →
+                    </button>
+                </div>
+
+                <!-- Dịch vụ 3: Vận chuyển và lắp đặt -->
+                <div class="service-suite-card highlighted" style="background:linear-gradient(180deg, #fff 0%, #fdfbf7 100%); border-radius:12px; border:2px solid #b91c1c; padding:28px 24px; display:flex; flex-direction:column; box-shadow:0 8px 20px rgba(185,28,28,0.08); position:relative; transition:all 0.25s ease;">
+                    <div style="font-size: 38px; margin-bottom: 16px;">🚚</div>
+                    <span style="display:inline-block; align-self:flex-start; font-size:11px; font-weight:700; color:#fff; background:#b91c1c; padding:3px 10px; border-radius:12px; margin-bottom:12px;">
+                        Đặt Lịch & Theo Dõi Live
+                    </span>
+                    <h3 style="font-size: 19px; font-weight: 800; color: #18181b; margin-bottom: 10px;">Dịch Vụ Vận Chuyển & Lắp Đặt</h3>
+                    <p style="font-size: 13.5px; color: #52525b; line-height: 1.6; margin-bottom: 16px; flex-grow: 1;">
+                        Đăng ký lịch hẹn giao hàng, lắp đặt tận nơi cẩn trọng và <strong>theo dõi tiến độ thực hiện trực tiếp</strong> qua mã đơn hàng hoặc số điện thoại.
+                    </p>
+                    <ul style="list-style:none; padding:0; margin:0 0 20px; font-size:12.5px; color:#3f3f46; line-height:1.8;">
+                        <li><strong style="color:#15803d;">✓</strong> Đặt lịch hẹn ngày giờ chính xác</li>
+                        <li><strong style="color:#15803d;">✓</strong> Thợ lành nghề mang đồ bọc lót lắp ráp</li>
+                        <li><strong style="color:#15803d;">✓</strong> Tra cứu tiến độ timeline 5 bước live</li>
+                    </ul>
+                    <button type="button" onclick="window.openServiceModal('van-chuyen')" class="btn-brand-primary" style="width:100%; padding:11px; border-radius:6px; font-weight:700; font-size:13px; text-align:center; background:#b91c1c;">
+                        Đặt Lịch & Tra Cứu Tiến Độ →
+                    </button>
+                </div>
+
+                <!-- Dịch vụ 4: Bảo trì và sửa chữa -->
+                <div class="service-suite-card" style="background:#fff; border-radius:12px; border:1px solid #e4e4e7; padding:28px 24px; display:flex; flex-direction:column; box-shadow:0 2px 8px rgba(0,0,0,0.04); transition:all 0.25s ease;">
+                    <div style="font-size: 38px; margin-bottom: 16px;">🛠️</div>
+                    <span style="display:inline-block; align-self:flex-start; font-size:11px; font-weight:700; color:#6d28d9; background:#ede9fe; padding:3px 10px; border-radius:12px; margin-bottom:12px;">
+                        Đính Kèm Ảnh Từ Máy
+                    </span>
+                    <h3 style="font-size: 19px; font-weight: 800; color: #18181b; margin-bottom: 10px;">Dịch Vụ Bảo Trì & Sửa Chữa</h3>
+                    <p style="font-size: 13.5px; color: #52525b; line-height: 1.6; margin-bottom: 16px; flex-grow: 1;">
+                        Gửi yêu cầu bảo trì, đính kèm hình ảnh thực tế chụp từ máy tính, mô tả tình trạng sản phẩm và đặt lịch hẹn kỹ thuật viên MORIOO hỗ trợ tận nhà.
+                    </p>
+                    <ul style="list-style:none; padding:0; margin:0 0 20px; font-size:12.5px; color:#3f3f46; line-height:1.8;">
+                        <li><strong style="color:#15803d;">✓</strong> Tải ảnh sự cố trực tiếp từ máy tính</li>
+                        <li><strong style="color:#15803d;">✓</strong> Xử lý trầy xước, xệ cánh, lau dầu Osmo</li>
+                        <li><strong style="color:#15803d;">✓</strong> Đặt lịch hẹn kỹ thuật viên đến tận nơi</li>
+                    </ul>
+                    <button type="button" onclick="window.openServiceModal('bao-tri')" class="btn-brand-primary" style="width:100%; padding:11px; border-radius:6px; font-weight:700; font-size:13px; text-align:center;">
+                        Yêu Cầu Bảo Trì & Sửa Chữa →
+                    </button>
+                </div>
+
+                <!-- Dịch vụ 5: Thiết kế không gian -->
+                <div class="service-suite-card" style="background:#fff; border-radius:12px; border:1px solid #e4e4e7; padding:28px 24px; display:flex; flex-direction:column; box-shadow:0 2px 8px rgba(0,0,0,0.04); transition:all 0.25s ease;">
+                    <div style="font-size: 38px; margin-bottom: 16px;">🏠</div>
+                    <span style="display:inline-block; align-self:flex-start; font-size:11px; font-weight:700; color:#15803d; background:#dcfce7; padding:3px 10px; border-radius:12px; margin-bottom:12px;">
+                        Bản Vẽ 3D & Dự Toán 24h
+                    </span>
+                    <h3 style="font-size: 19px; font-weight: 800; color: #18181b; margin-bottom: 10px;">Dịch Vụ Thiết Kế Không Gian</h3>
+                    <p style="font-size: 13.5px; color: #52525b; line-height: 1.6; margin-bottom: 16px; flex-grow: 1;">
+                        Khách hàng cung cấp kích thước phòng hoặc tải lên bản vẽ để nhận phương án bố trí nội thất 2D/3D thông minh và bảng dự toán chi phí chi tiết.
+                    </p>
+                    <ul style="list-style:none; padding:0; margin:0 0 20px; font-size:12.5px; color:#3f3f46; line-height:1.8;">
+                        <li><strong style="color:#15803d;">✓</strong> Tải lên bản vẽ hoặc ảnh phòng từ máy</li>
+                        <li><strong style="color:#15803d;">✓</strong> Phác thảo bố trí nội thất tối ưu luồng đi</li>
+                        <li><strong style="color:#15803d;">✓</strong> Bảng dự toán chi phí vật tư trong 24h</li>
+                    </ul>
+                    <button type="button" onclick="window.openServiceModal('thiet-ke-khong-gian')" class="btn-brand-primary" style="width:100%; padding:11px; border-radius:6px; font-weight:700; font-size:13px; text-align:center;">
+                        Nhận Phương Án & Dự Toán →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==============================================================================
+         9. FOOTER
+         ============================================================================== -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div style="margin-bottom: 14px;">
+                        <img src="assets/images/logo-morioo.svg" alt="MORIOO" width="160">
+                    </div>
+                    <p>Thương hiệu nội thất gỗ tự nhiên <strong>MORIOO</strong>. Tôn vinh vẻ đẹp thuần khiết của từng thớ gỗ sồi tự nhiên, kiến tạo không gian sống ấm áp, mộc mạc và an yên cho mọi gia đình.</p>
+                    <p><strong>Hotline:</strong> 1900 255 579 (8:30 - 21:30)</p>
+                    <p><strong>Email:</strong> support@morioo.vn</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Hệ Thống Showroom MORIOO</h4>
+                    <ul class="footer-links">
+                        <li>Showroom MORIOO Vincom Center Đồng Khởi, Q.1, TP.HCM</li>
+                        <li>Showroom MORIOO Crescent Mall, Q.7, TP.HCM</li>
+                        <li>Showroom MORIOO Vincom Center Metropolis, Ba Đình, Hà Nội</li>
+                        <li>Showroom MORIOO Aeon Mall Hà Đông, Hà Nội</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Dịch Vụ Khách Hàng</h4>
+                    <ul class="footer-links">
+                        <li><a href="javascript:void(0)" onclick="window.openServiceModal('tu-van')">🛋️ Tư vấn phong cách nội thất</a></li>
+                        <li><a href="javascript:void(0)" onclick="window.openServiceModal('dat-dong')">📐 May đo & đặt đóng theo kích thước</a></li>
+                        <li><a href="javascript:void(0)" onclick="window.openServiceModal('van-chuyen')">🚚 Lịch giao hàng & theo dõi tiến độ</a></li>
+                        <li><a href="javascript:void(0)" onclick="window.openServiceModal('bao-tri')">🛠️ Yêu cầu bảo trì đồ gỗ tại nhà</a></li>
+                        <li><a href="javascript:void(0)" onclick="window.openServiceModal('thiet-ke-khong-gian')">🏠 Thiết kế không gian & dự toán chi phí</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Đăng Ký Nhận Bản Tin</h4>
+                    <p>Nhận ngay cẩm nang chăm sóc đồ gỗ tự nhiên và ưu đãi giảm giá <strong>10%</strong> cho đơn hàng đầu tiên của bạn.</p>
+                    <form class="footer-newsletter-form" onsubmit="event.preventDefault(); alert('Cảm ơn bạn đã đăng ký nhận bản tin từ MORIOO!'); this.reset();" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+                        <input type="email" required placeholder="Nhập email của bạn..." style="padding:9px 12px; border-radius:4px; border:1px solid #444; background:#222; color:#fff; font-size:12px; outline:none;">
+                        <button type="submit" class="btn-brand-primary" style="padding:9px 14px; border-radius:4px; font-weight:700; font-size:12px; letter-spacing:0.5px; text-transform:uppercase;">
+                            Đăng Ký Ngay
+                        </button>
+                    </form>
+                    <div style="margin-top:12px; font-size:12px; color:#888;">
+                        🌿 100% Gỗ Nguồn Gốc Bền Vững & Sơn Dầu Osmo An Toàn
+                    </div>
+                </div>
+</div>
+
+            <div class="footer-bottom">
+                <div>© 2026 Nội Thất Gỗ MORIOO. Tất cả quyền được bảo lưu. Tinh hoa gỗ tự nhiên phong cách Nhật.</div>
+                <div>Hotline CSKH: <a href="tel:1900255579" style="color:var(--wood-accent); font-weight:600;">1900 255 579</a> (8:30 - 21:30)</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==============================================================================
+         10. CART SLIDE-OVER DRAWER
+         ============================================================================== -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+    <aside class="cart-drawer" id="cartDrawer">
+        <div class="cart-drawer-header">
+            <h3>Giỏ Hàng MORIOO</h3>
+            <button class="btn-close-drawer" id="closeCartBtn">×</button>
+        </div>
+
+        <!-- Free shipping progress -->
+        <div class="free-shipping-bar-wrap">
+            <div class="shipping-bar-bg">
+                <div class="shipping-bar-fill" id="shippingProgressBar" style="width: 0%;"></div>
+            </div>
+            <div class="shipping-progress-text" id="shippingProgressMsg">
+                Mua thêm 499.000 VNĐ để được Miễn phí vận chuyển!
+            </div>
+        </div>
+
+        <div class="cart-drawer-body" id="cartDrawerItems">
+            <!-- Items injected by JS -->
+        </div>
+
+        <div class="cart-drawer-footer">
+            <form id="couponForm" class="coupon-section">
+                <input type="text" id="couponInput" class="coupon-input" placeholder="Mã giảm giá (VD: MORIOO10, GOXANH)">
+                <button type="submit" class="btn-apply-coupon">Áp dụng</button>
+            </form>
+            <div id="couponMessage" class="coupon-msg"></div>
+
+            <div class="cart-summary-line">
+                <span>Tạm tính:</span>
+                <strong id="cartDrawerSubtotal">0 VNĐ</strong>
+            </div>
+            <div class="cart-summary-line">
+                <span>Giảm giá:</span>
+                <span id="cartDrawerDiscount">-0 VNĐ</span>
+            </div>
+            <div class="cart-summary-line">
+                <span>Phí vận chuyển:</span>
+                <span id="cartDrawerShipping">Miễn phí</span>
+            </div>
+            <div class="cart-summary-line total">
+                <span>Tổng cộng:</span>
+                <span id="cartDrawerTotal">0 VNĐ</span>
+            </div>
+
+            <button class="btn-checkout-drawer" id="btnProceedCheckout">
+                Tiến Hành Đặt Hàng →
+            </button>
+        </div>
+    </aside>
+
+    <!-- ==============================================================================
+         11. PRODUCT DETAIL MODAL
+         ============================================================================== -->
+    <div class="custom-modal" id="productDetailModal">
+        <div class="modal-dialog">
+            <span class="modal-close-x" id="closeProductModal">&times;</span>
+            <div id="productModalContent">
+                <!-- Nội dung chi tiết được inject bởi app.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         12. CHECKOUT MODAL (ĐẶT HÀNG LƯU SUPABASE)
+         ============================================================================== -->
+    <div class="custom-modal" id="checkoutModal">
+        <div class="modal-dialog" style="max-width: 820px;">
+            <span class="modal-close-x" id="closeCheckoutModal">&times;</span>
+            <div class="checkout-modal-body">
+                <h2 style="font-size:20px; font-weight:700; margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:12px;">
+                    Thông Tin Giao Hàng & Thanh Toán MORIOO
+                </h2>
+
+                <form id="checkoutForm">
+                    <div class="checkout-grid">
+                        <div class="checkout-fields-col">
+                            <div class="form-group">
+                                <label for="customerName">Họ và tên của bạn *</label>
+                                <input type="text" id="customerName" class="form-control" required placeholder="Nguyễn Văn A">
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                                <div class="form-group">
+                                    <label for="customerPhone">Số điện thoại *</label>
+                                    <input type="tel" id="customerPhone" class="form-control" required placeholder="0912 345 678">
+                                </div>
+                                <div class="form-group">
+                                    <label for="customerEmail">Email</label>
+                                    <input type="email" id="customerEmail" class="form-control" placeholder="email@gmail.com">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="customerAddress">Địa chỉ nhận hàng chi tiết *</label>
+                                <input type="text" id="customerAddress" class="form-control" required placeholder="Số nhà, ngõ/tên đường, Phường/Xã">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="customerCity">Tỉnh / Thành phố *</label>
+                                <input type="text" id="customerCity" class="form-control" required placeholder="Hà Nội, TP.HCM, Đà Nẵng...">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="orderNote">Ghi chú giao hàng (nếu có)</label>
+                                <textarea id="orderNote" class="form-control" rows="2" placeholder="Giao hàng giờ hành chính, gọi trước khi giao..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Phương thức thanh toán:</label>
+                                <div class="payment-options-wrap">
+                                    <label class="pay-opt">
+                                        <input type="radio" name="paymentMethod" value="cod" checked>
+                                        <div>
+                                            <strong>Thanh toán khi nhận hàng (COD)</strong>
+                                            <div style="font-size:11.5px; color:#777;">Kiểm tra hàng rồi thanh toán tiền mặt cho bưu tá</div>
+                                        </div>
+                                    </label>
+
+                                    <label class="pay-opt">
+                                        <input type="radio" name="paymentMethod" value="bank_transfer">
+                                        <div>
+                                            <strong>Chuyển khoản Ngân Hàng / Quét mã VietQR</strong>
+                                            <div style="font-size:11.5px; color:#777;">Quét mã QR tự động điền số tiền và nội dung</div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div id="vietQrSection" class="vietqr-box" style="display:none;">
+                                    <p style="font-size:12.5px; font-weight:600; color:#333;">Quét mã VietQR bằng ứng dụng Ngân hàng hoặc MoMo:</p>
+                                    <img id="vietQrImage" src="" alt="Mã VietQR thanh toán MORIOO">
+                                    <p style="font-size:11px; color:#777;">Ngân hàng Quân Đội (MB Bank) - STK: 0988888888 - Chủ TK: NỘI THẤT MORIOO</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Summary Column -->
+                        <div class="checkout-summary-col">
+                            <div class="checkout-summary-card">
+                                <h3 style="font-size:15px; font-weight:700; margin-bottom:14px;">Đơn Hàng Của Bạn</h3>
+                                <div id="checkoutItemsSummary" style="max-height:220px; overflow-y:auto; margin-bottom:14px;"></div>
+                                
+                                <div style="border-top:1px dashed #d1c7b7; padding-top:12px; margin-top:12px;">
+                                    <div class="checkout-sum-row" style="font-size:16px;">
+                                        <strong>Tổng thanh toán:</strong>
+                                        <strong id="checkoutTotalSummary" style="color:var(--brand-red);">0 VNĐ</strong>
+                                    </div>
+                                    <p style="font-size:11px; color:#777; margin-top:6px;">Cam kết bảo mật thông tin đơn hàng & giao hàng miễn phí từ 499.000 VNĐ.</p>
+                                </div>
+
+                                <button type="submit" id="btnSubmitOrder" class="btn-brand-primary" style="width:100%; margin-top:16px; padding:12px;">
+                                    Hoàn Tất Đặt Hàng
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         13. ORDER SUCCESS MODAL
+         ============================================================================== -->
+    <div class="custom-modal" id="orderSuccessModal">
+        <div class="modal-dialog" style="max-width: 520px; text-align:center; padding:36px 24px;">
+            <div style="width:64px; height:64px; background:#e8f5e9; color:#2e7d32; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <h2 style="font-size:22px; font-weight:700; margin-bottom:8px;">Đặt Hàng Thành Công!</h2>
+            <p style="font-size:14px; color:#555; margin-bottom:18px;">
+                Cảm ơn bạn <strong id="successCustomerName"></strong> đã lựa chọn nội thất gỗ tự nhiên của MORIOO.
+            </p>
+
+            <div style="background:#fbf9f6; border:1px solid #e5dfd5; border-radius:6px; padding:14px; margin-bottom:18px; text-align:left; font-size:13px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <span style="color:#777;">Mã đơn hàng:</span>
+                    <strong id="successOrderCode" style="color:var(--brand-red);"></strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <span style="color:#777;">Tổng tiền:</span>
+                    <strong id="successTotalAmount"></strong>
+                </div>
+                <div id="successCloudNote" style="margin-top:10px;"></div>
+            </div>
+
+            <button class="btn-brand-primary" id="closeSuccessModal" style="width:100%;">
+                Tiếp Tục Mua Sắm
+            </button>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         14. SUPABASE CONFIGURATION MODAL
+         ============================================================================== -->
+    <div class="custom-modal" id="supabaseSetupModal">
+        <div class="modal-dialog" style="max-width: 640px;">
+            <span class="modal-close-x" id="closeSupabaseModal">&times;</span>
+            <div class="supabase-setup-content">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--brand-red)" stroke-width="2">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                    </svg>
+                    <h2 style="font-size:19px; font-weight:700;">Kết Nối Database Supabase Cho MORIOO</h2>
+                </div>
+
+                <div class="supabase-badge-guide">
+                    <strong>💡 Để ai trên internet cũng xem được:</strong><br>
+                    1. Tạo Project miễn phí tại <a href="https://supabase.com" target="_blank" style="color:#1b5e20; text-decoration:underline; font-weight:700;">supabase.com</a><br>
+                    2. Mở mục <strong>SQL Editor</strong> và chạy toàn bộ mã trong file <code>supabase-schema.sql</code> (đã tạo sẵn trong thư mục dự án).<br>
+                    3. Lấy <strong>Project URL</strong> và <strong>Anon Key</strong> dán vào bên dưới rồi nhấn "Kiểm tra kết nối".
+                </div>
+
+                <form id="supabaseSetupForm">
+                    <div class="form-group">
+                        <label for="inputSupabaseUrl">Supabase Project URL *</label>
+                        <input type="url" id="inputSupabaseUrl" class="form-control" placeholder="https://xxxxxxxx.supabase.co" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputSupabaseKey">Supabase Anon (Public) Key *</label>
+                        <textarea id="inputSupabaseKey" class="form-control" rows="3" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required></textarea>
+                        <small style="color:#777; font-size:11px;">Đây là Public Anon Key an toàn dùng trực tiếp ở phía trình duyệt người xem.</small>
+                    </div>
+
+                    <div id="supabaseTestResult" class="test-result"></div>
+
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button type="button" id="btnTestSupabase" class="btn-brand-outline" style="flex:1; border:1px solid #777; padding:10px; border-radius:4px; font-weight:600;">
+                            Kiểm tra kết nối ngay
+                        </button>
+                        <button type="submit" class="btn-brand-primary" style="flex:1; padding:10px;">
+                            Lưu và Sử Dụng
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         15. ADMIN MANAGER MODAL (BẢNG QUẢN TRỊ VIÊN MORIOO TỐI CAO)
+         ============================================================================== -->
+    <div class="custom-modal" id="adminModal">
+        <div class="modal-dialog admin-modal-content" style="max-width: 1050px;">
+            <span class="modal-close-x" id="closeAdminModal">&times;</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1px solid var(--border-light); padding-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:24px;">👑</span>
+                    <div>
+                        <h2 style="font-size:20px; font-weight:800; color:var(--text-primary); margin:0;">Bảng Điều Khiển Quản Trị Viên MORIOO (Tối Cao)</h2>
+                        <p style="font-size:12px; color:var(--text-muted); margin:0;">Chỉ duy nhất 1 tài khoản Admin có toàn quyền hệ thống, sản phẩm & nhân viên</p>
+                    </div>
+                </div>
+                <div class="supabase-status-badge online">
+                    <span class="dot"></span>
+                    <span>Database: Đang kết nối</span>
+                </div>
+            </div>
+
+            <!-- Thống kê tổng quan 4 thẻ số liệu -->
+            <div class="admin-stat-cards-grid">
+                <div class="stat-card stat-primary">
+                    <span class="stat-label">💰 Tổng Doanh Thu</span>
+                    <span class="stat-val" id="adminStatRevenue">0 VNĐ</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">📦 Tổng Đơn Hàng</span>
+                    <span class="stat-val" id="adminStatOrders">0 đơn</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">🪑 Số Sản Phẩm Gỗ</span>
+                    <span class="stat-val" id="adminStatProducts">12 sản phẩm</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">👥 Nhân Sự Đang Làm</span>
+                    <span class="stat-val" id="adminStatStaff">1 nhân viên</span>
+                </div>
+            </div>
+
+            <!-- Tab Menu Admin -->
+            <div class="admin-nav-tabs">
+                <button class="admin-tab-btn active" data-tab="tabAdminOrders">📦 Quản Lý Đơn Hàng</button>
+                <button class="admin-tab-btn" data-tab="tabAdminProducts">🪑 Danh Sách Sản Phẩm</button>
+                <button class="admin-tab-btn" data-tab="tabAdminAddProduct">+ Thêm Sản Phẩm Mới</button>
+                <button class="admin-tab-btn" data-tab="tabAdminStaff">👥 Quản Lý Nhân Viên</button>
+            </div>
+
+            <!-- Tab 1: Đơn Hàng -->
+            <div class="admin-tab-pane active" id="tabAdminOrders">
+                <div id="adminOrdersList">
+                    <!-- Danh sách đơn hàng từ Supabase -->
+                </div>
+            </div>
+
+            <!-- Tab 2: Danh Sách Sản Phẩm -->
+            <div class="admin-tab-pane" id="tabAdminProducts">
+                <div id="adminProductsList">
+                    <!-- Danh sách sản phẩm -->
+                </div>
+            </div>
+
+            <!-- Tab 3: Thêm Sản Phẩm Mới -->
+            <div class="admin-tab-pane" id="tabAdminAddProduct">
+                <form id="formAddProduct" style="max-width:720px;">
+                    <div class="form-group">
+                        <label>Tên sản phẩm gỗ *</label>
+                        <input type="text" id="adminProdName" class="form-control" required placeholder="Bàn trà gỗ sồi tự nhiên MORIOO bo tròn">
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div class="form-group">
+                            <label>Danh mục</label>
+                            <select id="adminProdCategory" class="form-control">
+                                <option value="phong-khach">Phòng Khách</option>
+                                <option value="phong-ngu">Phòng Ngủ</option>
+                                <option value="phong-an">Phòng Ăn & Bếp</option>
+                                <option value="lam-viec">Góc Làm Việc</option>
+                                <option value="decor">Phụ Kiện Gỗ & Decor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Chất liệu gỗ *</label>
+                            <input type="text" id="adminProdWood" class="form-control" required value="Gỗ Sồi Trắng Bắc Mỹ">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+                        <div class="form-group">
+                            <label>Giá bán (VNĐ) *</label>
+                            <input type="number" id="adminProdPrice" class="form-control" required placeholder="2500000">
+                        </div>
+                        <div class="form-group">
+                            <label>Giá gốc (nếu có)</label>
+                            <input type="number" id="adminProdOriginalPrice" class="form-control" placeholder="3200000">
+                        </div>
+                        <div class="form-group">
+                            <label>Số lượng tồn kho</label>
+                            <input type="number" id="adminProdStock" class="form-control" value="15">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Kích thước</label>
+                        <input type="text" id="adminProdDimensions" class="form-control" placeholder="120 x 60 x 45 cm">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Link ảnh sản phẩm (URL trực tiếp) *</label>
+                        <input type="url" id="adminProdImage" class="form-control" required value="https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=1000&q=80">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả ngắn</label>
+                        <input type="text" id="adminProdShortDesc" class="form-control" placeholder="Mô tả tóm tắt kiểu dáng, ưu điểm...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả chi tiết</label>
+                        <textarea id="adminProdDesc" class="form-control" rows="3" placeholder="Chi tiết kỹ thuật, nước sơn lau dầu Osmo, kết cấu mộng..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-brand-primary" style="padding:11px 26px;">
+                        Lưu Sản Phẩm Vào Database Supabase
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tab 4: Quản Lý Nhân Viên (Chỉ Admin) -->
+            <div class="admin-tab-pane" id="tabAdminStaff">
+                <div style="display:grid; grid-template-columns:1.3fr 1fr; gap:26px;">
+                    <div>
+                        <h3 style="font-size:15px; font-weight:700; margin-bottom:12px;">Danh Sách Nhân Viên Hiện Tại</h3>
+                        <div id="adminStaffList">
+                            <!-- Đổ danh sách nhân viên -->
+                        </div>
+                    </div>
+                    <div style="background:#fbf9f6; border:1px solid var(--border-light); border-radius:8px; padding:18px;">
+                        <h3 style="font-size:15px; font-weight:700; margin-bottom:12px; color:var(--text-primary);">+ Cấp Tài Khoản Nhân Viên Mới</h3>
+                        <form id="formAddStaff">
+                            <div class="form-group">
+                                <label>Họ và tên nhân viên *</label>
+                                <input type="text" id="staffNewName" class="form-control" required placeholder="Nguyễn Văn B">
+                            </div>
+                            <div class="form-group">
+                                <label>Email đăng nhập *</label>
+                                <input type="email" id="staffNewEmail" class="form-control" required placeholder="nhanvien2@morioo.vn">
+                            </div>
+                            <div class="form-group">
+                                <label>Số điện thoại</label>
+                                <input type="tel" id="staffNewPhone" class="form-control" placeholder="0901 234 567">
+                            </div>
+                            <div class="form-group">
+                                <label>Mật khẩu khởi tạo *</label>
+                                <input type="password" id="staffNewPass" class="form-control" required value="Staff123!">
+                            </div>
+                            <div class="form-group">
+                                <label>Bộ phận / Ca trực</label>
+                                <select id="staffNewDept" class="form-control">
+                                    <option value="Bán hàng & Chăm sóc khách">Bán hàng & Chăm sóc khách</option>
+                                    <option value="Kho & Đóng gói giao hàng">Kho & Đóng gói giao hàng</option>
+                                    <option value="Kỹ thuật & Bảo hành gỗ">Kỹ thuật & Bảo hành gỗ</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-brand-primary" style="width:100%; padding:10px;">
+                                Cấp Tài Khoản Nhân Viên
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         16. STAFF WORKSPACE MODAL (CỔNG TÁC NGHIỆP NHÂN VIÊN MORIOO)
+         ============================================================================== -->
+    <div class="custom-modal" id="staffModal">
+        <div class="modal-dialog admin-modal-content" style="max-width: 950px;">
+            <span class="modal-close-x" id="closeStaffModal">&times;</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--border-light); padding-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:24px;">💼</span>
+                    <div>
+                        <h2 style="font-size:19px; font-weight:800; color:var(--text-primary); margin:0;">Cổng Tác Nghiệp Nhân Viên MORIOO</h2>
+                        <p style="font-size:12px; color:var(--text-muted); margin:0;">
+                            Nhân viên: <strong id="staffLoggedName" style="color:#0284c7;">Lê Văn Nhân Viên</strong> | Bộ phận: <span id="staffLoggedDept">Xử lý đơn hàng & Kho</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="supabase-status-badge online">
+                    <span class="dot"></span>
+                    <span>Đồng bộ Supabase</span>
+                </div>
+            </div>
+
+            <!-- Thống kê nhanh của nhân viên -->
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:18px;">
+                <div style="background:#fffbeb; border:1px solid #fef3c7; border-radius:6px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; color:#b45309; font-weight:600;">⏳ Đơn mới cần gọi:</span>
+                    <strong style="font-size:18px; color:#b45309;" id="staffCountPending">0</strong>
+                </div>
+                <div style="background:#f5f3ff; border:1px solid #ede9fe; border-radius:6px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; color:#6d28d9; font-weight:600;">🚚 Đang trên đường giao:</span>
+                    <strong style="font-size:18px; color:#6d28d9;" id="staffCountShipping">0</strong>
+                </div>
+                <div style="background:#f0fdf4; border:1px solid #dcfce7; border-radius:6px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; color:#15803d; font-weight:600;">✅ Đã giao hoàn tất:</span>
+                    <strong style="font-size:18px; color:#15803d;" id="staffCountCompleted">0</strong>
+                </div>
+            </div>
+
+            <!-- Tab Cổng Nhân Viên -->
+            <div class="admin-nav-tabs">
+                <button class="staff-tab-btn active" data-tab="tabStaffOrders">📦 Xử Lý Đơn Hàng Mới</button>
+                <button class="staff-tab-btn" data-tab="tabStaffInventory">🪑 Tra Cứu Tồn Kho Tư Vấn</button>
+            </div>
+
+            <!-- Tab 1 Nhân viên: Xử lý đơn hàng -->
+            <div class="staff-tab-pane active" id="tabStaffOrders">
+                <div id="staffOrdersList">
+                    <!-- Danh sách đơn hàng xử lý nhanh -->
+                </div>
+            </div>
+
+            <!-- Tab 2 Nhân viên: Tra cứu tồn kho -->
+            <div class="staff-tab-pane" id="tabStaffInventory">
+                <div id="staffInventoryList">
+                    <!-- Tra cứu kho -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         17. UNIFIED AUTHENTICATION MODAL (GỘP LÀM 1 - TỰ NHẬN DIỆN VAI TRÒ)
+         ============================================================================== -->
+    <div class="custom-modal" id="authModal">
+        <div class="modal-dialog" style="max-width: 480px;">
+            <span class="modal-close-x" id="closeAuthModal">&times;</span>
+            <div style="padding: 28px 30px;">
+                <!-- 2 Tab chính: Đăng Nhập & Đăng Ký Khách Hàng (Gộp làm 1) -->
+                <div class="unified-auth-tabs">
+                    <div class="unified-auth-tab active" data-mode="login">Đăng Nhập</div>
+                    <div class="unified-auth-tab" data-mode="register">Đăng Ký Khách Mới</div>
+                </div>
+
+                <!-- 1. Form Đăng Nhập Chung (Tự nhận diện Admin / Nhân viên / Khách hàng) -->
+                <div id="paneAuthLogin">
+                    <div id="msgUnifiedLogin" class="auth-msg"></div>
+                    <form id="formUnifiedLogin">
+                        <div class="form-group">
+                            <label for="unifiedLoginEmail">Email đăng nhập *</label>
+                            <input type="email" id="unifiedLoginEmail" class="form-control" required placeholder="name@morioo.vn hoặc name@gmail.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="unifiedLoginPass">Mật khẩu *</label>
+                            <input type="password" id="unifiedLoginPass" class="form-control" required placeholder="••••••••">
+                        </div>
+                        <button type="submit" id="btnSubmitUnifiedLogin" class="btn-brand-primary" style="width:100%; padding:12px; font-size:14.5px; margin-top:6px;">
+                            Đăng Nhập Hệ Thống
+                        </button>
+                    </form>
+
+                    <!-- Hộp gợi ý tài khoản mẫu -->
+                    <div class="auth-tip-box" style="margin-top:20px; font-size:12px; line-height:1.7;">
+                        <div style="font-weight:700; margin-bottom:4px; color:var(--text-primary);">💡 Tài khoản thử nghiệm có sẵn:</div>
+                        <div>👑 <strong>Admin duy nhất:</strong> <code>admin@morioo.vn</code> / <code>Admin123!</code></div>
+                        <div>💼 <strong>Nhân viên:</strong> <code>nhanvien@morioo.vn</code> / <code>Staff123!</code></div>
+                        <div>👤 <strong>Khách hàng:</strong> <code>khachhang@gmail.com</code> / <code>Khach123!</code></div>
+                    </div>
+                </div>
+
+                <!-- 2. Form Đăng Ký Khách Hàng (Tự do tạo tài khoản mua sắm) -->
+                <div id="paneAuthRegister" style="display:none;">
+                    <div id="msgUnifiedRegister" class="auth-msg"></div>
+                    <form id="formUnifiedRegister">
+                        <div class="form-group">
+                            <label for="regCustName">Họ và tên của bạn *</label>
+                            <input type="text" id="regCustName" class="form-control" required placeholder="Nguyễn Văn A">
+                        </div>
+                        <div class="form-group">
+                            <label for="regCustPhone">Số điện thoại *</label>
+                            <input type="tel" id="regCustPhone" class="form-control" required placeholder="0912 345 678">
+                        </div>
+                        <div class="form-group">
+                            <label for="regCustEmail">Email nhận thông báo *</label>
+                            <input type="email" id="regCustEmail" class="form-control" required placeholder="email@gmail.com">
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <div class="form-group">
+                                <label for="regCustPass">Mật khẩu *</label>
+                                <input type="password" id="regCustPass" class="form-control" required placeholder="Ít nhất 6 ký tự">
+                            </div>
+                            <div class="form-group">
+                                <label for="regCustPassConfirm">Xác nhận MK *</label>
+                                <input type="password" id="regCustPassConfirm" class="form-control" required placeholder="Nhập lại mật khẩu">
+                            </div>
+                        </div>
+                        <button type="submit" id="btnSubmitUnifiedRegister" class="btn-brand-primary" style="width:100%; padding:12px; margin-top:8px;">
+                            Tạo Tài Khoản Khách Hàng
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         18. CUSTOMER ORDERS MODAL (LỊCH SỬ ĐƠN HÀNG CỦA KHÁCH)
+         ============================================================================== -->
+    <div class="custom-modal" id="customerOrdersModal">
+        <div class="modal-dialog" style="max-width: 650px;">
+            <span class="modal-close-x" id="closeCustomerOrdersModal">&times;</span>
+            <div style="padding: 26px 30px;">
+                <h2 style="font-size: 19px; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                    📦 Đơn Hàng Của Bạn Tại MORIOO
+                </h2>
+                <div id="customerOrdersContainer">
+                    <!-- Tự động đổ danh sách đơn hàng -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==============================================================================
+         20. MODAL 5 DỊCH VỤ NỘI THẤT MORIOO (TƯ VẤN, ĐẶT ĐÓNG, VẬN CHUYỂN, BẢO TRÌ, THIẾT KẾ)
+         ============================================================================== -->
+    <div class="custom-modal" id="serviceModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:9999; overflow-y:auto; padding:20px 12px; align-items:center; justify-content:center;">
+        <div class="modal-dialog" style="background:#fff; width:100%; max-width:880px; border-radius:14px; box-shadow:0 20px 40px rgba(0,0,0,0.25); overflow:hidden; position:relative; margin:auto;">
+            <!-- Header bar -->
+            <div style="background:#7f1d1d; color:#fff; padding:18px 24px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:24px;">🛎️</span>
+                    <div>
+                        <h2 style="font-size:18px; font-weight:800; margin:0; color:#fff;">Dịch Vụ Khách Hàng MORIOO</h2>
+                        <p style="font-size:12px; color:#fecaca; margin:0;">Cam kết phản hồi & tư vấn tận tâm trong vòng 30 - 60 phút</p>
+                    </div>
+                </div>
+                <button type="button" onclick="window.closeServiceModal()" style="background:rgba(255,255,255,0.15); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;">&times;</button>
+            </div>
+
+            <!-- Tab Buttons Bar -->
+            <div style="display:flex; background:#f4f4f5; border-bottom:1px solid #e4e4e7; overflow-x:auto; padding:0 8px;">
+                <button type="button" class="svc-tab-btn active" data-tab="svcTabConsult" onclick="window.switchServiceModalTab('svcTabConsult')" style="padding:12px 16px; border:none; background:none; font-size:13px; font-weight:700; color:#18181b; border-bottom:3px solid #7f1d1d; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px;">
+                    <span>🛋️</span><span>Tư Vấn Nội Thất</span>
+                </button>
+                <button type="button" class="svc-tab-btn" data-tab="svcTabCustom" onclick="window.switchServiceModalTab('svcTabCustom')" style="padding:12px 16px; border:none; background:none; font-size:13px; font-weight:600; color:#71717a; border-bottom:3px solid transparent; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px;">
+                    <span>📐</span><span>Đặt Đóng Theo Yêu Cầu</span>
+                </button>
+                <button type="button" class="svc-tab-btn" data-tab="svcTabDelivery" onclick="window.switchServiceModalTab('svcTabDelivery')" style="padding:12px 16px; border:none; background:none; font-size:13px; font-weight:600; color:#71717a; border-bottom:3px solid transparent; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px;">
+                    <span>🚚</span><span>Vận Chuyển & Tiến Độ</span>
+                </button>
+                <button type="button" class="svc-tab-btn" data-tab="svcTabMaint" onclick="window.switchServiceModalTab('svcTabMaint')" style="padding:12px 16px; border:none; background:none; font-size:13px; font-weight:600; color:#71717a; border-bottom:3px solid transparent; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px;">
+                    <span>🛠️</span><span>Bảo Trì & Sửa Chữa</span>
+                </button>
+                <button type="button" class="svc-tab-btn" data-tab="svcTabSpace" onclick="window.switchServiceModalTab('svcTabSpace')" style="padding:12px 16px; border:none; background:none; font-size:13px; font-weight:600; color:#71717a; border-bottom:3px solid transparent; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px;">
+                    <span>🏠</span><span>Thiết Kế Không Gian</span>
+                </button>
+            </div>
+
+            <div style="padding: 24px 28px; max-height: calc(85vh - 130px); overflow-y: auto;">
+                
+                <!-- ========================================== -->
+                <!-- TAB 1: DỊCH VỤ TƯ VẤN NỘI THẤT -->
+                <!-- ========================================== -->
+                <div class="svc-tab-pane active" id="svcTabConsult">
+                    <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:12.5px; color:#0369a1; line-height:1.6;">
+                        💡 <strong>Chuyên gia MORIOO hỗ trợ:</strong> Hãy gửi gắm diện tích và sở thích của bạn. Chuyên viên thiết kế sẽ liên hệ để tư vấn trực tiếp và gửi phối cảnh gợi ý sản phẩm phù hợp hoàn toàn miễn phí.
+                    </div>
+                    <form onsubmit="window.handleServiceFormSubmit(event, 'tu-van')">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Họ và tên quý khách *</label>
+                                <input type="text" name="customer_name" required placeholder="Ví dụ: Trần Minh Hoàng" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Số điện thoại liên hệ *</label>
+                                <input type="tel" name="customer_phone" required placeholder="0912 345 678" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Không gian cần tư vấn *</label>
+                                <select name="room_type" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    <option value="Phòng khách & Thư giãn">Phòng khách & Thư giãn</option>
+                                    <option value="Phòng ngủ ấm cúng">Phòng ngủ ấm cúng</option>
+                                    <option value="Phòng ăn & Bếp">Phòng ăn & Bếp</option>
+                                    <option value="Góc làm việc tại nhà">Góc làm việc tại nhà</option>
+                                    <option value="Tủ & Kệ trang trí lưu trữ">Tủ & Kệ trang trí lưu trữ</option>
+                                    <option value="Nội thất trọn gói toàn bộ nhà">Nội thất trọn gói toàn bộ nhà</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Diện tích phòng ước tính (m²) *</label>
+                                <input type="text" name="room_area" required placeholder="Ví dụ: 25m² hoặc 4x6m" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Phong cách yêu thích *</label>
+                                <select name="style_preference" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    <option value="Zen Nhật Bản (Tối giản, sàn thấp, mộc mạc)">Zen Nhật Bản (Tối giản, sàn thấp, mộc mạc)</option>
+                                    <option value="Wabi-Sabi (Tôn vinh thớ gỗ tự nhiên nguyên bản)">Wabi-Sabi (Tôn vinh thớ gỗ tự nhiên nguyên bản)</option>
+                                    <option value="Scandinavian (Bắc Âu sáng sủa, thanh lịch)">Scandinavian (Bắc Âu sáng sủa, thanh lịch)</option>
+                                    <option value="Hiện đại tối giản (Modern Minimalist)">Hiện đại tối giản (Modern Minimalist)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Ngân sách dự kiến đầu tư *</label>
+                                <select name="budget_range" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    <option value="Dưới 20 triệu VNĐ">Dưới 20 triệu VNĐ</option>
+                                    <option value="Từ 20 - 50 triệu VNĐ" selected>Từ 20 - 50 triệu VNĐ</option>
+                                    <option value="Từ 50 - 100 triệu VNĐ">Từ 50 - 100 triệu VNĐ</option>
+                                    <option value="Trên 100 triệu VNĐ">Trên 100 triệu VNĐ</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Nhu cầu chi tiết & Mong muốn đặc biệt</label>
+                            <textarea name="customer_note" rows="3" placeholder="Ví dụ: Căn hộ chung cư đón nhiều nắng, cần giường có hộc kéo và bàn trà gầm thấp an toàn cho bé nhỏ..." style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;"></textarea>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:12px;">
+                            <button type="button" onclick="window.closeServiceModal()" style="padding:10px 20px; border:1px solid #d4d4d8; background:#fff; color:#52525b; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">Đóng</button>
+                            <button type="submit" class="btn-brand-primary" style="padding:10px 24px; border-radius:6px; font-size:13px; font-weight:700;">Gửi Yêu Cầu Tư Vấn Ngay</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- TAB 2: THIẾT KẾ VÀ ĐẶT ĐÓNG THEO YÊU CẦU -->
+                <!-- ========================================== -->
+                <div class="svc-tab-pane" id="svcTabCustom" style="display:none;">
+                    <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:12.5px; color:#92400e; line-height:1.6;">
+                        🪵 <strong>Xưởng Mộc Thủ Công MORIOO:</strong> Đóng chuẩn chỉnh theo kích thước riêng biệt của căn phòng. Sử dụng 100% gỗ nhập khẩu loại FAS và mộng gỗ truyền thống không cong vênh.
+                    </div>
+                    <form onsubmit="window.handleServiceFormSubmit(event, 'dat-dong')">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Họ và tên quý khách *</label>
+                                <input type="text" name="customer_name" required placeholder="Ví dụ: Hoàng Ngọc Lan" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Số điện thoại liên hệ *</label>
+                                <input type="tel" name="customer_phone" required placeholder="0908 123 456" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Món đồ cần đặt đóng *</label>
+                                <select name="product_category" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    <option value="Tủ quần áo (Cánh lùa / Cánh nan / Kịch trần)">Tủ quần áo (Cánh lùa / Cánh nan / Kịch trần)</option>
+                                    <option value="Kệ tivi & Tủ trang trí phòng khách">Kệ tivi & Tủ trang trí phòng khách</option>
+                                    <option value="Tủ giày nan thoáng khí">Tủ giày nan thoáng khí</option>
+                                    <option value="Kệ sách & Bàn làm việc công thái học">Kệ sách & Bàn làm việc công thái học</option>
+                                    <option value="Giường ngủ gỗ sồi có ngăn kéo">Giường ngủ gỗ sồi có ngăn kéo</option>
+                                    <option value="Bàn ghế ăn nguyên tấm Wabi-Sabi">Bàn ghế ăn nguyên tấm Wabi-Sabi</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Kích thước may đo (Dài x Rộng x Cao cm) *</label>
+                                <input type="text" name="dimensions" required placeholder="Ví dụ: 200 x 60 x 220 cm" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Chất liệu loại gỗ *</label>
+                                <select name="wood_material" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    <option value="Gỗ Sồi Trắng Bắc Mỹ FAS (White Oak)">Gỗ Sồi Trắng Bắc Mỹ FAS (White Oak)</option>
+                                    <option value="Gỗ Tần Bì Ash Tự Nhiên">Gỗ Tần Bì Ash Tự Nhiên</option>
+                                    <option value="Gỗ Óc Chó Bắc Mỹ (Walnut Cao Cấp)">Gỗ Óc Chó Bắc Mỹ (Walnut Cao Cấp)</option>
+                                    <option value="Kết hợp Gỗ Sồi & Nan Gỗ Thông Nhẹ">Kết hợp Gỗ Sồi & Nan Gỗ Thông Nhẹ</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Màu sắc & Lớp hoàn thiện *</label>
+                                <select name="color_finish" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    <option value="Màu sồi tự nhiên lau dầu Osmo thực vật (Sáng ấm)">Màu sồi tự nhiên lau dầu Osmo thực vật (Sáng ấm)</option>
+                                    <option value="Màu nâu óc chó cổ điển (Walnut Tint)">Màu nâu óc chó cổ điển (Walnut Tint)</option>
+                                    <option value="Màu mộc thô nhạt phong cách Wabi-Sabi">Màu mộc thô nhạt phong cách Wabi-Sabi</option>
+                                    <option value="Sơn phủ mờ mộc cao cấp kháng nước 100%">Sơn phủ mờ mộc cao cấp kháng nước 100%</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Kiểu dáng & Chi tiết phụ kiện</label>
+                            <textarea name="design_notes" rows="3" placeholder="Ví dụ: Ray trượt giảm chấn Hafele, tay nắm âm vát gỗ giấu kín, chia làm 3 buồng treo áo và 4 ngăn gấp..." style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;"></textarea>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:12px;">
+                            <button type="button" onclick="window.closeServiceModal()" style="padding:10px 20px; border:1px solid #d4d4d8; background:#fff; color:#52525b; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">Đóng</button>
+                            <button type="submit" class="btn-brand-primary" style="padding:10px 24px; border-radius:6px; font-size:13px; font-weight:700;">Gửi Yêu Cầu & Nhận Báo Giá 24h</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- TAB 3: DỊCH VỤ VẬN CHUYỂN & LẮP ĐẶT (ĐĂNG KÝ + TRA CỨU TIẾN ĐỘ) -->
+                <!-- ========================================== -->
+                <div class="svc-tab-pane" id="svcTabDelivery" style="display:none;">
+                    <!-- Sub-toggle giữa Đăng ký và Tra cứu -->
+                    <div style="display:flex; justify-content:center; gap:8px; margin-bottom:20px;">
+                        <button type="button" id="btnSubDeliveryRegister" onclick="window.toggleDeliverySubTab('register')" style="padding:8px 18px; border-radius:20px; font-size:12.5px; font-weight:700; border:none; cursor:pointer; background:#7f1d1d; color:#fff;">
+                            🚚 1. Đăng Ký Lịch Giao & Lắp Đặt
+                        </button>
+                        <button type="button" id="btnSubDeliveryTracking" onclick="window.toggleDeliverySubTab('tracking')" style="padding:8px 18px; border-radius:20px; font-size:12.5px; font-weight:700; border:1px solid #d4d4d8; cursor:pointer; background:#f4f4f5; color:#52525b;">
+                            🔍 2. Tra Cứu Tiến Độ Thực Hiện
+                        </button>
+                    </div>
+
+                    <!-- Sub-pane 1: Đăng ký lịch giao hàng & lắp đặt -->
+                    <div id="subPaneDeliveryRegister">
+                        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px 16px; margin-bottom:18px; font-size:12.5px; color:#991b1b; line-height:1.6;">
+                            🚛 <strong>Đội Vận Chuyển Chuyên Nghiệp:</strong> Xe tải chuyên dụng bọc lót nệm mút cẩn thận, đội ngũ thợ lành nghề mang đồ nghề lắp đặt hoàn thiện và dọn sạch rác trước khi bàn giao.
+                        </div>
+                        <form onsubmit="window.handleServiceFormSubmit(event, 'van-chuyen')">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                                <div>
+                                    <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Họ và tên quý khách *</label>
+                                    <input type="text" name="customer_name" required placeholder="Ví dụ: Lê Thảo Linh" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Số điện thoại nhận hàng *</label>
+                                    <input type="tel" name="customer_phone" required placeholder="0988 777 666" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                                </div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                                <div>
+                                    <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Mã đơn hàng (nếu đã mua tại web) *</label>
+                                    <input type="text" name="order_code" placeholder="Ví dụ: MR-849201 hoặc Chưa có" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Địa chỉ giao hàng & lắp đặt *</label>
+                                    <input type="text" name="shipping_address" required placeholder="Số nhà, tên đường, Phường/Xã, Quận/Huyện" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                                </div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                                <div>
+                                    <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Ngày mong muốn giao lắp *</label>
+                                    <input type="date" name="preferred_date" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Khung giờ thuận tiện *</label>
+                                    <select name="preferred_time" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                        <option value="Buổi sáng: 08:30 - 11:30">Buổi sáng: 08:30 - 11:30</option>
+                                        <option value="Buổi chiều: 13:30 - 17:00">Buổi chiều: 13:30 - 17:00</option>
+                                        <option value="Buổi tối: 17:30 - 20:30">Buổi tối: 17:30 - 20:30</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                                <div>
+                                    <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Địa hình nhà ở *</label>
+                                    <select name="house_type" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                        <option value="Chung cư có thang máy chở hàng">Chung cư có thang máy chở hàng</option>
+                                        <option value="Nhà phố tầng trệt / Hẻm xe tải vào được">Nhà phố tầng trệt / Hẻm xe tải vào được</option>
+                                        <option value="Nhà phố cầu thang bộ hẹp (Cần khiêng vác)">Nhà phố cầu thang bộ hẹp (Cần khiêng vác)</option>
+                                        <option value="Biệt thự / Khu đô thị riêng">Biệt thự / Khu đô thị riêng</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Dịch vụ yêu cầu đi kèm *</label>
+                                    <select name="installation_service" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                        <option value="Giao hàng & Lắp đặt hoàn thiện trọn gói">Giao hàng & Lắp đặt hoàn thiện trọn gói</option>
+                                        <option value="Giao hàng tiêu chuẩn tới cửa">Giao hàng tiêu chuẩn tới cửa</option>
+                                        <option value="Hỗ trợ di dời đồ gỗ cũ sang vị trí khác">Hỗ trợ di dời đồ gỗ cũ sang vị trí khác</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom:16px;">
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Lưu ý về giờ giới nghiêm / Ban quản lý tòa nhà</label>
+                                <textarea name="delivery_notes" rows="2" placeholder="Ví dụ: Cần đăng ký trước với BQL chung cư trước 1 ngày, thang máy mở cửa từ 9h sáng..." style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;"></textarea>
+                            </div>
+
+                            <div style="display:flex; justify-content:flex-end; gap:12px;">
+                                <button type="button" onclick="window.closeServiceModal()" style="padding:10px 20px; border:1px solid #d4d4d8; background:#fff; color:#52525b; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">Đóng</button>
+                                <button type="submit" class="btn-brand-primary" style="padding:10px 24px; border-radius:6px; font-size:13px; font-weight:700; background:#b91c1c;">Xác Nhận Đặt Lịch Giao & Lắp</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Sub-pane 2: Tra cứu tiến độ thực hiện -->
+                    <div id="subPaneDeliveryTracking" style="display:none;">
+                        <div style="background:#faf5ff; border:1px solid #e9d5ff; border-radius:8px; padding:12px 16px; margin-bottom:18px; font-size:12.5px; color:#6b21a8; line-height:1.6;">
+                            📡 <strong>Tra Cứu Trực Tuyến Live:</strong> Nhập mã đơn hàng (VD: <code>MR-849201</code>), mã yêu cầu dịch vụ (VD: <code>DV-VC-xxxx</code>) hoặc Số điện thoại để xem ngay tiến độ vận chuyển & lắp đặt.
+                        </div>
+
+                        <div style="display:flex; gap:10px; margin-bottom:20px;">
+                            <input type="text" id="trackingQueryInput" placeholder="Nhập Mã đơn hàng (MR-...) hoặc Mã dịch vụ hoặc Số điện thoại..." style="flex-grow:1; padding:11px 14px; border:1.5px solid #d4d4d8; border-radius:8px; font-size:13.5px; outline:none;">
+                            <button type="button" onclick="window.executeLiveTracking()" class="btn-brand-primary" style="padding:11px 22px; border-radius:8px; font-size:13px; font-weight:700; background:#7f1d1d; white-space:nowrap;">
+                                🔍 Tra Cứu Ngay
+                            </button>
+                        </div>
+
+                        <!-- Tracking Result Container -->
+                        <div id="trackingResultArea">
+                            <div style="text-align:center; padding:30px 20px; color:#71717a; border:2px dashed #e4e4e7; border-radius:10px;">
+                                <span style="font-size:36px; display:block; margin-bottom:8px;">📦</span>
+                                <strong>Vui lòng nhập mã đơn hoặc số điện thoại để tra cứu tiến độ.</strong>
+                                <p style="font-size:12px; margin-top:4px; color:#a1a1aa;">Mã đơn hàng được gửi vào SMS/Zalo khi quý khách đặt hàng thành công.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- TAB 4: DỊCH VỤ BẢO TRÌ & SỬA CHỮA (CÓ TẢI ẢNH TỪ MÁY TÍNH) -->
+                <!-- ========================================== -->
+                <div class="svc-tab-pane" id="svcTabMaint" style="display:none;">
+                    <div style="background:#f5f3ff; border:1px solid #ddd6fe; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:12.5px; color:#5b21b6; line-height:1.6;">
+                        🔧 <strong>Bảo Trì Chuyên Sâu Tận Nơi:</strong> Bảo dưỡng làm mới gỗ, xử lý trầy xước, cân chỉnh bản lề ray trượt và lau dầu Osmo thực vật giúp đồ gỗ luôn bóng mịn như mới.
+                    </div>
+                    <form onsubmit="window.handleServiceFormSubmit(event, 'bao-tri')">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Họ và tên quý khách *</label>
+                                <input type="text" name="customer_name" required placeholder="Ví dụ: Phạm Minh Tuấn" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Số điện thoại liên hệ *</label>
+                                <input type="tel" name="customer_phone" required placeholder="0933 888 999" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Tên sản phẩm cần bảo trì / sửa chữa *</label>
+                                <input type="text" name="product_item" required placeholder="Ví dụ: Tủ quần áo gỗ sồi, Bàn ăn 4 ghế..." style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Tình trạng sự cố / Nhu cầu bảo dưỡng *</label>
+                                <select name="issue_type" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    <option value="Trầy xước bề mặt / Cần đánh bóng làm mới">Trầy xước bề mặt / Cần đánh bóng làm mới</option>
+                                    <option value="Xệ cánh tủ / Kẹt ngăn kéo / Lỏng ốc vít">Xệ cánh tủ / Kẹt ngăn kéo / Lỏng ốc vít</option>
+                                    <option value="Bảo dưỡng định kỳ lau dầu Osmo tự nhiên">Bảo dưỡng định kỳ lau dầu Osmo tự nhiên</option>
+                                    <option value="Cong vênh, nứt nẻ do co giãn thời tiết">Cong vênh, nứt nẻ do co giãn thời tiết</option>
+                                    <option value="Khác (Mô tả cụ thể bên dưới)">Khác (Mô tả cụ thể bên dưới)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- UPLOAD HÌNH ẢNH SẢN PHẨM TỪ MÁY TÍNH -->
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">
+                                📷 Đính kèm hình ảnh thực tế sản phẩm từ máy tính (Khuyên dùng)
+                            </label>
+                            
+                            <div id="maintDropzone" style="border:2px dashed #cbd5e1; border-radius:8px; padding:18px; text-align:center; background:#f8fafc; cursor:pointer;" onclick="document.getElementById('maintFileInput').click()">
+                                <input type="file" id="maintFileInput" accept="image/*" style="display:none;" onchange="window.handleMaintFileSelected(event)">
+                                <div style="font-size:26px; margin-bottom:6px;">📤</div>
+                                <div style="font-size:13px; font-weight:600; color:#334155;">Nhấn để chọn ảnh từ máy tính hoặc điện thoại</div>
+                                <div style="font-size:11.5px; color:#64748b; margin-top:2px;">Hỗ trợ PNG, JPG, JPEG (Tự động nén mượt mà)</div>
+                            </div>
+
+                            <div id="maintPreviewBox" style="display:none; margin-top:10px; position:relative; max-width:240px;">
+                                <img id="maintPreviewImg" src="" style="width:100%; max-height:160px; object-fit:cover; border-radius:6px; border:1px solid #e2e8f0;">
+                                <button type="button" onclick="window.removeMaintUploadedImage()" style="position:absolute; top:6px; right:6px; background:rgba(220,38,38,0.9); color:#fff; border:none; border-radius:50%; width:24px; height:24px; font-size:12px; cursor:pointer; font-weight:bold;">&times;</button>
+                                <span style="display:block; font-size:11px; color:#15803d; margin-top:4px;">✓ Đã tải ảnh lên thành công</span>
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Ngày mong muốn kỹ thuật đến *</label>
+                                <input type="date" name="preferred_date" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Địa chỉ hỗ trợ kỹ thuật *</label>
+                                <input type="text" name="support_address" required placeholder="Số nhà, đường, phường, quận..." style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Mô tả chi tiết tình trạng hư hỏng / Nhu cầu</label>
+                            <textarea name="problem_description" rows="2" placeholder="Ví dụ: Cánh tủ áo bên phải bị chạm đáy khi kéo lùa, phần mặt bàn trà có vết xước sâu khoảng 10cm do dao cọ vào..." style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;"></textarea>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:12px;">
+                            <button type="button" onclick="window.closeServiceModal()" style="padding:10px 20px; border:1px solid #d4d4d8; background:#fff; color:#52525b; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">Đóng</button>
+                            <button type="submit" class="btn-brand-primary" style="padding:10px 24px; border-radius:6px; font-size:13px; font-weight:700;">Gửi Yêu Cầu Bảo Trì & Đặt Lịch</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- TAB 5: DỊCH VỤ THIẾT KẾ KHÔNG GIAN (KÍCH THƯỚC / BẢN VẼ + DỰ TOÁN) -->
+                <!-- ========================================== -->
+                <div class="svc-tab-pane" id="svcTabSpace" style="display:none;">
+                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:12.5px; color:#166534; line-height:1.6;">
+                        📐 <strong>Phương Án Thiết Kế & Dự Toán Toàn Diện:</strong> Gửi bản vẽ CAD/PDF hoặc ảnh chụp mặt bằng. Kiến trúc sư MORIOO sẽ lên phương án bố trí nội thất 2D/3D và lập bảng dự toán chi phí chi tiết trong 24h.
+                    </div>
+                    <form onsubmit="window.handleServiceFormSubmit(event, 'thiet-ke-khong-gian')">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Họ và tên quý khách *</label>
+                                <input type="text" name="customer_name" required placeholder="Ví dụ: Đỗ Thị Minh Châu" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Số điện thoại nhận bản vẽ *</label>
+                                <input type="tel" name="customer_phone" required placeholder="0918 222 333" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Loại không gian thiết kế *</label>
+                                <select name="space_category" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    <option value="Căn hộ chung cư trọn gói 2 Phòng Ngủ">Căn hộ chung cư trọn gói 2 Phòng Ngủ</option>
+                                    <option value="Căn hộ chung cư 3 Phòng Ngủ">Căn hộ chung cư 3 Phòng Ngủ</option>
+                                    <option value="Phòng khách liền bếp liên thông">Phòng khách liền bếp liên thông</option>
+                                    <option value="Phòng ngủ Master phong cách Zen">Phòng ngủ Master phong cách Zen</option>
+                                    <option value="Nhà phố liền kề / Biệt thự vườn">Nhà phố liền kề / Biệt thự vườn</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Kích thước phòng (Dài x Rộng x Cao trần) *</label>
+                                <input type="text" name="room_dimensions" required placeholder="Ví dụ: 6.5m x 4.2m, cao trần 2.8m" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <!-- UPLOAD BẢN VẼ MẶT BẰNG HOẶC ẢNH PHÒNG TỪ MÁY TÍNH -->
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">
+                                📐 Tải lên bản vẽ mặt bằng hoặc ảnh hiện trạng từ máy tính *
+                            </label>
+                            
+                            <div id="spaceDropzone" style="border:2px dashed #94a3b8; border-radius:8px; padding:18px; text-align:center; background:#f8fafc; cursor:pointer;" onclick="document.getElementById('spaceFileInput').click()">
+                                <input type="file" id="spaceFileInput" accept="image/*" style="display:none;" onchange="window.handleSpaceFileSelected(event)">
+                                <div style="font-size:26px; margin-bottom:6px;">📑</div>
+                                <div style="font-size:13px; font-weight:600; color:#1e293b;">Bấm vào đây để tải file bản vẽ / ảnh từ máy</div>
+                                <div style="font-size:11.5px; color:#64748b; margin-top:2px;">Ảnh chụp mặt bằng hoặc sơ đồ phác thảo tay</div>
+                            </div>
+
+                            <div id="spacePreviewBox" style="display:none; margin-top:10px; position:relative; max-width:240px;">
+                                <img id="spacePreviewImg" src="" style="width:100%; max-height:160px; object-fit:cover; border-radius:6px; border:1px solid #e2e8f0;">
+                                <button type="button" onclick="window.removeSpaceUploadedImage()" style="position:absolute; top:6px; right:6px; background:rgba(220,38,38,0.9); color:#fff; border:none; border-radius:50%; width:24px; height:24px; font-size:12px; cursor:pointer; font-weight:bold;">&times;</button>
+                                <span style="display:block; font-size:11px; color:#15803d; margin-top:4px;">✓ Đã đính kèm bản vẽ hiện trạng</span>
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Mức ngân sách đầu tư trọn gói *</label>
+                                <select name="budget_tier" required style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    <option value="30 - 60 triệu VNĐ">30 - 60 triệu VNĐ (Nội thất cơ bản)</option>
+                                    <option value="60 - 120 triệu VNĐ" selected>60 - 120 triệu VNĐ (Tiêu chuẩn gỗ sồi Wabi-Sabi)</option>
+                                    <option value="120 - 200 triệu VNĐ">120 - 200 triệu VNĐ (Cao cấp trọn gói)</option>
+                                    <option value="Trên 200 triệu VNĐ">Trên 200 triệu VNĐ (Biệt thự / Villa)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Địa chỉ công trình / Tòa chung cư</label>
+                                <input type="text" name="project_address" placeholder="Ví dụ: Tòa S2 Vinhomes Grand Park, Q.9" style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:#27272a;">Yêu cầu công năng chi tiết</label>
+                            <textarea name="function_notes" rows="2" placeholder="Ví dụ: Cần nhiều ánh sáng tự nhiên, phòng khách thông thoáng có vách ngăn lam gỗ, hệ tủ bếp tối ưu diện tích..." style="width:100%; padding:10px 12px; border:1px solid #d4d4d8; border-radius:6px; font-size:13px; outline:none; box-sizing:border-box;"></textarea>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:12px;">
+                            <button type="button" onclick="window.closeServiceModal()" style="padding:10px 20px; border:1px solid #d4d4d8; background:#fff; color:#52525b; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">Đóng</button>
+                            <button type="submit" class="btn-brand-primary" style="padding:10px 24px; border-radius:6px; font-size:13px; font-weight:700;">Nhận Phương Án Bố Trí & Dự Toán</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================================
+         19. TOAST NOTIFICATION
+         ============================================================================== -->
+    <div id="toastNotification" class="toast-msg"></div>
+
+    <!-- Application Script (ES Module) -->
+    <script type="module" src="js/app.js"></script>
+    <!-- AI Consultation Chat Widget -->
+    <script src="js/chat.js"></script>
+</body>
+</html>
