@@ -1462,14 +1462,14 @@
         loadFallbackProducts();
       }
 
-      // 2. Fetch orders from Supabase Cloud
+      // 2. Fetch orders from Supabase Cloud (with seamless local merge)
       try {
         const cloudOrders = await supabaseFetch('orders?select=*&order=created_at.desc');
         if (cloudOrders && Array.isArray(cloudOrders) && cloudOrders.length > 0) {
           const statusOverrides = JSON.parse(localStorage.getItem('morioo_order_status_overrides') || '{}');
           const deletedCodes = JSON.parse(localStorage.getItem('morioo_deleted_order_codes') || '[]');
 
-          ALL_ORDERS = cloudOrders
+          const normalizedCloud = cloudOrders
             .filter(o => !deletedCodes.includes(o.order_code) && !deletedCodes.includes(o.id))
             .map(o => {
               const norm = normalizeOrder(o);
@@ -1481,8 +1481,27 @@
               return norm;
             });
 
+          // Merge: Preserve any in-flight local orders that haven't synced to Cloud yet
+          let localSaved = [];
+          try {
+            const raw = localStorage.getItem('morioo_orders');
+            if (raw) localSaved = JSON.parse(raw);
+          } catch(e) {}
+          const candidateLocals = [...ALL_ORDERS, ...localSaved];
+
+          const mergedMap = new Map();
+          normalizedCloud.forEach(o => mergedMap.set(o.order_code, o));
+          candidateLocals.forEach(lo => {
+            if (lo && lo.order_code && !deletedCodes.includes(lo.order_code)) {
+              if (!mergedMap.has(lo.order_code)) {
+                mergedMap.set(lo.order_code, normalizeOrder(lo));
+              }
+            }
+          });
+
+          ALL_ORDERS = Array.from(mergedMap.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
           localStorage.setItem('morioo_orders', JSON.stringify(ALL_ORDERS));
-          console.log('[Supabase Cloud] Đã tải và áp dụng trạng thái', ALL_ORDERS.length, 'đơn hàng từ Cloud!');
+          console.log('[Supabase Cloud] Đã đồng bộ thành công', ALL_ORDERS.length, 'đơn hàng từ Cloud & Bộ nhớ đệm!');
         } else {
           loadFallbackOrders();
         }
@@ -2195,7 +2214,19 @@
         persistOrders();
         renderAdminRevenueTable();
         renderAdminOrdersTable();
+        renderAdminKpiTable();
         showToast(`⚡ Đang cập nhật trạng thái đơn #${orderCode} lên Database...`, 'info');
+
+        // Phát tín hiệu thời gian thực cho Cổng Nhân Viên qua BroadcastChannel
+        try {
+          const syncChan = new BroadcastChannel('morioo_sync_channel');
+          syncChan.postMessage({
+            type: 'ORDER_STATUS_CHANGED',
+            orderCode: orderCode,
+            status: newStatus
+          });
+          setTimeout(() => syncChan.close(), 1000);
+        } catch(e) {}
 
         // Gửi PATCH trực tiếp lên Supabase Cloud
         try {
@@ -2928,14 +2959,124 @@
       }
     }
 
-    // Multi-tab sync
+    // =========================================================================
+    // REAL-TIME INSTANT SYNC ENGINE & NOTIFICATION CHIME
+    // =========================================================================
+    function playOrderChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12); // A5
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.45);
+      } catch(e) {}
+    }
+
+    // Tức thì (0ms) qua BroadcastChannel giữa các tab
+    try {
+      const adminSyncChannel = new BroadcastChannel('morioo_sync_channel');
+      adminSyncChannel.onmessage = (event) => {
+        if (!event.data) return;
+        if (event.data.type === 'NEW_ORDER' && event.data.order) {
+          const norm = normalizeOrder(event.data.order);
+          const exists = ALL_ORDERS.some(o => o.order_code === norm.order_code || (norm.id && o.id === norm.id));
+          if (!exists) {
+            ALL_ORDERS.unshift(norm);
+            persistOrders();
+            renderAllData();
+            showToast(`🔔 CÓ ĐƠN HÀNG MỚI: #${norm.order_code} - ${norm.customer_name} (${formatPrice(norm.total_amount)})`, 'success');
+            playOrderChime();
+          }
+        } else if (event.data.type === 'ORDER_STATUS_CHANGED') {
+          const ord = ALL_ORDERS.find(o => o.order_code === event.data.orderCode);
+          if (ord) {
+            ord.status = event.data.status;
+            if (event.data.staffName) {
+              ord.confirmed_by_staff_name = event.data.staffName;
+            }
+            persistOrders();
+            renderAllData();
+          }
+        }
+      };
+    } catch(e) {}
+
+    // Polling tự động nền mỗi 4 giây từ Supabase Cloud để đồng bộ đơn từ các thiết bị khác
+    let ADMIN_AUTO_SYNC_INTERVAL = null;
+    function startAdminAutoSync() {
+      if (ADMIN_AUTO_SYNC_INTERVAL) clearInterval(ADMIN_AUTO_SYNC_INTERVAL);
+      ADMIN_AUTO_SYNC_INTERVAL = setInterval(async () => {
+        try {
+          const cloudOrders = await supabaseFetch('orders?select=*&order=created_at.desc');
+          if (cloudOrders && Array.isArray(cloudOrders) && cloudOrders.length > 0) {
+            const deletedCodes = JSON.parse(localStorage.getItem('morioo_deleted_order_codes') || '[]');
+            const statusOverrides = JSON.parse(localStorage.getItem('morioo_order_status_overrides') || '{}');
+
+            let hasNew = false;
+            let newestOrder = null;
+
+            cloudOrders.forEach(co => {
+              if (deletedCodes.includes(co.order_code) || deletedCodes.includes(co.id)) return;
+              const exists = ALL_ORDERS.some(ao => ao.order_code === co.order_code || (co.id && ao.id === co.id));
+              if (!exists) {
+                hasNew = true;
+                const norm = normalizeOrder(co);
+                if (statusOverrides[norm.id]) norm.status = statusOverrides[norm.id];
+                else if (statusOverrides[norm.order_code]) norm.status = statusOverrides[norm.order_code];
+                ALL_ORDERS.unshift(norm);
+                newestOrder = norm;
+              }
+            });
+
+            if (hasNew) {
+              localStorage.setItem('morioo_orders', JSON.stringify(ALL_ORDERS));
+              renderAllData();
+              if (newestOrder) {
+                showToast(`🔔 Đơn hàng mới từ Cloud: #${newestOrder.order_code} - ${newestOrder.customer_name}`, 'success');
+                playOrderChime();
+              }
+            }
+          }
+        } catch(e) {}
+      }, 4000);
+    }
+
+    // Multi-tab sync qua Storage Event
     window.addEventListener('storage', (e) => {
-      if (e.key === 'morioo_products' || e.key === 'morioo_orders' || e.key === 'morioo_accounts') {
+      if (e.key === 'morioo_orders' || e.key === 'morioo_last_order_sync') {
+        const raw = localStorage.getItem('morioo_orders');
+        if (raw) {
+          try {
+            const list = JSON.parse(raw);
+            if (Array.isArray(list)) {
+              let changed = false;
+              list.forEach(item => {
+                const existing = ALL_ORDERS.find(o => o.order_code === item.order_code);
+                if (!existing) {
+                  ALL_ORDERS.unshift(normalizeOrder(item));
+                  changed = true;
+                } else if (existing.status !== item.status) {
+                  existing.status = item.status;
+                  changed = true;
+                }
+              });
+              if (changed) renderAllData();
+            }
+          } catch(err) {}
+        }
+      }
+      if (e.key === 'morioo_products' || e.key === 'morioo_accounts') {
         loadFallbackProducts();
-        loadFallbackOrders();
         loadFallbackAccounts();
-        loadFallbackProducts();
-        loadFallbackOrders();
         renderAllData();
       }
     });
@@ -2956,6 +3097,8 @@
       checkHashTab();
       // Load straight from Supabase Cloud on launch
       loadDataFromSupabase();
+      // Start Real-Time background sync
+      startAdminAutoSync();
     });
   </script>
 </body>

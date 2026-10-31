@@ -526,16 +526,22 @@ function initCheckout() {
             submitBtn.innerHTML = `<span class="spinner"></span> Đang xử lý lưu đơn hàng...`;
 
             const orderPayload = {
-                name: document.getElementById("customerName").value,
-                phone: document.getElementById("customerPhone").value,
-                email: document.getElementById("customerEmail").value,
-                address: document.getElementById("customerAddress").value,
-                city: document.getElementById("customerCity").value,
+                customerName: (document.getElementById("customerName")?.value || "").trim(),
+                customerPhone: (document.getElementById("customerPhone")?.value || "").trim(),
+                customerEmail: (document.getElementById("customerEmail")?.value || "").trim(),
+                shippingAddress: (document.getElementById("customerAddress")?.value || "").trim(),
+                city: (document.getElementById("customerCity")?.value || "Toàn quốc").trim(),
                 paymentMethod: document.querySelector("input[name='paymentMethod']:checked")?.value || "cod",
-                note: document.getElementById("orderNote").value,
+                note: (document.getElementById("orderNote")?.value || "").trim(),
                 items: [...cart.items],
                 totalAmount: cart.getTotal(),
-                shippingFee: cart.getShippingFee()
+                shippingFee: cart.getShippingFee(),
+                // Aliases for seamless compatibility
+                name: (document.getElementById("customerName")?.value || "").trim(),
+                phone: (document.getElementById("customerPhone")?.value || "").trim(),
+                email: (document.getElementById("customerEmail")?.value || "").trim(),
+                address: (document.getElementById("customerAddress")?.value || "").trim(),
+                total: cart.getTotal()
             };
 
             const result = await db.createOrder(orderPayload);
@@ -546,6 +552,12 @@ function initCheckout() {
                 cart.clearCart();
                 checkoutModal.classList.remove("active");
                 showOrderSuccessModal(result.orderCode, result.savedToCloud, orderPayload);
+                window.dispatchEvent(new CustomEvent("order-list-changed", { detail: result.order }));
+                try {
+                    const syncChan = new BroadcastChannel("morioo_sync_channel");
+                    syncChan.postMessage({ type: "NEW_ORDER", order: result.order });
+                    setTimeout(() => syncChan.close(), 1000);
+                } catch(e) {}
             } else {
                 alert("Có lỗi khi tạo đơn hàng. Vui lòng thử lại!");
             }

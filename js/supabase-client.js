@@ -224,24 +224,36 @@ class SupabaseDataService {
      */
     async createOrder(orderPayload) {
         const orderCode = "MR-" + Math.floor(100000 + Math.random() * 900000);
+
+        const custName = (orderPayload.customerName || orderPayload.name || orderPayload.customer_name || "Khách hàng MORIOO").trim();
+        const custPhone = (orderPayload.customerPhone || orderPayload.phone || orderPayload.customer_phone || "0901234567").trim();
+        const custEmail = (orderPayload.customerEmail || orderPayload.email || orderPayload.customer_email || "").trim();
+        const shipAddr = (orderPayload.shippingAddress || orderPayload.address || orderPayload.shipping_address || "Tại cửa hàng").trim();
+        const city = (orderPayload.city || "Toàn quốc").trim();
+        const payMethod = (orderPayload.paymentMethod || orderPayload.payment_method || "cod").toLowerCase();
+        const shipFee = Number(orderPayload.shippingFee || orderPayload.shipping_fee || 0);
+        const total = Number(orderPayload.totalAmount || orderPayload.total || orderPayload.total_amount || 0);
+        const note = (orderPayload.note || "").trim();
+
+        // Exact schema columns of Supabase 'orders' table
         const orderData = {
             order_code: orderCode,
-            customer_name: orderPayload.customerName,
-            customer_email: orderPayload.customerEmail || "",
-            customer_phone: orderPayload.customerPhone,
-            shipping_address: orderPayload.shippingAddress,
-            payment_method: orderPayload.paymentMethod || "cod",
-            subtotal_amount: Number(orderPayload.subtotal || 0),
-            shipping_fee: Number(orderPayload.shippingFee || 0),
-            discount_amount: Number(orderPayload.discount || 0),
-            total_amount: Number(orderPayload.total || 0),
-            note: orderPayload.note || "",
+            customer_name: custName,
+            customer_phone: custPhone,
+            customer_email: custEmail,
+            shipping_address: shipAddr,
+            city: city,
+            payment_method: payMethod,
+            shipping_fee: shipFee,
+            total_amount: total,
+            note: note,
             status: "pending"
         };
 
         let savedToCloud = false;
+        let createdCloudOrder = null;
 
-        // Lưu đơn hàng vào Supabase Cloud
+        // 1. Lưu trực tiếp vào Supabase Cloud REST API ngay lập tức
         try {
             const inserted = await this.restFetch("orders", {
                 method: "POST",
@@ -251,19 +263,18 @@ class SupabaseDataService {
 
             if (inserted && inserted.length > 0) {
                 savedToCloud = true;
-                const newOrder = inserted[0];
+                createdCloudOrder = inserted[0];
 
-                // Lưu các mặt hàng kèm theo (nếu có)
+                // Lưu các mặt hàng kèm theo vào bảng order_items nếu có
                 if (orderPayload.items && orderPayload.items.length > 0) {
                     const itemsPayload = orderPayload.items.map(item => ({
-                        order_id: newOrder.id,
-                        product_id: item.productId || null,
-                        product_name: item.name,
-                        product_image: item.image,
-                        wood_type: item.woodType || "Gỗ Tự Nhiên",
-                        price: item.price,
-                        quantity: item.quantity,
-                        subtotal: item.price * item.quantity
+                        order_id: createdCloudOrder.id,
+                        product_id: item.productId || item.id || null,
+                        product_name: item.name || item.title || "Sản phẩm nội thất",
+                        product_price: Number(item.price || 0),
+                        quantity: Number(item.quantity || 1),
+                        subtotal: Number(item.price || 0) * Number(item.quantity || 1),
+                        image_url: item.image || item.image_url || ""
                     }));
 
                     try {
@@ -271,25 +282,56 @@ class SupabaseDataService {
                             method: "POST",
                             body: JSON.stringify(itemsPayload)
                         });
-                    } catch (e) {
-                        console.warn("[Supabase] Ghi order_items:", e);
+                    } catch (itemErr) {
+                        console.warn("[Supabase] Lưu order_items:", itemErr);
                     }
                 }
-                console.log("[Supabase] Đã ghi nhận đơn hàng Online:", orderCode);
+                console.log("[Supabase] Đã ghi nhận đơn hàng thành công lên Cloud:", orderCode);
             }
         } catch (err) {
             console.warn("[Supabase] Lỗi ghi đơn hàng online:", err);
         }
 
+        // 2. Lưu vào Local Cache ngay lập tức
         const localRecord = {
-            ...orderData,
-            id: "ord-" + Date.now(),
+            id: (createdCloudOrder && createdCloudOrder.id) ? createdCloudOrder.id : ("ord-" + Date.now()),
+            order_code: orderCode,
+            customer_name: custName,
+            customer_phone: custPhone,
+            customer_email: custEmail,
+            shipping_address: shipAddr,
+            city: city,
+            payment_method: payMethod,
+            shipping_fee: shipFee,
+            total_amount: total,
+            note: note,
+            status: "pending",
             items: orderPayload.items || [],
-            savedToCloud,
-            created_at: new Date().toISOString()
+            savedToCloud: savedToCloud,
+            created_at: (createdCloudOrder && createdCloudOrder.created_at) ? createdCloudOrder.created_at : new Date().toISOString()
         };
-        this.localOrders.unshift(localRecord);
-        this.saveLocalOrders();
+
+        let currentOrders = [];
+        try {
+            const raw = localStorage.getItem("morioo_orders");
+            if (raw) currentOrders = JSON.parse(raw);
+        } catch(e) {}
+        currentOrders.unshift(localRecord);
+        localStorage.setItem("morioo_orders", JSON.stringify(currentOrders));
+        localStorage.setItem("morioo_last_order_sync", Date.now().toString());
+
+        // 3. Phát tín hiệu thời gian thực (0ms) cho TẤT CẢ các tab qua BroadcastChannel & Storage Event
+        try {
+            const channel = new BroadcastChannel("morioo_sync_channel");
+            channel.postMessage({
+                type: "NEW_ORDER",
+                order: localRecord,
+                timestamp: Date.now()
+            });
+            setTimeout(() => channel.close(), 1000);
+        } catch (e) {}
+
+        window.dispatchEvent(new CustomEvent("order-list-changed", { detail: localRecord }));
 
         return {
             success: true,
