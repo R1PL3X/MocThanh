@@ -41,11 +41,7 @@ class SupabaseDataService {
      * Gửi yêu cầu REST API trực tiếp tới Supabase (Không phụ thuộc thư viện bên ngoài)
      */
     async restFetch(endpoint, options = {}) {
-        const sep = endpoint.includes('?') ? '&' : '?';
-        const finalEndpoint = options.method && options.method !== 'GET'
-            ? endpoint
-            : `${endpoint}${sep}_t=${Date.now()}`;
-        const url = `${SupabaseConfig.getUrl()}/rest/v1/${finalEndpoint}`;
+        const url = `${SupabaseConfig.getUrl()}/rest/v1/${endpoint}`;
         const key = SupabaseConfig.getAnonKey();
 
         const headers = {
@@ -54,6 +50,7 @@ class SupabaseDataService {
             "Content-Type": "application/json",
             "Prefer": options.prefer || "return=representation",
             "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
             ...(options.headers || {})
         };
 

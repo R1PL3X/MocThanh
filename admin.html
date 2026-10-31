@@ -110,7 +110,7 @@
         class="cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border-2 border-amber-600 dark:border-amber-500 shadow-md ring-2 ring-amber-500/20 transition transform hover:-translate-y-0.5"
       >
         <div class="flex items-center justify-between">
-          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">1. Doanh thu tích lũy (Cloud)</span>
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">1. Doanh thu tích lũy</span>
           <span class="text-lg">💰</span>
         </div>
         <div id="statRevenue" class="text-2xl font-black text-red-600 dark:text-red-400 mt-2 font-mono">0₫</div>
@@ -288,12 +288,12 @@
       <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 class="text-sm font-bold text-gray-900 dark:text-white">Lịch Sử Dòng Tiền & Doanh Thu Đơn Hàng (Supabase Cloud)</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Chi tiết các khoản tiền thực nhận từ các đơn đặt hàng trong cơ sở dữ liệu Supabase.</p>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white">Lịch Sử Dòng Tiền & Doanh Thu Đơn Hàng</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Chi tiết các khoản tiền thực nhận từ các đơn đặt hàng đã ghi nhận.</p>
           </div>
           <div class="flex items-center gap-2 self-start sm:self-auto">
             <button onclick="loadDataFromSupabase()" class="text-xs bg-amber-50 dark:bg-zinc-800 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition flex items-center gap-1 font-medium">
-              ⟳ Làm mới từ Cloud
+              ⟳ Làm mới dữ liệu
             </button>
           </div>
         </div>
@@ -905,7 +905,7 @@
     <div class="bg-white dark:bg-zinc-900 w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[90vh]">
       <div class="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50/50 dark:bg-zinc-800/50">
         <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <span>✏️ Chỉnh Sửa Sản Phẩm & Cập Nhật Lên Supabase Cloud</span>
+          <span>✏️ Chỉnh Sửa Thông Tin Sản Phẩm</span>
         </h3>
         <button onclick="closeEditProductModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg font-bold">✕</button>
       </div>
@@ -1023,7 +1023,7 @@
     <div class="bg-white dark:bg-zinc-900 w-full max-w-lg rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[90vh]">
       <div class="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50/50 dark:bg-zinc-800/50">
         <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <span>👥 Cấp Mới Tài Khoản & Phân Quyền (Supabase Cloud)</span>
+          <span>👥 Cấp Mới Tài Khoản & Phân Quyền</span>
         </h3>
         <button onclick="closeAddAccountModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg font-bold">✕</button>
       </div>
@@ -1329,17 +1329,14 @@
     // REST API CALL TO SUPABASE CLOUD
     // =========================================================================
     async function supabaseFetch(endpoint, options = {}) {
-      const sep = endpoint.includes('?') ? '&' : '?';
-      const finalEndpoint = options.method && options.method !== 'GET'
-          ? endpoint
-          : `${endpoint}${sep}_t=${Date.now()}`;
-      const url = `${SUPABASE_URL}/rest/v1/${finalEndpoint}`;
+      const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
       const headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": `Bearer ${SUPABASE_KEY}`,
         "Content-Type": "application/json",
         "Prefer": options.prefer || "return=representation",
         "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
         ...(options.headers || {})
       };
       const res = await fetch(url, { cache: 'no-store', ...options, headers });
@@ -2186,7 +2183,7 @@
       e.preventDefault();
       const form = e.target;
       const submitBtn = form.querySelector('button[type="submit"]');
-      const origBtnHtml = submitBtn ? submitBtn.innerHTML : 'Lưu Lên Supabase Cloud & Website';
+      const origBtnHtml = submitBtn ? submitBtn.innerHTML : '💾 Lưu & Đăng Sản Phẩm';
 
       const title = form.title.value.trim();
       const categorySlug = form.category.value;
@@ -2241,9 +2238,9 @@
       try {
         if (submitBtn) {
           submitBtn.disabled = true;
-          submitBtn.innerHTML = `⏳ Đang ghi vào Supabase Cloud...`;
+          submitBtn.innerHTML = `⏳ Đang lưu sản phẩm...`;
         }
-        showToast('⏳ Đang lưu sản phẩm trực tiếp vào Supabase Cloud...', 'info');
+        showToast('⏳ Đang lưu sản phẩm...', 'info');
 
         const resp = await supabaseFetch('products', {
           method: 'POST',
@@ -2252,7 +2249,7 @@
         });
 
         if (!resp || !resp[0]) {
-          throw new Error('Supabase không trả về bản ghi sau khi thêm.');
+          throw new Error('Hệ thống không nhận được phản hồi sau khi lưu.');
         }
 
         const savedFromCloud = resp[0];
@@ -2281,13 +2278,13 @@
         removeAdminUploadedImage();
 
         renderAdminProductsTable();
-        showToast(`🎉 Đã thêm sản phẩm "${title}" trực tiếp lên Supabase Cloud & Website!`, 'success');
+        showToast(`🎉 Đã thêm sản phẩm "${title}" thành công vào website!`, 'success');
         document.getElementById('adminProductsTableBody')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
       } catch (err) {
-        console.error('[Supabase Cloud Error]', err);
-        showToast(`❌ Không thể lưu vào Supabase: ${err.message}. Dữ liệu KHÔNG bị lưu cục bộ!`, 'error');
-        alert(`Lỗi ghi dữ liệu vào Supabase Cloud:\n${err.message}\n\nHệ thống tuân thủ nguyên tắc không lưu trữ nội bộ trái phép. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại!`);
+        console.error('[Product Create Error]', err);
+        showToast(`❌ Không thể lưu sản phẩm: ${err.message}`, 'error');
+        alert(`Lỗi lưu sản phẩm:\n${err.message}\n\nVui lòng thử lại!`);
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
@@ -2514,12 +2511,12 @@
         } catch(e) {}
       }
 
-      showToast(`🎉 Đã cập nhật sản phẩm "${prod.name}" trên Supabase Cloud & Website!`, 'success');
+      showToast(`🎉 Đã cập nhật sản phẩm "${prod.name}" thành công!`, 'success');
     }
 
     async function deleteProduct(productId, productTitle) {
-      if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${productTitle}" khỏi Supabase Cloud & Cửa hàng?`)) {
-        showToast('⏳ Đang xóa sản phẩm trên Supabase...', 'info');
+      if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${productTitle}" khỏi cửa hàng?`)) {
+        showToast('⏳ Đang xóa sản phẩm...', 'info');
 
         try {
           await supabaseFetch(`products?id=eq.${productId}`, {
@@ -2541,7 +2538,7 @@
           } catch(e) {}
         }
 
-        showToast(`🗑️ Đã xóa sản phẩm khỏi Supabase Cloud & Website!`, 'info');
+        showToast(`🗑️ Đã xóa sản phẩm khỏi website thành công!`, 'info');
       }
     }
 

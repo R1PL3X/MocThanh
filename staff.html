@@ -553,17 +553,14 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZraGdiZWd4aW1maGVjd2dmeW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyNTI2MzgsImV4cCI6MjEwODgyODYzOH0.2I9pGf1a1NoCoaxnJElWSCO41NGoP6MNMDWLoOHaaJo";
 
     async function supabaseStaffFetch(endpoint, options = {}) {
-      const sep = endpoint.includes('?') ? '&' : '?';
-      const finalEndpoint = options.method && options.method !== 'GET'
-          ? endpoint
-          : `${endpoint}${sep}_t=${Date.now()}`;
-      const url = `${SUPABASE_URL}/rest/v1/${finalEndpoint}`;
+      const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
       const headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": `Bearer ${SUPABASE_KEY}`,
         "Content-Type": "application/json",
         "Prefer": options.prefer || "return=representation",
         "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
         ...(options.headers || {})
       };
       const res = await fetch(url, { cache: 'no-store', ...options, headers });
