@@ -506,11 +506,12 @@
             <div>
               <label class="block font-semibold mb-1">Không gian / Danh mục *</label>
               <select id="staffProdCategory" required class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-sky-600">
-                <option value="Phòng Khách">Phòng Khách</option>
-                <option value="Phòng Ngủ">Phòng Ngủ</option>
-                <option value="Phòng Ăn">Phòng Ăn</option>
-                <option value="Phòng Làm Việc">Phòng Làm Việc</option>
-                <option value="Tủ & Kệ">Tủ & Kệ</option>
+                <option value="phong-khach">Phòng Khách</option>
+                <option value="phong-ngu">Phòng Ngủ</option>
+                <option value="phong-an">Phòng Ăn & Bếp</option>
+                <option value="lam-viec">Góc Làm Việc</option>
+                <option value="tu-ke">Tủ & Kệ</option>
+                <option value="decor">Phụ Kiện Gỗ & Decor</option>
               </select>
             </div>
           </div>
@@ -552,15 +553,20 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZraGdiZWd4aW1maGVjd2dmeW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyNTI2MzgsImV4cCI6MjEwODgyODYzOH0.2I9pGf1a1NoCoaxnJElWSCO41NGoP6MNMDWLoOHaaJo";
 
     async function supabaseStaffFetch(endpoint, options = {}) {
-      const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+      const sep = endpoint.includes('?') ? '&' : '?';
+      const finalEndpoint = options.method && options.method !== 'GET'
+          ? endpoint
+          : `${endpoint}${sep}_t=${Date.now()}`;
+      const url = `${SUPABASE_URL}/rest/v1/${finalEndpoint}`;
       const headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": `Bearer ${SUPABASE_KEY}`,
         "Content-Type": "application/json",
         "Prefer": options.prefer || "return=representation",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
         ...(options.headers || {})
       };
-      const res = await fetch(url, { ...options, headers });
+      const res = await fetch(url, { cache: 'no-store', ...options, headers });
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`HTTP ${res.status}: ${text}`);
@@ -732,12 +738,61 @@
       };
     }
 
-    async function loadStaffData() {
-      // 1. Tải sản phẩm từ Local Cache
-      const localProds = localStorage.getItem('morioo_products');
-      if (localProds) {
-        try { STAFF_PRODUCTS = JSON.parse(localProds); } catch (e) {}
+    const STAFF_CATEGORY_MAP = {
+      'phong-khach': 'Phòng Khách',
+      'phong-ngu': 'Phòng Ngủ',
+      'phong-an': 'Phòng Ăn & Bếp',
+      'lam-viec': 'Góc Làm Việc',
+      'tu-ke': 'Tủ & Kệ',
+      'decor': 'Phụ Kiện Gỗ & Decor'
+    };
+
+    function mapToCategorySlug(val) {
+      if (!val) return 'phong-khach';
+      const clean = val.toLowerCase().trim();
+      if (clean === 'phong-khach' || clean.includes('khách')) return 'phong-khach';
+      if (clean === 'phong-ngu' || clean.includes('ngủ')) return 'phong-ngu';
+      if (clean === 'phong-an' || clean.includes('ăn') || clean.includes('bếp')) return 'phong-an';
+      if (clean === 'lam-viec' || clean.includes('việc') || clean.includes('bàn làm việc')) return 'lam-viec';
+      if (clean === 'tu-ke' || clean.includes('tủ') || clean.includes('kệ')) return 'tu-ke';
+      if (clean === 'decor' || clean.includes('phụ kiện') || clean.includes('decor')) return 'decor';
+      return 'phong-khach';
+    }
+
+    async function loadStaffProductsFromSupabase() {
+      try {
+        const cloudProds = await supabaseStaffFetch('products?select=*&order=created_at.desc');
+        if (cloudProds && Array.isArray(cloudProds) && cloudProds.length > 0) {
+          STAFF_PRODUCTS = cloudProds.map(p => ({
+            id: p.id,
+            slug: p.slug,
+            name: p.name || p.title,
+            category_slug: p.category_slug || 'phong-khach',
+            category: STAFF_CATEGORY_MAP[p.category_slug] || p.category_slug || 'Phòng Khách',
+            wood_type: p.wood_type || 'Gỗ Tự Nhiên',
+            price: Number(p.price) || 0,
+            original_price: Number(p.original_price) || Number(p.price) || 0,
+            stock: p.stock_quantity !== undefined ? p.stock_quantity : (p.stock || 10),
+            stock_quantity: p.stock_quantity !== undefined ? p.stock_quantity : (p.stock || 10),
+            image_url: p.image_url || 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=400&q=80',
+            dimensions: p.dimensions || 'Tiêu chuẩn',
+            description: p.description || ''
+          }));
+          localStorage.setItem('morioo_products', JSON.stringify(STAFF_PRODUCTS));
+          populatePosDropdown();
+          renderPosConsultTable();
+          renderStaffInventoryTable();
+          const badge = document.getElementById('staffInventoryBadge');
+          if (badge) badge.textContent = STAFF_PRODUCTS.length;
+        }
+      } catch (err) {
+        console.warn('[Staff Supabase] Không thể tải sản phẩm online:', err.message);
       }
+    }
+
+    async function loadStaffData() {
+      // 1. Tải sản phẩm từ Supabase Cloud
+      await loadStaffProductsFromSupabase();
 
       // 2. Tải đơn hàng ban đầu từ Local Cache để hiển thị ngay lập tức
       const localOrds = localStorage.getItem('morioo_orders');
@@ -866,6 +921,9 @@
             updateStaffKpiMetrics();
             renderStaffOrdersGrid();
           }
+        } else if (event.data.type === 'PRODUCT_ADDED' || event.data.type === 'PRODUCT_UPDATED' || event.data.type === 'PRODUCT_DELETED' || event.data.type === 'STOCK_UPDATED') {
+          console.log('[Staff Sync] Nhận tín hiệu đồng bộ sản phẩm:', event.data.type);
+          loadStaffProductsFromSupabase();
         }
       };
     } catch(e) {}
@@ -1217,15 +1275,31 @@
       `).join('');
     }
 
-    function staffStepStock(id, delta) {
+    async function staffStepStock(id, delta) {
       const prod = STAFF_PRODUCTS.find(p => p.id === id);
       if (prod) {
-        prod.stock = Math.max(0, (prod.stock || 0) + delta);
+        const newStock = Math.max(0, (prod.stock || 0) + delta);
+        prod.stock = newStock;
+        prod.stock_quantity = newStock;
         localStorage.setItem('morioo_products', JSON.stringify(STAFF_PRODUCTS));
         showToast(`Tồn kho "${prod.name}": ${prod.stock}`, 'success');
         renderStaffInventoryTable();
         populatePosDropdown();
         renderPosConsultTable();
+
+        try {
+          await supabaseStaffFetch(`products?id=eq.${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ stock_quantity: newStock, in_stock: newStock > 0 })
+          });
+          if (typeof BroadcastChannel !== 'undefined') {
+            const ch = new BroadcastChannel('morioo_sync_channel');
+            ch.postMessage({ type: 'STOCK_UPDATED', productId: id, stock: newStock });
+            setTimeout(() => ch.close(), 1000);
+          }
+        } catch(e) {
+          console.warn('[Staff Supabase] Lỗi đồng bộ tồn kho Cloud:', e.message);
+        }
       }
     }
 
@@ -1253,28 +1327,126 @@
       document.getElementById('staffDropzone').classList.remove('hidden');
     }
 
-    function handleStaffCreateProduct(e) {
+    async function handleStaffCreateProduct(e) {
       e.preventDefault();
+      const form = e.target;
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const origBtnHtml = submitBtn ? submitBtn.innerHTML : '🚀 Lưu Sản Phẩm Lên Cửa Hàng';
+
+      const name = document.getElementById('staffProdName').value.trim();
+      const catVal = document.getElementById('staffProdCategory').value;
+      const categorySlug = mapToCategorySlug(catVal);
+      const woodType = document.getElementById('staffProdWood').value.trim() || 'Gỗ Sồi Trắng Bắc Mỹ';
+      const price = Number(document.getElementById('staffProdPrice').value) || 0;
+      const stock = Number(document.getElementById('staffProdStock').value || 10);
       const finalImg = UPLOADED_BASE64_IMG || document.getElementById('staffUrlInput').value.trim() || "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=400&q=80";
 
-      const newP = {
-        id: "p-" + Date.now(),
-        name: document.getElementById('staffProdName').value.trim(),
-        category: document.getElementById('staffProdCategory').value,
-        wood_type: document.getElementById('staffProdWood').value.trim(),
-        price: Number(document.getElementById('staffProdPrice').value),
-        stock: Number(document.getElementById('staffProdStock').value || 10),
+      if (!name) {
+        showToast('Vui lòng nhập tên sản phẩm!', 'error');
+        return;
+      }
+      if (price <= 0) {
+        showToast('Vui lòng nhập giá bán hợp lệ!', 'error');
+        return;
+      }
+
+      const slug = name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") + "-" + Math.floor(1000 + Math.random() * 9000);
+
+      const cloudPayload = {
+        name: name,
+        slug: slug,
+        category_slug: categorySlug,
+        wood_type: woodType,
+        price: price,
+        original_price: price,
+        rating: 5.0,
+        reviews_count: 1,
+        dimensions: "Tiêu chuẩn",
+        short_desc: name,
+        description: name + " - Nội thất gỗ tự nhiên MORIOO phong cách Nhật Bản.",
+        in_stock: stock > 0,
+        stock_quantity: stock,
+        is_featured: true,
+        is_new: true,
+        is_bestseller: false,
         image_url: finalImg
       };
 
-      STAFF_PRODUCTS.unshift(newP);
-      localStorage.setItem('morioo_products', JSON.stringify(STAFF_PRODUCTS));
-      window.dispatchEvent(new CustomEvent('product-list-changed'));
-      showToast(`Đã thêm sản phẩm "${newP.name}" thành công!`, 'success');
-      e.target.reset();
-      removeStaffUploadedImage();
-      loadStaffData();
-      switchStaffTab('inventory');
+      try {
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = `⏳ Đang lưu vào Supabase Cloud...`;
+        }
+        showToast('⏳ Đang lưu sản phẩm trực tiếp vào Supabase Cloud Database...', 'info');
+
+        const resp = await supabaseStaffFetch('products', {
+          method: 'POST',
+          body: JSON.stringify(cloudPayload),
+          prefer: 'return=representation'
+        });
+
+        if (!resp || !resp[0]) {
+          throw new Error('Supabase không trả về bản ghi sau khi lưu.');
+        }
+
+        const savedProd = resp[0];
+        console.log('[Staff Supabase] Đã lưu thành công sản phẩm:', savedProd.id);
+
+        const newP = {
+          id: savedProd.id,
+          slug: savedProd.slug,
+          name: savedProd.name,
+          category_slug: savedProd.category_slug,
+          category: STAFF_CATEGORY_MAP[savedProd.category_slug] || savedProd.category_slug,
+          wood_type: savedProd.wood_type,
+          price: Number(savedProd.price),
+          original_price: Number(savedProd.original_price),
+          stock: savedProd.stock_quantity ?? stock,
+          stock_quantity: savedProd.stock_quantity ?? stock,
+          image_url: savedProd.image_url,
+          dimensions: savedProd.dimensions,
+          description: savedProd.description
+        };
+
+        STAFF_PRODUCTS.unshift(newP);
+        localStorage.setItem('morioo_products', JSON.stringify(STAFF_PRODUCTS));
+
+        // Phát tín hiệu cập nhật thời gian thực cho mọi tab (Trang chủ & Admin)
+        window.dispatchEvent(new CustomEvent('product-list-changed'));
+        if (typeof BroadcastChannel !== 'undefined') {
+          try {
+            const ch = new BroadcastChannel('morioo_sync_channel');
+            ch.postMessage({ type: 'PRODUCT_ADDED', product: savedProd });
+            setTimeout(() => ch.close(), 1000);
+          } catch(e) {}
+        }
+
+        showToast(`🎉 Đã thêm sản phẩm "${newP.name}" thành công vào Supabase Cloud & Website!`, 'success');
+        form.reset();
+        removeStaffUploadedImage();
+        populatePosDropdown();
+        renderPosConsultTable();
+        renderStaffInventoryTable();
+        const badge = document.getElementById('staffInventoryBadge');
+        if (badge) badge.textContent = STAFF_PRODUCTS.length;
+        switchStaffTab('inventory');
+
+      } catch (err) {
+        console.error('[Staff Supabase Error]', err);
+        showToast(`❌ Không thể lưu vào Supabase: ${err.message}. Dữ liệu KHÔNG bị lưu cục bộ!`, 'error');
+        alert(`Lỗi ghi dữ liệu vào Supabase Cloud:\n${err.message}\n\nHệ thống tuân thủ nguyên tắc không lưu trữ nội bộ trái phép. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại!`);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origBtnHtml;
+        }
+      }
     }
 
 

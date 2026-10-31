@@ -348,7 +348,30 @@ def get_product_by_id(product_id):
 
 def create_product(data):
     title = (data.get('title') or data.get('name') or '').strip()
-    category = data.get('category') or data.get('category_slug') or 'phong-khach'
+    category_raw = (data.get('category_slug') or data.get('category') or 'phong-khach').strip().lower()
+    cat_map = {
+        'phong-khach': 'phong-khach',
+        'phòng khách': 'phong-khach',
+        'phong khach': 'phong-khach',
+        'phong-ngu': 'phong-ngu',
+        'phòng ngủ': 'phong-ngu',
+        'phong ngu': 'phong-ngu',
+        'phong-an': 'phong-an',
+        'phòng ăn': 'phong-an',
+        'phòng ăn & bếp': 'phong-an',
+        'phong an': 'phong-an',
+        'lam-viec': 'lam-viec',
+        'phòng làm việc': 'lam-viec',
+        'góc làm việc': 'lam-viec',
+        'lam viec': 'lam-viec',
+        'tu-ke': 'tu-ke',
+        'tủ & kệ': 'tu-ke',
+        'tu ke': 'tu-ke',
+        'decor': 'decor',
+        'phụ kiện gỗ & decor': 'decor',
+        'phụ kiện & decor': 'decor'
+    }
+    category = cat_map.get(category_raw, category_raw)
     price = int(data.get('price') or 0)
     original_price = int(data.get('original_price') or price)
     material = data.get('material') or data.get('wood_type') or 'Gỗ Sồi Tự Nhiên'
@@ -387,6 +410,7 @@ def create_product(data):
             return prod_id
         except Exception as e:
             logger.error(f"Supabase create_product error: {e}")
+            raise Exception(f"Lỗi ghi dữ liệu vào Supabase Cloud: {str(e)}")
 
     init_db()
     conn = get_db_connection()

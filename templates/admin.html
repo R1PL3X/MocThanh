@@ -1331,15 +1331,20 @@
     // REST API CALL TO SUPABASE CLOUD
     // =========================================================================
     async function supabaseFetch(endpoint, options = {}) {
-      const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+      const sep = endpoint.includes('?') ? '&' : '?';
+      const finalEndpoint = options.method && options.method !== 'GET'
+          ? endpoint
+          : `${endpoint}${sep}_t=${Date.now()}`;
+      const url = `${SUPABASE_URL}/rest/v1/${finalEndpoint}`;
       const headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": `Bearer ${SUPABASE_KEY}`,
         "Content-Type": "application/json",
         "Prefer": options.prefer || "return=representation",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
         ...(options.headers || {})
       };
-      const res = await fetch(url, { ...options, headers });
+      const res = await fetch(url, { cache: 'no-store', ...options, headers });
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`HTTP ${res.status}: ${text}`);
@@ -1463,16 +1468,15 @@
     // =========================================================================
     // LOAD DATA DIRECTLY FROM SUPABASE CLOUD
     // =========================================================================
-    async function loadDataFromSupabase() {
-      updateCloudStatusPill('connecting');
-
-      // 1. Fetch products from Supabase Cloud
+    async function loadProductsFromSupabase() {
       try {
         const cloudProds = await supabaseFetch('products?select=*&order=created_at.desc');
         if (cloudProds && Array.isArray(cloudProds) && cloudProds.length > 0) {
           ALL_PRODUCTS = cloudProds.map(normalizeProduct);
           localStorage.setItem('morioo_products', JSON.stringify(ALL_PRODUCTS));
-          console.log('[Supabase Cloud] Đã tải thành công', ALL_PRODUCTS.length, 'sản phẩm từ Cloud!');
+          renderAdminProductsTable();
+          updateStatsCards();
+          console.log('[Supabase Cloud] Đã làm mới thành công', ALL_PRODUCTS.length, 'sản phẩm từ Cloud!');
         } else {
           loadFallbackProducts();
         }
@@ -1480,6 +1484,13 @@
         console.warn('[Supabase Cloud] Không tải được sản phẩm online:', err);
         loadFallbackProducts();
       }
+    }
+
+    async function loadDataFromSupabase() {
+      updateCloudStatusPill('connecting');
+
+      // 1. Fetch products from Supabase Cloud
+      await loadProductsFromSupabase();
 
       // 2. Fetch orders from Supabase Cloud (with seamless local merge)
       try {
@@ -2294,6 +2305,8 @@
     async function handleCreateProduct(e) {
       e.preventDefault();
       const form = e.target;
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const origBtnHtml = submitBtn ? submitBtn.innerHTML : 'Lưu Lên Supabase Cloud & Website';
 
       const title = form.title.value.trim();
       const categorySlug = form.category.value;
@@ -2306,6 +2319,15 @@
       const image = form.image.value.trim() || IMAGE_PRESETS.giuong;
       const description = form.description.value.trim();
 
+      if (!title) {
+        showToast('Vui lòng nhập tên sản phẩm!', 'error');
+        return;
+      }
+      if (price <= 0) {
+        showToast('Vui lòng nhập giá bán hợp lệ!', 'error');
+        return;
+      }
+
       const discountPercent = originalPrice > price ? Math.round((1 - price / originalPrice) * 100) : 0;
       const slug = title
         .toLowerCase()
@@ -2313,7 +2335,7 @@
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/đ/g, "d")
         .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "") + "-" + Math.floor(100 + Math.random() * 900);
+        .replace(/^-+|-+$/g, "") + "-" + Math.floor(1000 + Math.random() * 9000);
 
       // Cloud Payload for Supabase
       const cloudPayload = {
@@ -2336,44 +2358,62 @@
         image_url: image
       };
 
-      showToast('⏳ Đang lưu sản phẩm vào hệ thống...', 'info');
-
-      let savedFromCloud = null;
       try {
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = `⏳ Đang ghi vào Supabase Cloud...`;
+        }
+        showToast('⏳ Đang lưu sản phẩm trực tiếp vào Supabase Cloud...', 'info');
+
         const resp = await supabaseFetch('products', {
           method: 'POST',
           body: JSON.stringify(cloudPayload),
           prefer: 'return=representation'
         });
-        if (resp && resp[0]) {
-          savedFromCloud = resp[0];
-          console.log('[Supabase Cloud] Đã lưu thành công sản phẩm:', savedFromCloud.id);
+
+        if (!resp || !resp[0]) {
+          throw new Error('Supabase không trả về bản ghi sau khi thêm.');
         }
+
+        const savedFromCloud = resp[0];
+        console.log('[Supabase Cloud] Đã lưu thành công sản phẩm:', savedFromCloud.id);
+
+        const newProduct = normalizeProduct(savedFromCloud);
+
+        // Push to front of array
+        ALL_PRODUCTS.unshift(newProduct);
+        persistProducts();
+
+        // Broadcast to other open tabs (Shop & Staff)
+        if (typeof BroadcastChannel !== 'undefined') {
+          try {
+            const ch = new BroadcastChannel('morioo_sync_channel');
+            ch.postMessage({ type: 'PRODUCT_ADDED', product: savedFromCloud });
+            setTimeout(() => ch.close(), 1000);
+          } catch(e) {}
+        }
+
+        // Reset form
+        form.reset();
+        document.getElementById('newProdWood').value = 'Gỗ Sồi Tự Nhiên';
+        document.getElementById('newProdStock').value = '15';
+        document.getElementById('newProdDimensions').value = 'Tiêu chuẩn';
+        removeAdminUploadedImage();
+
+        renderAdminProductsTable();
+        showToast(`🎉 Đã thêm sản phẩm "${title}" trực tiếp lên Supabase Cloud & Website!`, 'success');
+        document.getElementById('adminProductsTableBody')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
       } catch (err) {
-        console.warn('[Supabase Cloud] Lỗi lưu lên Supabase:', err);
+        console.error('[Supabase Cloud Error]', err);
+        showToast(`❌ Không thể lưu vào Supabase: ${err.message}. Dữ liệu KHÔNG bị lưu cục bộ!`, 'error');
+        alert(`Lỗi ghi dữ liệu vào Supabase Cloud:\n${err.message}\n\nHệ thống tuân thủ nguyên tắc không lưu trữ nội bộ trái phép. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại!`);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origBtnHtml;
+        }
       }
-
-      const newProduct = normalizeProduct(savedFromCloud || {
-        ...cloudPayload,
-        id: "prod-" + Date.now(),
-        discount_percent: discountPercent,
-        stock: stock
-      });
-
-      // Push to front of array
-      ALL_PRODUCTS.unshift(newProduct);
-      persistProducts();
-
-      // Reset form
-      form.reset();
-      document.getElementById('newProdWood').value = 'Gỗ Sồi Tự Nhiên';
-      document.getElementById('newProdStock').value = '15';
-      document.getElementById('newProdDimensions').value = 'Tiêu chuẩn';
-      removeAdminUploadedImage();
-
-      renderAdminProductsTable();
-      showToast(`🎉 Đã thêm sản phẩm "${title}" thành công!`, 'success');
-      document.getElementById('adminProductsTableBody')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function handleProductSearch(query) {
@@ -2585,6 +2625,15 @@
       persistProducts();
       closeEditProductModal();
       renderAdminProductsTable();
+
+      if (typeof BroadcastChannel !== 'undefined') {
+        try {
+          const ch = new BroadcastChannel('morioo_sync_channel');
+          ch.postMessage({ type: 'PRODUCT_UPDATED', product: prod });
+          setTimeout(() => ch.close(), 1000);
+        } catch(e) {}
+      }
+
       showToast(`🎉 Đã cập nhật sản phẩm "${prod.name}" trên Supabase Cloud & Website!`, 'success');
     }
 
@@ -2603,6 +2652,15 @@
         ALL_PRODUCTS = ALL_PRODUCTS.filter(p => p.id != productId);
         persistProducts();
         renderAdminProductsTable();
+
+        if (typeof BroadcastChannel !== 'undefined') {
+          try {
+            const ch = new BroadcastChannel('morioo_sync_channel');
+            ch.postMessage({ type: 'PRODUCT_DELETED', productId });
+            setTimeout(() => ch.close(), 1000);
+          } catch(e) {}
+        }
+
         showToast(`🗑️ Đã xóa sản phẩm khỏi Supabase Cloud & Website!`, 'info');
       }
     }
@@ -3245,6 +3303,9 @@
             persistOrders();
             renderAllData();
           }
+        } else if (event.data.type === 'PRODUCT_ADDED' || event.data.type === 'PRODUCT_UPDATED' || event.data.type === 'PRODUCT_DELETED' || event.data.type === 'STOCK_UPDATED') {
+          console.log('[Admin Sync] Nhận tín hiệu đồng bộ sản phẩm từ Staff/Web:', event.data.type);
+          loadProductsFromSupabase();
         }
       };
     } catch(e) {}

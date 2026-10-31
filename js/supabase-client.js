@@ -41,7 +41,11 @@ class SupabaseDataService {
      * Gửi yêu cầu REST API trực tiếp tới Supabase (Không phụ thuộc thư viện bên ngoài)
      */
     async restFetch(endpoint, options = {}) {
-        const url = `${SupabaseConfig.getUrl()}/rest/v1/${endpoint}`;
+        const sep = endpoint.includes('?') ? '&' : '?';
+        const finalEndpoint = options.method && options.method !== 'GET'
+            ? endpoint
+            : `${endpoint}${sep}_t=${Date.now()}`;
+        const url = `${SupabaseConfig.getUrl()}/rest/v1/${finalEndpoint}`;
         const key = SupabaseConfig.getAnonKey();
 
         const headers = {
@@ -49,10 +53,12 @@ class SupabaseDataService {
             "Authorization": `Bearer ${key}`,
             "Content-Type": "application/json",
             "Prefer": options.prefer || "return=representation",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
             ...(options.headers || {})
         };
 
         const res = await fetch(url, {
+            cache: 'no-store',
             ...options,
             headers
         });
@@ -123,11 +129,11 @@ class SupabaseDataService {
      * Lấy danh sách sản phẩm từ Supabase Cloud
      */
     async getProducts(filters = {}) {
-        // 1. Thử lấy qua Client hoặc REST
+        // 1. Lấy trực tiếp từ Supabase Cloud qua REST (no-store)
         try {
-            let products = null;
+            let products = await this.restFetch("products?select=*&order=created_at.desc");
 
-            if (this.client) {
+            if (!products && this.client) {
                 const { data, error } = await this.client
                     .from("products")
                     .select("*")
@@ -135,11 +141,6 @@ class SupabaseDataService {
                 if (!error && data && data.length > 0) {
                     products = data;
                 }
-            }
-
-            if (!products) {
-                // Thử REST API trực tiếp
-                products = await this.restFetch("products?select=*&order=created_at.desc");
             }
 
             if (products && products.length > 0) {
@@ -455,22 +456,28 @@ class SupabaseDataService {
      * Xóa sản phẩm khỏi Supabase
      */
     async deleteProduct(productId) {
-        try {
-            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(productId);
-            const queryField = isUuid ? "id" : "slug";
-            await this.restFetch(`products?${queryField}=eq.${encodeURIComponent(productId)}`, {
-                method: "DELETE"
-            });
-        } catch (e) {
-            console.warn("[Supabase] Lỗi deleteProduct online:", e);
-        }
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(productId);
+        const queryField = isUuid ? "id" : "slug";
+        await this.restFetch(`products?${queryField}=eq.${encodeURIComponent(productId)}`, {
+            method: "DELETE"
+        });
+
         this.localProducts = this.localProducts.filter(p => p.id !== productId && p.slug !== productId);
         this.saveLocalProducts();
+
+        if (typeof BroadcastChannel !== "undefined") {
+            try {
+                const ch = new BroadcastChannel("morioo_sync_channel");
+                ch.postMessage({ type: "PRODUCT_DELETED", productId });
+                setTimeout(() => ch.close(), 1000);
+            } catch(e) {}
+        }
+
         return { success: true };
     }
 
     /**
-     * Thêm sản phẩm mới (Nhân viên thêm sản phẩm, hỗ trợ ảnh Base64 từ máy)
+     * Thêm sản phẩm mới trực tiếp lên Supabase Cloud (Không lưu trữ nội bộ trái phép)
      */
     async addProduct(product) {
         const slug = (product.name || "san-pham")
@@ -479,7 +486,7 @@ class SupabaseDataService {
             .replace(/[\u0300-\u036f]/g, "")
             .replace(/đ/g, "d")
             .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-+|-+$/g, "") + "-" + Math.floor(Math.random() * 10000);
+            .replace(/^-+|-+$/g, "") + "-" + Math.floor(1000 + Math.random() * 9000);
 
         const newProd = {
             slug,
@@ -487,12 +494,12 @@ class SupabaseDataService {
             category_slug: product.category_slug || "phong-khach",
             wood_type: product.wood_type || "Gỗ Sồi Trắng",
             price: Number(product.price) || 0,
-            original_price: Number(product.original_price) || 0,
+            original_price: Number(product.original_price) || Number(product.price) || 0,
             rating: 5.0,
             reviews_count: 1,
             dimensions: product.dimensions || "Tiêu chuẩn",
-            short_desc: product.short_desc || "",
-            description: product.description || "",
+            short_desc: product.short_desc || product.name || "",
+            description: product.description || product.name || "",
             in_stock: true,
             stock_quantity: Number(product.stock_quantity) || 10,
             is_featured: !!product.is_featured,
@@ -501,36 +508,34 @@ class SupabaseDataService {
             image_url: product.image_url || "assets/images/hero-room-banner.png"
         };
 
-        let savedToCloud = false;
+        const inserted = await this.restFetch("products", {
+            method: "POST",
+            body: JSON.stringify(newProd),
+            prefer: "return=representation"
+        });
 
-        try {
-            const inserted = await this.restFetch("products", {
-                method: "POST",
-                body: JSON.stringify(newProd),
-                prefer: "return=representation"
-            });
-
-            if (inserted && inserted.length > 0) {
-                savedToCloud = true;
-                this.isOnline = true;
-                console.log("[Supabase] Đã thêm sản phẩm thành công lên Cloud:", newProd.name);
-            }
-        } catch (err) {
-            console.warn("[Supabase] Lỗi addProduct online:", err);
+        if (!inserted || !inserted[0]) {
+            throw new Error("Không thể ghi dữ liệu sản phẩm vào Supabase Cloud.");
         }
 
-        const localRecord = {
-            ...newProd,
-            id: "prod-" + Date.now(),
-            savedToCloud
-        };
-        this.localProducts.unshift(localRecord);
+        const savedCloudProduct = inserted[0];
+        this.isOnline = true;
+        this.localProducts.unshift(savedCloudProduct);
         this.saveLocalProducts();
+
+        // Broadcast to other tabs
+        if (typeof BroadcastChannel !== "undefined") {
+            try {
+                const ch = new BroadcastChannel("morioo_sync_channel");
+                ch.postMessage({ type: "PRODUCT_ADDED", product: savedCloudProduct });
+                setTimeout(() => ch.close(), 1000);
+            } catch(e) {}
+        }
 
         return {
             success: true,
-            cloud: savedToCloud,
-            product: localRecord
+            cloud: true,
+            product: savedCloudProduct
         };
     }
 

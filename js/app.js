@@ -41,6 +41,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.addEventListener("cart-updated", updateCartUI);
     window.addEventListener("product-list-changed", loadProducts);
 
+    // Đồng bộ tức thì đa tab qua BroadcastChannel khi Admin / Nhân viên thêm, sửa, xóa sản phẩm
+    if (typeof BroadcastChannel !== "undefined") {
+        const syncChannel = new BroadcastChannel("morioo_sync_channel");
+        syncChannel.onmessage = (event) => {
+            const data = event.data;
+            if (!data) return;
+            console.log("[Storefront Sync] Nhận tín hiệu thời gian thực từ Admin/Staff:", data.type);
+            if (data.type === "PRODUCT_ADDED" || data.type === "PRODUCT_UPDATED" || data.type === "PRODUCT_DELETED" || data.type === "STOCK_UPDATED") {
+                loadProducts();
+            } else if (data.type === "NEW_ORDER") {
+                updateCartUI();
+            }
+        };
+    }
+
     // Đồng bộ đa tab khi Admin hoặc Nhân viên cập nhật sản phẩm
     window.addEventListener("storage", (e) => {
         if (e.key === "morioo_products") {
