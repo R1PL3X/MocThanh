@@ -6,6 +6,7 @@ import { db } from "./supabase-client.js";
 import { cart } from "./cart.js";
 import { initAdminControls } from "./admin.js";
 import { initAuthUI } from "./auth-ui.js";
+import "./services.js";
 
 // Trạng thái ứng dụng
 const state = {

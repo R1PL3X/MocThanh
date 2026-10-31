@@ -95,6 +95,25 @@ CREATE TABLE IF NOT EXISTS accounts (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 8. TẠO BẢNG YÊU CẦU DỊCH VỤ KHÁCH HÀNG (SERVICE_REQUESTS)
+CREATE TABLE IF NOT EXISTS service_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code VARCHAR(50) UNIQUE NOT NULL,
+    service_type VARCHAR(50) NOT NULL, -- 'tu-van', 'dat-dong', 'van-chuyen', 'bao-tri', 'thiet-ke-khong-gian'
+    customer_name VARCHAR(255) NOT NULL,
+    customer_phone VARCHAR(50) NOT NULL,
+    customer_email VARCHAR(255),
+    address TEXT,
+    details JSONB DEFAULT '{}'::jsonb,
+    image_url TEXT,
+    preferred_date VARCHAR(50),
+    preferred_time VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'processing', 'quoted', 'in_progress', 'completed', 'cancelled'
+    staff_notes TEXT,
+    assigned_staff VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ==============================================================================
 -- CẤU HÌNH ROW LEVEL SECURITY (RLS) - ĐẢM BẢO BẤT KỲ AI TRÊN MẠNG CŨNG XEM ĐƯỢC
 -- ==============================================================================
@@ -106,7 +125,18 @@ ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE service_requests ENABLE ROW LEVEL SECURITY;
+
 CREATE POLICY "Public Read Categories" ON categories FOR SELECT USING (true);
+CREATE POLICY "Public Insert Categories" ON categories FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public Update Categories" ON categories FOR UPDATE USING (true);
+CREATE POLICY "Public Delete Categories" ON categories FOR DELETE USING (true);
+
+CREATE POLICY "Public Read Service Requests" ON service_requests FOR SELECT USING (true);
+CREATE POLICY "Public Insert Service Requests" ON service_requests FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public Update Service Requests" ON service_requests FOR UPDATE USING (true);
+CREATE POLICY "Public Delete Service Requests" ON service_requests FOR DELETE USING (true);
+
 CREATE POLICY "Public Read Products" ON products FOR SELECT USING (true);
 CREATE POLICY "Public Read Reviews" ON reviews FOR SELECT USING (true);
 CREATE POLICY "Public Read Accounts" ON accounts FOR SELECT USING (true);
@@ -148,7 +178,8 @@ INSERT INTO categories (slug, name, icon, description, display_order) VALUES
 ('phong-khach', 'Phòng Khách', 'sofa', 'Sofa thư giãn, bàn trà tatami, kệ TV gỗ tự nhiên', 2),
 ('phong-an', 'Phòng Ăn & Bếp', 'utensils', 'Bàn ghế ăn gỗ sồi nguyên khối chuẩn phong cách Nhật', 3),
 ('lam-viec', 'Góc Làm Việc', 'desk', 'Bàn làm việc, kệ sách thanh lịch cho không gian tập trung', 4),
-('decor', 'Phụ Kiện Gỗ & Decor', 'sparkles', 'Đệm ngồi hạt xốp, khay gỗ, đèn bàn phong cách Wabi-Sabi', 5)
+('tu-ke', 'Tủ & Kệ', 'box', 'Tủ quần áo, tủ giày, kệ tivi và kệ sách gỗ sồi tự nhiên tinh tế', 5),
+('decor', 'Phụ Kiện Gỗ & Decor', 'sparkles', 'Đệm ngồi hạt xốp, khay gỗ, đèn bàn phong cách Wabi-Sabi', 6)
 ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO products (slug, name, category_slug, wood_type, price, original_price, rating, reviews_count, dimensions, short_desc, description, in_stock, stock_quantity, is_featured, is_new, is_bestseller, image_url) VALUES

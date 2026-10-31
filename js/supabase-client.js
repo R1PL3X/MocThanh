@@ -150,7 +150,11 @@ class SupabaseDataService {
                 // Lọc sản phẩm nếu có yêu cầu
                 let list = [...products];
                 if (filters.category && filters.category !== "all") {
-                    list = list.filter(p => p.category_slug === filters.category);
+                    if (filters.category === "tu-ke") {
+                        list = list.filter(p => p.category_slug === "tu-ke" || p.category === "Tủ & Kệ" || (p.name && (p.name.toLowerCase().includes("tủ") || p.name.toLowerCase().includes("kệ"))) || (p.slug && (p.slug.includes("tu-") || p.slug.includes("ke-") || p.slug.includes("tab-"))));
+                    } else {
+                        list = list.filter(p => p.category_slug === filters.category);
+                    }
                 }
                 if (filters.woodType && filters.woodType !== "all") {
                     list = list.filter(p => p.wood_type && p.wood_type.toLowerCase().includes(filters.woodType.toLowerCase()));
@@ -173,7 +177,11 @@ class SupabaseDataService {
         this.localProducts = this.loadLocalProducts();
         let list = [...this.localProducts];
         if (filters.category && filters.category !== "all") {
-            list = list.filter(p => p.category_slug === filters.category || p.category === filters.category);
+            if (filters.category === "tu-ke") {
+                list = list.filter(p => p.category_slug === "tu-ke" || p.category === "Tủ & Kệ" || (p.name && (p.name.toLowerCase().includes("tủ") || p.name.toLowerCase().includes("kệ"))) || (p.slug && (p.slug.includes("tu-") || p.slug.includes("ke-") || p.slug.includes("tab-"))));
+            } else {
+                list = list.filter(p => p.category_slug === filters.category || p.category === filters.category);
+            }
         }
         if (filters.woodType && filters.woodType !== "all") {
             list = list.filter(p => p.wood_type && p.wood_type.toLowerCase().includes(filters.woodType.toLowerCase()));
@@ -211,8 +219,23 @@ class SupabaseDataService {
      */
     async getCategories() {
         try {
-            const data = await this.restFetch("categories?select=*&order=order_index.asc");
-            if (data && data.length > 0) return data;
+            let data = await this.restFetch("categories?select=*&order=display_order.asc");
+            if (!data || data.length === 0) {
+                data = await this.restFetch("categories?select=*");
+            }
+            if (data && data.length > 0) {
+                if (!data.some(c => c.slug === 'tu-ke')) {
+                    data.push({
+                        id: 'cat-tu-ke',
+                        slug: 'tu-ke',
+                        name: 'Tủ & Kệ',
+                        icon: 'box',
+                        description: 'Tủ quần áo, tủ giày, kệ tivi và kệ sách gỗ sồi tự nhiên tinh tế',
+                        display_order: 6
+                    });
+                }
+                return data;
+            }
         } catch (e) {
             console.warn("[Supabase] Lỗi getCategories:", e);
         }
@@ -538,6 +561,182 @@ class SupabaseDataService {
             localStorage.setItem("morioo_orders", JSON.stringify(this.localOrders));
         } catch(e) {}
     }
+
+    // =========================================================================
+    // 5 DỊCH VỤ NỘI THẤT MORIOO: TƯ VẤN, ĐẶT ĐÓNG, VẬN CHUYỂN, BẢO TRÌ, THIẾT KẾ
+    // =========================================================================
+
+    /**
+     * Lấy danh sách toàn bộ yêu cầu dịch vụ
+     */
+    async getServiceRequests() {
+        let cloudList = [];
+        try {
+            const res = await this.restFetch("service_requests?select=*&order=created_at.desc");
+            if (res && res.length > 0) {
+                cloudList = res;
+            }
+        } catch (e) {
+            // Service requests table not created yet in cloud
+        }
+
+        const localList = this.loadLocalServiceRequests();
+        const map = new Map();
+        localList.forEach(item => map.set(item.code || item.id, item));
+        cloudList.forEach(item => {
+            const code = item.code || item.id;
+            if (!map.has(code)) {
+                map.set(code, item);
+            }
+        });
+        return Array.from(map.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    }
+
+    loadLocalServiceRequests() {
+        const s = localStorage.getItem("morioo_service_requests");
+        if (s) {
+            try { return JSON.parse(s); } catch (e) {}
+        }
+        return [];
+    }
+
+    saveLocalServiceRequests(list) {
+        try {
+            localStorage.setItem("morioo_service_requests", JSON.stringify(list));
+        } catch (e) {}
+    }
+
+    /**
+     * Tạo yêu cầu dịch vụ khách hàng mới (Đồng bộ Realtime BroadcastChannel & Cloud)
+     */
+    async createServiceRequest(payload) {
+        const prefixMap = {
+            'tu-van': 'DV-TV',
+            'dat-dong': 'DV-DD',
+            'van-chuyen': 'DV-VC',
+            'bao-tri': 'DV-BT',
+            'thiet-ke-khong-gian': 'DV-KG'
+        };
+        const prefix = prefixMap[payload.service_type] || 'DV-KH';
+        const code = prefix + '-' + Math.floor(100000 + Math.random() * 900000);
+
+        const newReq = {
+            id: 'req-' + Date.now(),
+            code: payload.code || code,
+            service_type: payload.service_type || 'tu-van',
+            customer_name: (payload.customer_name || payload.name || 'Khách hàng MORIOO').trim(),
+            customer_phone: (payload.customer_phone || payload.phone || '').trim(),
+            customer_email: (payload.customer_email || payload.email || '').trim(),
+            address: (payload.address || '').trim(),
+            details: payload.details || {},
+            image_url: payload.image_url || '',
+            preferred_date: payload.preferred_date || '',
+            preferred_time: payload.preferred_time || '',
+            status: 'pending',
+            staff_notes: '',
+            assigned_staff: '',
+            created_at: new Date().toISOString()
+        };
+
+        // 1. Lưu LocalStorage
+        const currentList = this.loadLocalServiceRequests();
+        currentList.unshift(newReq);
+        this.saveLocalServiceRequests(currentList);
+
+        // 2. BroadcastChannel tức thì cho Admin & Nhân viên
+        try {
+            const bc = new BroadcastChannel('morioo_sync_channel');
+            bc.postMessage({ type: 'NEW_SERVICE_REQUEST', request: newReq, timestamp: Date.now() });
+            bc.close();
+        } catch (e) {}
+
+        // 3. Thử lưu lên Supabase Cloud
+        let cloudSaved = false;
+        try {
+            const res = await this.restFetch("service_requests", {
+                method: "POST",
+                body: JSON.stringify(newReq)
+            });
+            if (res && res.length > 0) cloudSaved = true;
+        } catch (e) {}
+
+        return {
+            success: true,
+            code: newReq.code,
+            cloud: cloudSaved,
+            request: newReq
+        };
+    }
+
+    /**
+     * Cập nhật trạng thái yêu cầu dịch vụ
+     */
+    async updateServiceRequestStatus(idOrCode, status, staffName = '', notes = '') {
+        const list = this.loadLocalServiceRequests();
+        const item = list.find(r => r.id === idOrCode || r.code === idOrCode);
+        if (item) {
+            item.status = status;
+            if (staffName) item.assigned_staff = staffName;
+            if (notes) item.staff_notes = notes;
+            item.updated_at = new Date().toISOString();
+            this.saveLocalServiceRequests(list);
+
+            try {
+                const bc = new BroadcastChannel('morioo_sync_channel');
+                bc.postMessage({ type: 'SERVICE_REQUEST_STATUS_CHANGED', code: item.code, status, assigned_staff: staffName, notes });
+                bc.close();
+            } catch (e) {}
+        }
+
+        try {
+            await this.restFetch(`service_requests?code=eq.${encodeURIComponent(idOrCode)}`, {
+                method: "PATCH",
+                body: JSON.stringify({ status, assigned_staff: staffName, staff_notes: notes, updated_at: new Date().toISOString() })
+            });
+        } catch (e) {}
+
+        return true;
+    }
+
+    /**
+     * Tra cứu thông tin đơn hàng hoặc dịch vụ (Theo Mã hoặc Số Điện Thoại)
+     */
+    async trackOrderOrService(query) {
+        if (!query) return null;
+        const q = query.trim().toUpperCase();
+        const qPhone = query.trim().replace(/[^0-9]/g, '');
+
+        // 1. Tìm trong Orders (Cloud & Local)
+        let orders = await this.getOrders();
+        let matchedOrder = orders.find(o => 
+            (o.order_code && o.order_code.toUpperCase() === q) ||
+            (qPhone.length >= 9 && o.customer_phone && o.customer_phone.replace(/[^0-9]/g, '').includes(qPhone))
+        );
+
+        if (matchedOrder) {
+            return {
+                type: 'order',
+                data: matchedOrder
+            };
+        }
+
+        // 2. Tìm trong Service Requests
+        let services = await this.getServiceRequests();
+        let matchedService = services.find(s => 
+            (s.code && s.code.toUpperCase() === q) ||
+            (qPhone.length >= 9 && s.customer_phone && s.customer_phone.replace(/[^0-9]/g, '').includes(qPhone))
+        );
+
+        if (matchedService) {
+            return {
+                type: 'service',
+                data: matchedService
+            };
+        }
+
+        return null;
+    }
+
 }
 
 export const db = new SupabaseDataService();

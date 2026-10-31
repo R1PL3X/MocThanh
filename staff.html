@@ -182,8 +182,17 @@
         onclick="switchStaffTab('orders')" 
         class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap transition"
       >
-        <span>📞 Xác Nhận Trạng Thái Đơn Hàng</span>
+        <span>📞 Xác Nhận Đơn Hàng (Ghi Nhận KPI)</span>
         <span id="staffOrdersBadge" class="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs px-2 py-0.5 rounded-full font-bold">5</span>
+      </button>
+
+      <button 
+        id="staffTabBtnServices" 
+        onclick="switchStaffTab('services')" 
+        class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap transition"
+      >
+        <span>🛎️ Tiếp Nhận Dịch Vụ Khách Hàng (5 Gói)</span>
+        <span id="staffServicesBadge" class="bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-400 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
       </button>
 
       <button 
@@ -343,6 +352,64 @@
         <!-- Rendered via JavaScript -->
       </div>
 
+    </div>
+
+    <!-- ==============================================================================
+         TAB SERVICES: TIẾP NHẬN DỊCH VỤ KHÁCH HÀNG (5 GÓI DỊCH VỤ MORIOO)
+         ============================================================================== -->
+    <div id="staffTabContentServices" class="space-y-6 hidden">
+      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm p-5">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-zinc-800 pb-4 mb-4">
+          <div>
+            <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span>🛎️</span>
+              <span>Cổng Tiếp Nhận & Xử Lý Yêu Cầu Dịch Vụ Khách Hàng</span>
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Tư vấn phong cách, may đo đặt đóng, vận chuyển & lắp đặt tại nhà, bảo trì sửa chữa và thiết kế không gian.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="loadStaffServiceRequests()" class="text-xs bg-amber-50 dark:bg-zinc-800 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition flex items-center gap-1 font-medium">
+              ⟳ Làm mới dịch vụ
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric Filter Pills -->
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 mr-1">Lọc dịch vụ:</span>
+          <button onclick="setStaffServiceFilter('all')" class="staff-svc-filter-btn active text-xs px-3 py-1.5 rounded-lg font-semibold bg-sky-600 text-white" data-filter="all">Tất Cả</button>
+          <button onclick="setStaffServiceFilter('tu-van')" class="staff-svc-filter-btn text-xs px-3 py-1.5 rounded-lg font-medium bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300" data-filter="tu-van">🛋️ Tư Vấn</button>
+          <button onclick="setStaffServiceFilter('dat-dong')" class="staff-svc-filter-btn text-xs px-3 py-1.5 rounded-lg font-medium bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300" data-filter="dat-dong">📐 May Đo Đặt Đóng</button>
+          <button onclick="setStaffServiceFilter('van-chuyen')" class="staff-svc-filter-btn text-xs px-3 py-1.5 rounded-lg font-medium bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300" data-filter="van-chuyen">🚚 Vận Chuyển & Lắp</button>
+          <button onclick="setStaffServiceFilter('bao-tri')" class="staff-svc-filter-btn text-xs px-3 py-1.5 rounded-lg font-medium bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300" data-filter="bao-tri">🛠️ Bảo Trì Sửa Chữa</button>
+          <button onclick="setStaffServiceFilter('thiet-ke-khong-gian')" class="staff-svc-filter-btn text-xs px-3 py-1.5 rounded-lg font-medium bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300" data-filter="thiet-ke-khong-gian">🏠 Thiết Kế Không Gian</button>
+        </div>
+
+        <!-- Service Requests Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+              <tr>
+                <th class="p-3">Mã / Ngày gửi</th>
+                <th class="p-3">Khách hàng & SĐT</th>
+                <th class="p-3">Loại dịch vụ</th>
+                <th class="p-3">Nội dung chi tiết & Thông số</th>
+                <th class="p-3">Ảnh / Bản vẽ</th>
+                <th class="p-3">Trạng thái & Nhân viên</th>
+                <th class="p-3 text-right">Hành động tác nghiệp</th>
+              </tr>
+            </thead>
+            <tbody id="staffServicesTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+              <!-- Loaded via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
     </div>
 
     <!-- ==============================================================================
@@ -586,14 +653,14 @@
       { id: "p-1", name: "Giường Ngủ Gỗ Sồi Tatami Có Hộc Kéo", category: "Phòng Ngủ", wood_type: "Gỗ Sồi Trắng Bắc Mỹ", price: 8990000, stock: 15, image_url: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=400&q=80" },
       { id: "p-2", name: "Ghế Sofa Bành Thư Giãn Wabi-Sabi", category: "Phòng Khách", wood_type: "Gỗ Tần Bì & Vải Linen", price: 3450000, stock: 12, image_url: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=400&q=80" },
       { id: "p-3", name: "Bàn Trà Tròn Gỗ Sồi Chân Thấp Kiểu Nhật", category: "Phòng Khách", wood_type: "Gỗ Sồi Tự Nhiên", price: 2450000, stock: 24, image_url: "https://images.unsplash.com/photo-1533090161767-e6ffed986b88?auto=format&fit=crop&w=400&q=80" },
-      { id: "p-4", name: "Kệ Tivi Gỗ Sồi Tối Giản 3 Ngăn Kéo", category: "Phòng Khách", wood_type: "Gỗ Sồi FAS", price: 4850000, stock: 8, image_url: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-4", name: "Kệ Tivi Gỗ Sồi Tối Giản 3 Ngăn Kéo", category: "Tủ & Kệ", wood_type: "Gỗ Sồi FAS", price: 4850000, stock: 8, image_url: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=400&q=80" },
       { id: "p-5", name: "Bàn Ăn Chân Thuôn Gỗ Sồi 4 Ghế", category: "Phòng Ăn", wood_type: "Gỗ Sồi Trắng", price: 7900000, stock: 10, image_url: "https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=400&q=80" },
       { id: "p-6", name: "Bàn Làm Việc Gỗ Sồi Nhỏ Gọn Có Ngăn Kéo", category: "Phòng Làm Việc", wood_type: "Gỗ Sồi Tự Nhiên", price: 4150000, stock: 20, image_url: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=400&q=80" },
-      { id: "p-7", name: "Kệ Sách Gỗ Tự Nhiên 4 Tầng Modul", category: "Phòng Làm Việc", wood_type: "Gỗ Tần Bì Ash", price: 3200000, stock: 16, image_url: "https://images.unsplash.com/photo-1594671581654-27d5303d3d45?auto=format&fit=crop&w=400&q=80" },
-      { id: "p-8", name: "Tủ Quần Áo Gỗ Sồi Cửa Lùa Wabi-Sabi", category: "Phòng Ngủ", wood_type: "Gỗ Sồi & Nan Gỗ Thông", price: 14500000, stock: 6, image_url: "https://images.unsplash.com/photo-1558997519-83ea9252def8?auto=format&fit=crop&w=400&q=80" },
-      { id: "p-9", name: "Bộ Ấm Chén Trà Gốm Sứ Men Mộc Trắng", category: "Tủ & Kệ", wood_type: "Gốm Sứ & Gỗ Sồi", price: 680000, stock: 50, image_url: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-7", name: "Kệ Sách Gỗ Tự Nhiên 4 Tầng Modul", category: "Tủ & Kệ", wood_type: "Gỗ Tần Bì Ash", price: 3200000, stock: 16, image_url: "https://images.unsplash.com/photo-1594671581654-27d5303d3d45?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-8", name: "Tủ Quần Áo Gỗ Sồi Cửa Lùa Wabi-Sabi", category: "Tủ & Kệ", wood_type: "Gỗ Sồi & Nan Gỗ Thông", price: 14500000, stock: 6, image_url: "https://images.unsplash.com/photo-1558997519-83ea9252def8?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-9", name: "Bộ Ấm Chén Trà Gốm Sứ Men Mộc Trắng", category: "Phụ Kiện & Decor", wood_type: "Gốm Sứ & Gỗ Sồi", price: 680000, stock: 50, image_url: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=400&q=80" },
       { id: "p-10", name: "Tab Đầu Giường Gỗ Sồi 1 Ngăn Kéo", category: "Phòng Ngủ", wood_type: "Gỗ Sồi FAS", price: 1650000, stock: 30, image_url: "https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&w=400&q=80" },
-      { id: "p-11", name: "Đèn Cây Gỗ Sồi Chao Vải Linen", category: "Tủ & Kệ", wood_type: "Gỗ Sồi & Vải", price: 1890000, stock: 22, image_url: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=400&q=80" },
+      { id: "p-11", name: "Đèn Cây Gỗ Sồi Chao Vải Linen", category: "Phụ Kiện & Decor", wood_type: "Gỗ Sồi & Vải", price: 1890000, stock: 22, image_url: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=400&q=80" },
       { id: "p-12", name: "Đôn Tròn Gỗ Sồi Bọc Nệm Thô", category: "Phòng Khách", wood_type: "Gỗ Sồi & Linen", price: 1250000, stock: 18, image_url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=400&q=80" }
     ];
 
@@ -609,7 +676,7 @@
     let UPLOADED_BASE64_IMG = '';
 
     function switchStaffTab(tabName) {
-      const tabs = ['pos', 'orders', 'inventory', 'addProduct'];
+      const tabs = ['pos', 'orders', 'services', 'inventory', 'addProduct'];
       tabs.forEach(t => {
         const btn = document.getElementById(`staffTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
         const content = document.getElementById(`staffTabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -684,6 +751,7 @@
       }
 
       updateStaffKpiMetrics();
+      loadStaffServiceRequests();
       populatePosDropdown();
       renderPosConsultTable();
       renderStaffOrdersGrid();
@@ -768,7 +836,18 @@
       const staffSyncChannel = new BroadcastChannel('morioo_sync_channel');
       staffSyncChannel.onmessage = (event) => {
         if (!event.data) return;
-        if (event.data.type === 'NEW_ORDER' && event.data.order) {
+        if (event.data.type === 'NEW_SERVICE_REQUEST' && event.data.request) {
+          const newReq = event.data.request;
+          const exists = STAFF_SERVICES.some(r => r.code === newReq.code);
+          if (!exists) {
+            STAFF_SERVICES.unshift(newReq);
+            localStorage.setItem('morioo_service_requests', JSON.stringify(STAFF_SERVICES));
+            updateStaffServicesBadge();
+            renderStaffServicesTable();
+            showToast(`🔔 YÊU CẦU DỊCH VỤ MỚI: #${newReq.code} - ${newReq.customer_name} (${newReq.service_type})`, 'info');
+            playStaffChime();
+          }
+        } else if (event.data.type === 'NEW_ORDER' && event.data.order) {
           const norm = normalizeStaffOrder(event.data.order);
           const exists = STAFF_ORDERS.some(o => o.order_code === norm.order_code || (norm.id && o.id === norm.id));
           if (!exists) {
@@ -1196,6 +1275,358 @@
       removeStaffUploadedImage();
       loadStaffData();
       switchStaffTab('inventory');
+    }
+
+
+    // =========================================================================
+    // XỬ LÝ 5 GÓI DỊCH VỤ KHÁCH HÀNG (STAFF SERVICES MANAGEMENT)
+    // =========================================================================
+    let STAFF_SERVICES = [];
+    let ACTIVE_STAFF_SERVICE_FILTER = 'all';
+
+    const INITIAL_DEMO_SERVICES = [
+      {
+        id: "req-1",
+        code: "DV-TV-849102",
+        service_type: "tu-van",
+        customer_name: "Vũ Hải Yến",
+        customer_phone: "0912 888 777",
+        customer_email: "haiyen.vu@gmail.com",
+        address: "Căn 12.04 Tòa Landmark 2, Vinhomes Central Park, Bình Thạnh, TP.HCM",
+        details: {
+          room_type: "Phòng khách & Thư giãn",
+          room_area: "28m²",
+          style_preference: "Zen Nhật Bản (Tối giản, sàn thấp, mộc mạc)",
+          budget_range: "Từ 20 - 50 triệu VNĐ",
+          customer_note: "Cần chọn sofa bành vải thô và bàn trà tròn chân thấp, tích hợp kệ tivi tối giản."
+        },
+        image_url: "",
+        status: "pending",
+        assigned_staff: "",
+        created_at: "2026-10-30T10:15:00Z"
+      },
+      {
+        id: "req-2",
+        code: "DV-DD-392817",
+        service_type: "dat-dong",
+        customer_name: "Trần Quang Khải",
+        customer_phone: "0988 123 999",
+        customer_email: "khai.tq@techcorp.vn",
+        address: "Số 48 Phố Hoàng Ngân, Trung Hòa, Cầu Giấy, Hà Nội",
+        details: {
+          product_category: "Tủ quần áo (Cánh nan kịch trần)",
+          dimensions: "240 x 60 x 260 cm",
+          wood_material: "Gỗ Sồi Trắng Bắc Mỹ FAS (White Oak)",
+          color_finish: "Màu mộc thô nhạt phong cách Wabi-Sabi",
+          design_notes: "Chia 3 buồng treo áo dài, ray trượt Hafele giảm chấn, tay nắm âm vát gỗ."
+        },
+        image_url: "https://images.unsplash.com/photo-1558997519-83ea9252def8?auto=format&fit=crop&w=400&q=80",
+        status: "quoted",
+        assigned_staff: "Lê Văn Nhân Viên",
+        created_at: "2026-10-30T14:40:00Z"
+      },
+      {
+        id: "req-3",
+        code: "DV-VC-551029",
+        service_type: "van-chuyen",
+        customer_name: "Nguyễn Phương Thảo",
+        customer_phone: "0932 456 789",
+        customer_email: "thao.phuong@gmail.com",
+        address: "Chung cư Masteri Thảo Điền, P. Thảo Điền, TP. Thủ Đức, TP.HCM",
+        preferred_date: "2026-11-01",
+        preferred_time: "Buổi sáng: 08:30 - 11:30",
+        details: {
+          order_code: "MR-2610-7164",
+          house_type: "Chung cư có thang máy chở hàng",
+          installation_service: "Giao hàng & Lắp đặt hoàn thiện trọn gói",
+          delivery_notes: "Cần đăng ký giấy ra vào ban quản lý trước 8h30."
+        },
+        image_url: "",
+        status: "shipping",
+        assigned_staff: "Lê Văn Nhân Viên",
+        created_at: "2026-10-30T16:20:00Z"
+      },
+      {
+        id: "req-4",
+        code: "DV-BT-772910",
+        service_type: "bao-tri",
+        customer_name: "Đặng Quốc Dũng",
+        customer_phone: "0903 666 555",
+        customer_email: "dung.dq@vnn.vn",
+        address: "74 Nguyễn Thị Minh Khai, Phường 6, Quận 3, TP.HCM",
+        preferred_date: "2026-11-02",
+        details: {
+          product_item: "Tủ Quần Áo Cánh Lùa Gỗ Sồi MORIOO",
+          issue_type: "Xệ cánh tủ lùa bên phải và cần lau dầu Osmo bảo dưỡng mặt ngoài",
+          problem_description: "Cánh tủ kéo hơi nặng, cần thợ cân chỉnh lại ray trượt và lau dầu dưỡng gỗ."
+        },
+        image_url: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=400&q=80",
+        status: "in_progress",
+        assigned_staff: "Lê Văn Nhân Viên",
+        created_at: "2026-10-30T17:10:00Z"
+      },
+      {
+        id: "req-5",
+        code: "DV-KG-910482",
+        service_type: "thiet-ke-khong-gian",
+        customer_name: "Bùi Thu Trang",
+        customer_phone: "0979 333 444",
+        customer_email: "trang.bui@design.vn",
+        address: "Tòa S2.05 Vinhomes Grand Park, Q.9, TP. Thủ Đức",
+        details: {
+          space_category: "Căn hộ chung cư trọn gói 2 Phòng Ngủ",
+          room_dimensions: "7.2m x 4.5m phòng khách, 2 PN 14m² và 18m²",
+          budget_tier: "60 - 120 triệu VNĐ (Tiêu chuẩn gỗ sồi Wabi-Sabi)",
+          project_address: "Vinhomes Grand Park S2.05",
+          function_notes: "Cần vách lam gỗ ngăn nhẹ phòng khách với bàn ăn, giường gầm thấp có hộc kéo."
+        },
+        image_url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80",
+        status: "pending",
+        assigned_staff: "",
+        created_at: "2026-10-31T08:30:00Z"
+      }
+    ];
+
+    function loadStaffServiceRequests() {
+      const s = localStorage.getItem('morioo_service_requests');
+      if (s) {
+        try {
+          STAFF_SERVICES = JSON.parse(s);
+        } catch(e) {
+          STAFF_SERVICES = [...INITIAL_DEMO_SERVICES];
+        }
+      } else {
+        STAFF_SERVICES = [...INITIAL_DEMO_SERVICES];
+        localStorage.setItem('morioo_service_requests', JSON.stringify(STAFF_SERVICES));
+      }
+      updateStaffServicesBadge();
+      renderStaffServicesTable();
+    }
+
+    function updateStaffServicesBadge() {
+      const pendingCount = (STAFF_SERVICES || []).filter(r => r.status === 'pending').length;
+      const badge = document.getElementById('staffServicesBadge');
+      if (badge) {
+        badge.textContent = pendingCount;
+        if (pendingCount > 0) {
+          badge.className = "bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-400 text-xs px-2 py-0.5 rounded-full font-bold animate-pulse";
+        } else {
+          badge.className = "bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-xs px-2 py-0.5 rounded-full font-bold";
+        }
+      }
+    }
+
+    function setStaffServiceFilter(type) {
+      ACTIVE_STAFF_SERVICE_FILTER = type;
+      document.querySelectorAll('.staff-svc-filter-btn').forEach(btn => {
+        const isMatch = btn.dataset.filter === type;
+        btn.className = isMatch 
+          ? "staff-svc-filter-btn active text-xs px-3 py-1.5 rounded-lg font-semibold bg-sky-600 text-white"
+          : "staff-svc-filter-btn text-xs px-3 py-1.5 rounded-lg font-medium bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300";
+      });
+      renderStaffServicesTable();
+    }
+
+    function renderStaffServicesTable() {
+      const tbody = document.getElementById('staffServicesTableBody');
+      if (!tbody) return;
+
+      let list = [...STAFF_SERVICES];
+      if (ACTIVE_STAFF_SERVICE_FILTER !== 'all') {
+        list = list.filter(r => r.service_type === ACTIVE_STAFF_SERVICE_FILTER);
+      }
+
+      if (list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="p-8 text-center text-gray-400">
+              <div class="text-3xl mb-1.5">🛎️</div>
+              <div class="font-bold text-gray-600 dark:text-gray-300">Không có yêu cầu dịch vụ nào trong mục này</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const typeBadges = {
+        'tu-van': `<span class="bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 px-2 py-0.5 rounded text-[11px] font-bold">🛋️ Tư Vấn Nội Thất</span>`,
+        'dat-dong': `<span class="bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 px-2 py-0.5 rounded text-[11px] font-bold">📐 Đặt Đóng May Đo</span>`,
+        'van-chuyen': `<span class="bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 px-2 py-0.5 rounded text-[11px] font-bold">🚚 Vận Chuyển & Lắp</span>`,
+        'bao-tri': `<span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 px-2 py-0.5 rounded text-[11px] font-bold">🛠️ Bảo Trì Sửa Chữa</span>`,
+        'thiet-ke-khong-gian': `<span class="bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 px-2 py-0.5 rounded text-[11px] font-bold">🏠 Thiết Kế Không Gian</span>`
+      };
+
+      tbody.innerHTML = list.map(req => {
+        const d = req.details || {};
+        let detailsHtml = '';
+        if (req.service_type === 'tu-van') {
+          detailsHtml = `
+            <div><strong>Không gian:</strong> ${d.room_type || ''} (${d.room_area || ''})</div>
+            <div><strong>Phong cách:</strong> ${d.style_preference || ''}</div>
+            <div class="text-amber-700 dark:text-amber-400 font-semibold">Ngân sách: ${d.budget_range || ''}</div>
+            ${d.customer_note ? `<div class="text-[11px] text-gray-400 italic mt-0.5">"${d.customer_note}"</div>` : ''}
+          `;
+        } else if (req.service_type === 'dat-dong') {
+          detailsHtml = `
+            <div class="font-bold text-gray-900 dark:text-white">${d.product_category || ''}</div>
+            <div><strong>Kích thước:</strong> ${d.dimensions || ''}</div>
+            <div><strong>Chất liệu:</strong> ${d.wood_material || ''}</div>
+            <div class="text-xs text-gray-500">${d.color_finish || ''}</div>
+          `;
+        } else if (req.service_type === 'van-chuyen') {
+          detailsHtml = `
+            <div><strong>Hẹn giao:</strong> ${req.preferred_date || ''} (${req.preferred_time || ''})</div>
+            <div><strong>Đơn hàng:</strong> <code class="text-sky-600 font-bold">${d.order_code || 'Chưa có'}</code></div>
+            <div><strong>Địa hình:</strong> ${d.house_type || ''}</div>
+            <div class="text-xs text-purple-700 dark:text-purple-400 font-semibold">${d.installation_service || ''}</div>
+          `;
+        } else if (req.service_type === 'bao-tri') {
+          detailsHtml = `
+            <div class="font-bold text-gray-900 dark:text-white">${d.product_item || ''}</div>
+            <div class="text-rose-600 font-medium">${d.issue_type || ''}</div>
+            <div class="text-[11px] text-gray-500 mt-0.5">Ngày hẹn: ${req.preferred_date || 'Càng sớm càng tốt'}</div>
+            ${d.problem_description ? `<div class="text-[11px] text-gray-400 italic">"${d.problem_description}"</div>` : ''}
+          `;
+        } else if (req.service_type === 'thiet-ke-khong-gian') {
+          detailsHtml = `
+            <div class="font-bold text-gray-900 dark:text-white">${d.space_category || ''}</div>
+            <div><strong>Kích thước:</strong> ${d.room_dimensions || ''}</div>
+            <div class="text-emerald-700 dark:text-emerald-400 font-semibold">Dự toán: ${d.budget_tier || ''}</div>
+            ${d.function_notes ? `<div class="text-[11px] text-gray-400 italic">"${d.function_notes}"</div>` : ''}
+          `;
+        }
+
+        let imageThumb = '<span class="text-gray-400 text-[11px]">Không có</span>';
+        if (req.image_url) {
+          imageThumb = `
+            <div class="cursor-pointer group relative" onclick="openLightboxImage('${req.image_url}')">
+              <img src="${req.image_url}" class="w-12 h-12 object-cover rounded border border-gray-200 dark:border-zinc-700 group-hover:scale-105 transition">
+              <span class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[10px] rounded transition">🔍 Xem</span>
+            </div>
+          `;
+        }
+
+        let statusBadge = '';
+        if (req.status === 'completed') {
+          statusBadge = `<span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 px-2 py-0.5 rounded text-[11px] font-bold">✅ Đã hoàn tất</span>`;
+        } else if (req.status === 'in_progress' || req.status === 'shipping') {
+          statusBadge = `<span class="bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 px-2 py-0.5 rounded text-[11px] font-bold">🚚 Đang giao/lắp</span>`;
+        } else if (req.status === 'quoted') {
+          statusBadge = `<span class="bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 px-2 py-0.5 rounded text-[11px] font-bold">📝 Đã gửi báo giá</span>`;
+        } else if (req.status === 'consulting') {
+          statusBadge = `<span class="bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 px-2 py-0.5 rounded text-[11px] font-bold">📞 Đã gọi tư vấn</span>`;
+        } else {
+          statusBadge = `<span class="bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 px-2 py-0.5 rounded text-[11px] font-bold animate-pulse">⏳ Chờ tiếp nhận</span>`;
+        }
+
+        return `
+          <tr class="hover:bg-gray-50/50 dark:hover:bg-zinc-800/40 transition">
+            <td class="p-3 font-mono">
+              <span class="font-bold text-sky-700 dark:text-sky-400">#${req.code}</span>
+              <div class="text-[10px] text-gray-400 mt-0.5">${req.created_at ? new Date(req.created_at).toLocaleString('vi-VN') : ''}</div>
+            </td>
+            <td class="p-3">
+              <div class="font-bold text-gray-900 dark:text-white">${req.customer_name}</div>
+              <a href="tel:${req.customer_phone}" class="text-amber-700 dark:text-amber-400 font-mono hover:underline">${req.customer_phone}</a>
+              <div class="text-[10px] text-gray-400 mt-0.5 max-w-[180px] truncate" title="${req.address}">${req.address || ''}</div>
+            </td>
+            <td class="p-3">
+              ${typeBadges[req.service_type] || req.service_type}
+            </td>
+            <td class="p-3 max-w-[260px]">
+              ${detailsHtml}
+            </td>
+            <td class="p-3">
+              ${imageThumb}
+            </td>
+            <td class="p-3">
+              ${statusBadge}
+              ${req.assigned_staff ? `<div class="text-[10px] text-sky-600 mt-1">👤 Phụ trách: <strong>${req.assigned_staff}</strong></div>` : ''}
+            </td>
+            <td class="p-3 text-right">
+              <div class="flex flex-col gap-1 items-end">
+                ${req.status === 'pending' ? `
+                  <button onclick="updateStaffServiceStatus('${req.code}', 'consulting')" class="text-xs bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 px-2 py-1 rounded hover:bg-sky-100 font-medium">
+                    📞 Đã Gọi Tư Vấn
+                  </button>
+                ` : ''}
+                ${req.status !== 'completed' ? `
+                  <button onclick="updateStaffServiceStatus('${req.code}', 'quoted')" class="text-xs bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-1 rounded hover:bg-blue-100 font-medium">
+                    📝 Gửi Báo Giá
+                  </button>
+                  <button onclick="updateStaffServiceStatus('${req.code}', 'shipping')" class="text-xs bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-2 py-1 rounded hover:bg-purple-100 font-medium">
+                    🚚 Lên Lịch Giao/Lắp
+                  </button>
+                  <button onclick="updateStaffServiceStatus('${req.code}', 'completed')" class="text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-2 py-1 rounded hover:bg-emerald-100 font-bold">
+                    ✅ Hoàn Tất
+                  </button>
+                ` : `
+                  <span class="text-xs text-emerald-600 font-bold">🎉 Đã Xong</span>
+                `}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function updateStaffServiceStatus(code, newStatus) {
+      const item = STAFF_SERVICES.find(r => r.code === code);
+      if (!item) return;
+
+      const currentStaff = JSON.parse(localStorage.getItem('morioo_current_user') || 'null') || {
+        id: "acc-staff-1",
+        full_name: "Lê Văn Nhân Viên",
+        role: "staff"
+      };
+
+      item.status = newStatus;
+      item.assigned_staff = item.assigned_staff || currentStaff.full_name;
+      item.updated_at = new Date().toISOString();
+
+      localStorage.setItem('morioo_service_requests', JSON.stringify(STAFF_SERVICES));
+      updateStaffServicesBadge();
+      renderStaffServicesTable();
+      showToast(`Đã chuyển yêu cầu #${code} sang trạng thái mới & ghi nhận xử lý cho ${item.assigned_staff}!`, 'success');
+
+      // Ghi nhận KPI cho nhân viên
+      try {
+        const kpiRecords = JSON.parse(localStorage.getItem('morioo_staff_kpi_records') || '{}');
+        kpiRecords[code] = {
+          staff_id: currentStaff.id,
+          staff_name: currentStaff.full_name,
+          service_code: code,
+          status: newStatus,
+          confirmed_at: new Date().toLocaleString('vi-VN')
+        };
+        localStorage.setItem('morioo_staff_kpi_records', JSON.stringify(kpiRecords));
+      } catch(e) {}
+
+      // Phát BroadcastChannel cho khách & Admin
+      try {
+        const syncChan = new BroadcastChannel('morioo_sync_channel');
+        syncChan.postMessage({
+          type: 'SERVICE_REQUEST_STATUS_CHANGED',
+          code: code,
+          status: newStatus,
+          assigned_staff: item.assigned_staff
+        });
+        setTimeout(() => syncChan.close(), 1000);
+      } catch(e) {}
+    }
+
+    function openLightboxImage(url) {
+      if (!url) return;
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; display:flex; align-items:center; justify-content:center; padding:20px;';
+      overlay.onclick = () => overlay.remove();
+      overlay.innerHTML = `
+        <div style="position:relative; max-width:90vw; max-height:90vh;">
+          <img src="${url}" style="max-width:100%; max-height:85vh; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+          <div style="text-align:center; color:#fff; font-size:12px; margin-top:8px;">Bấm bất kỳ đâu để đóng ảnh</div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
     }
 
     window.addEventListener('storage', (e) => {

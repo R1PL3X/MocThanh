@@ -1253,3 +1253,30 @@ img {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==============================================================================
+   5 DỊCH VỤ NỘI THẤT MORIOO (SERVICES SUITE)
+   ============================================================================== */
+.service-suite-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.service-suite-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08) !important;
+    border-color: #cbd5e1 !important;
+}
+.service-suite-card.highlighted:hover {
+    border-color: #991b1b !important;
+    box-shadow: 0 14px 32px rgba(185, 28, 28, 0.14) !important;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

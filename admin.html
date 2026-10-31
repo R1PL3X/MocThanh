@@ -238,8 +238,8 @@
         onclick="switchAdminTab('quotes')" 
         class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap"
       >
-        <span>📄 Báo Giá Dự Án (B2B)</span>
-        <span id="quotesCountBadge" class="bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+        <span>🛎️ Yêu Cầu Dịch Vụ Khách Hàng & Báo Giá (B2B)</span>
+        <span id="quotesCountBadge" class="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
       </button>
 
       <button 
@@ -702,20 +702,37 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- TAB 4: BÁO GIÁ DỰ ÁN B2B (QUOTES MANAGEMENT) -->
+    <!-- TAB 4: YÊU CẦU DỊCH VỤ KHÁCH HÀNG & BÁO GIÁ DỰ ÁN (B2B) -->
     <!-- ========================================================================= -->
     <div id="tabQuotesContent" class="space-y-6 hidden">
       <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 class="text-sm font-bold text-gray-900 dark:text-white">Danh Sách Yêu Cầu Báo Giá Dự Án (B2B) MORIOO</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Tiếp nhận thông tin khách hàng cần cung cấp số lượng lớn, đối tác thiết kế và chủ đầu tư dự án.</p>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span>🛎️</span>
+              <span>Tổng Hợp Yêu Cầu Dịch Vụ Khách Hàng & Báo Giá B2B</span>
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Giám sát 5 gói dịch vụ (Tư vấn, Đặt đóng, Vận chuyển, Bảo trì, Thiết kế) và các hợp đồng báo giá số lượng lớn.
+            </p>
           </div>
           <div class="flex items-center gap-2 self-start sm:self-auto">
-            <button onclick="renderAdminQuotesTable()" class="text-xs bg-blue-50 dark:bg-zinc-800 text-blue-800 dark:text-blue-400 border border-blue-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition flex items-center gap-1 font-medium">
-              ⟳ Làm mới yêu cầu
+            <button onclick="renderAdminQuotesTable()" class="text-xs bg-amber-50 dark:bg-zinc-800 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-zinc-700 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition flex items-center gap-1 font-medium">
+              ⟳ Làm mới dữ liệu
             </button>
           </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="px-4 py-3 bg-gray-50/70 dark:bg-zinc-800/40 border-b border-gray-200 dark:border-zinc-800 flex flex-wrap items-center gap-2">
+          <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 mr-1">Bộ lọc:</span>
+          <button onclick="setAdminServiceFilter('all')" class="admin-svc-filter active text-xs px-2.5 py-1 rounded font-semibold bg-amber-700 text-white" data-type="all">Tất Cả</button>
+          <button onclick="setAdminServiceFilter('tu-van')" class="admin-svc-filter text-xs px-2.5 py-1 rounded font-medium bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-gray-300" data-type="tu-van">🛋️ Tư Vấn</button>
+          <button onclick="setAdminServiceFilter('dat-dong')" class="admin-svc-filter text-xs px-2.5 py-1 rounded font-medium bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-gray-300" data-type="dat-dong">📐 Đặt Đóng</button>
+          <button onclick="setAdminServiceFilter('van-chuyen')" class="admin-svc-filter text-xs px-2.5 py-1 rounded font-medium bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-gray-300" data-type="van-chuyen">🚚 Vận Chuyển</button>
+          <button onclick="setAdminServiceFilter('bao-tri')" class="admin-svc-filter text-xs px-2.5 py-1 rounded font-medium bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-gray-300" data-type="bao-tri">🛠️ Bảo Trì</button>
+          <button onclick="setAdminServiceFilter('thiet-ke-khong-gian')" class="admin-svc-filter text-xs px-2.5 py-1 rounded font-medium bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-gray-300" data-type="thiet-ke-khong-gian">🏠 Thiết Kế Không Gian</button>
+          <button onclick="setAdminServiceFilter('b2b-quote')" class="admin-svc-filter text-xs px-2.5 py-1 rounded font-medium bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-gray-300" data-type="b2b-quote">📄 Báo Giá B2B</button>
         </div>
 
         <div class="overflow-x-auto">
@@ -723,10 +740,12 @@
             <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
               <tr>
                 <th class="p-3.5">Mã / Ngày gửi</th>
-                <th class="p-3.5">Khách hàng & SĐT</th>
-                <th class="p-3.5">Loại hình dự án</th>
-                <th class="p-3.5">Nhu cầu & Số lượng dự kiến</th>
-                <th class="p-3.5">Trạng thái xử lý</th>
+                <th class="p-3.5">Khách hàng & Liên hệ</th>
+                <th class="p-3.5">Loại yêu cầu</th>
+                <th class="p-3.5">Thông tin chi tiết & Ngân sách</th>
+                <th class="p-3.5">Ảnh / Bản vẽ</th>
+                <th class="p-3.5">Nhân viên phụ trách</th>
+                <th class="p-3.5">Trạng thái</th>
                 <th class="p-3.5 text-right">Thao tác</th>
               </tr>
             </thead>
@@ -2589,69 +2608,289 @@
     }
 
     // =========================================================================
-    // TAB 4: BÁO GIÁ DỰ ÁN B2B (QUOTES)
+    // TAB 4: YÊU CẦU DỊCH VỤ KHÁCH HÀNG & BÁO GIÁ DỰ ÁN (B2B)
     // =========================================================================
+    let ADMIN_SERVICE_FILTER = 'all';
+
+    function setAdminServiceFilter(filter) {
+      ADMIN_SERVICE_FILTER = filter;
+      document.querySelectorAll('.admin-svc-filter').forEach(btn => {
+        const isMatch = btn.dataset.type === filter;
+        btn.className = isMatch 
+          ? "admin-svc-filter active text-xs px-2.5 py-1 rounded font-semibold bg-amber-700 text-white"
+          : "admin-svc-filter text-xs px-2.5 py-1 rounded font-medium bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-gray-300";
+      });
+      renderAdminQuotesTable();
+    }
+
     function renderAdminQuotesTable() {
       const tbody = document.getElementById('adminQuotesTableBody');
       if (!tbody) return;
 
-      if (ALL_QUOTES.length === 0) {
+      // 1. Tải danh sách yêu cầu dịch vụ từ LocalStorage / Cloud
+      let serviceReqs = [];
+      const s = localStorage.getItem('morioo_service_requests');
+      if (s) {
+        try { serviceReqs = JSON.parse(s); } catch(e){}
+      }
+
+      // 2. Chuyển đổi và chuẩn hóa thành danh sách đồng nhất
+      let unifiedList = [];
+
+      // Dịch vụ khách hàng
+      serviceReqs.forEach(r => {
+        unifiedList.push({
+          source: 'service',
+          code: r.code || r.id,
+          type: r.service_type || 'tu-van',
+          customer_name: r.customer_name,
+          customer_phone: r.customer_phone,
+          customer_email: r.customer_email || '',
+          address: r.address || '',
+          details: r.details || {},
+          image_url: r.image_url || '',
+          status: r.status || 'pending',
+          assigned_staff: r.assigned_staff || '',
+          created_at: r.created_at || ''
+        });
+      });
+
+      // Báo giá B2B
+      ALL_QUOTES.forEach(q => {
+        unifiedList.push({
+          source: 'quote',
+          code: q.quote_code,
+          type: 'b2b-quote',
+          customer_name: q.customer_name,
+          customer_phone: q.customer_phone,
+          customer_email: '',
+          address: '',
+          details: {
+            project_type: q.project_type,
+            items_desc: q.items_desc,
+            budget: q.estimated_budget
+          },
+          image_url: '',
+          status: q.status || 'pending',
+          assigned_staff: 'Ban Giám Đốc B2B',
+          created_at: q.created_at || ''
+        });
+      });
+
+      // Cập nhật số lượng trên Tab Badge
+      const badge = document.getElementById('quotesCountBadge');
+      if (badge) {
+        badge.textContent = unifiedList.length;
+      }
+
+      // Áp dụng bộ lọc
+      if (ADMIN_SERVICE_FILTER !== 'all') {
+        unifiedList = unifiedList.filter(item => item.type === ADMIN_SERVICE_FILTER);
+      }
+
+      if (unifiedList.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="6" class="p-8 text-center text-gray-400">
-              <div class="text-3xl mb-1.5">📄</div>
-              <div class="font-bold text-gray-600 dark:text-gray-300">Chưa có yêu cầu báo giá dự án nào</div>
+            <td colspan="8" class="p-8 text-center text-gray-400">
+              <div class="text-3xl mb-1.5">🛎️</div>
+              <div class="font-bold text-gray-600 dark:text-gray-300">Không có yêu cầu dịch vụ hoặc báo giá nào</div>
             </td>
           </tr>
         `;
         return;
       }
 
-      tbody.innerHTML = ALL_QUOTES.map(q => {
+      const typeLabels = {
+        'tu-van': `<span class="bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 px-2 py-0.5 rounded text-[11px] font-bold">🛋️ Tư Vấn Nội Thất</span>`,
+        'dat-dong': `<span class="bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 px-2 py-0.5 rounded text-[11px] font-bold">📐 May Đo Đặt Đóng</span>`,
+        'van-chuyen': `<span class="bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 px-2 py-0.5 rounded text-[11px] font-bold">🚚 Vận Chuyển & Lắp</span>`,
+        'bao-tri': `<span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 px-2 py-0.5 rounded text-[11px] font-bold">🛠️ Bảo Trì Sửa Chữa</span>`,
+        'thiet-ke-khong-gian': `<span class="bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 px-2 py-0.5 rounded text-[11px] font-bold">🏠 Thiết Kế Không Gian</span>`,
+        'b2b-quote': `<span class="bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 px-2 py-0.5 rounded text-[11px] font-bold">📄 Báo Giá B2B Dự Án</span>`
+      };
+
+      tbody.innerHTML = unifiedList.map(item => {
+        const d = item.details || {};
+        let detailsText = '';
+
+        if (item.type === 'b2b-quote') {
+          detailsText = `
+            <div class="font-semibold text-gray-900 dark:text-white">${d.project_type || ''}</div>
+            <div class="text-xs text-gray-500">${d.items_desc || ''}</div>
+            <div class="text-xs text-amber-800 dark:text-amber-400 font-bold mt-0.5">Dự toán: ${formatPrice(d.budget || 0)}</div>
+          `;
+        } else if (item.type === 'tu-van') {
+          detailsText = `
+            <div><strong>Không gian:</strong> ${d.room_type || ''} (${d.room_area || ''})</div>
+            <div><strong>Phong cách:</strong> ${d.style_preference || ''}</div>
+            <div class="text-amber-700 dark:text-amber-400 font-bold">Ngân sách: ${d.budget_range || ''}</div>
+          `;
+        } else if (item.type === 'dat-dong') {
+          detailsText = `
+            <div class="font-bold text-gray-900 dark:text-white">${d.product_category || ''}</div>
+            <div><strong>KT:</strong> ${d.dimensions || ''} | <strong>Gỗ:</strong> ${d.wood_material || ''}</div>
+            <div class="text-xs text-gray-500">${d.color_finish || ''}</div>
+          `;
+        } else if (item.type === 'van-chuyen') {
+          detailsText = `
+            <div><strong>Đơn hàng:</strong> <code class="text-sky-600 font-bold">${d.order_code || 'Chưa có'}</code></div>
+            <div><strong>Hẹn:</strong> ${d.preferred_date || ''} (${d.preferred_time || ''})</div>
+            <div class="text-xs text-purple-700 dark:text-purple-400">${d.installation_service || ''}</div>
+          `;
+        } else if (item.type === 'bao-tri') {
+          detailsText = `
+            <div class="font-bold text-gray-900 dark:text-white">${d.product_item || ''}</div>
+            <div class="text-rose-600 font-medium">${d.issue_type || ''}</div>
+            <div class="text-xs text-gray-500">${d.problem_description || ''}</div>
+          `;
+        } else if (item.type === 'thiet-ke-khong-gian') {
+          detailsText = `
+            <div class="font-bold text-gray-900 dark:text-white">${d.space_category || ''}</div>
+            <div><strong>KT:</strong> ${d.room_dimensions || ''}</div>
+            <div class="text-emerald-700 dark:text-emerald-400 font-bold">Dự toán: ${d.budget_tier || ''}</div>
+          `;
+        }
+
+        let imgCell = '<span class="text-gray-400 text-[11px]">-</span>';
+        if (item.image_url) {
+          imgCell = `
+            <div class="cursor-pointer group relative" onclick="openAdminLightboxImage('${item.image_url}')">
+              <img src="${item.image_url}" class="w-12 h-12 object-cover rounded border border-gray-200 dark:border-zinc-700 group-hover:scale-105 transition">
+              <span class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[10px] rounded transition">🔍 Xem</span>
+            </div>
+          `;
+        }
+
         let badgeStatus = '';
-        if (q.status === 'approved') {
-          badgeStatus = `<span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 px-2.5 py-0.5 rounded text-[11px] font-bold">🤝 Đã ký hợp đồng</span>`;
-        } else if (q.status === 'negotiating') {
-          badgeStatus = `<span class="bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-400 px-2.5 py-0.5 rounded text-[11px] font-bold">📝 Đang gửi báo giá</span>`;
-        } else if (q.status === 'rejected') {
-          badgeStatus = `<span class="bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400 px-2.5 py-0.5 rounded text-[11px] font-bold">❌ Đã từ chối</span>`;
+        if (item.status === 'completed' || item.status === 'approved') {
+          badgeStatus = `<span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 px-2 py-0.5 rounded text-[11px] font-bold">✅ Hoàn tất</span>`;
+        } else if (item.status === 'in_progress' || item.status === 'shipping') {
+          badgeStatus = `<span class="bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-400 px-2 py-0.5 rounded text-[11px] font-bold">🚚 Đang giao/lắp</span>`;
+        } else if (item.status === 'quoted' || item.status === 'negotiating') {
+          badgeStatus = `<span class="bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-400 px-2 py-0.5 rounded text-[11px] font-bold">📝 Đang báo giá</span>`;
         } else {
-          badgeStatus = `<span class="bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400 px-2.5 py-0.5 rounded text-[11px] font-bold">⏳ Mới tiếp nhận</span>`;
+          badgeStatus = `<span class="bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400 px-2 py-0.5 rounded text-[11px] font-bold">⏳ Mới tiếp nhận</span>`;
         }
 
         return `
           <tr class="hover:bg-gray-50/50 dark:hover:bg-zinc-800/40 transition">
-            <td class="p-3.5 font-mono text-xs">
-              <span class="font-bold text-blue-600 dark:text-blue-400">#${q.quote_code}</span>
-              <div class="text-[10px] text-gray-400 mt-0.5">${q.created_at || ''}</div>
+            <td class="p-3 font-mono">
+              <span class="font-bold text-sky-700 dark:text-sky-400">#${item.code}</span>
+              <div class="text-[10px] text-gray-400 mt-0.5">${item.created_at ? new Date(item.created_at).toLocaleString('vi-VN') : ''}</div>
             </td>
-            <td class="p-3.5">
-              <div class="font-bold text-gray-900 dark:text-white">${q.customer_name}</div>
-              <div class="text-xs text-amber-700 dark:text-amber-400 font-mono">${q.customer_phone}</div>
+            <td class="p-3">
+              <div class="font-bold text-gray-900 dark:text-white">${item.customer_name}</div>
+              <div class="text-xs text-amber-700 dark:text-amber-400 font-mono">${item.customer_phone}</div>
+              ${item.address ? `<div class="text-[10px] text-gray-400 max-w-[170px] truncate" title="${item.address}">${item.address}</div>` : ''}
             </td>
-            <td class="p-3.5 font-semibold text-gray-900 dark:text-white">
-              ${q.project_type}
+            <td class="p-3">
+              ${typeLabels[item.type] || item.type}
             </td>
-            <td class="p-3.5">
-              <div class="text-xs text-gray-600 dark:text-gray-300">${q.items_desc}</div>
-              <div class="text-[11px] text-amber-800 dark:text-amber-400 font-mono font-bold mt-1">Dự toán: ${formatPrice(q.estimated_budget)}</div>
+            <td class="p-3 max-w-[260px]">
+              ${detailsText}
             </td>
-            <td class="p-3.5">
+            <td class="p-3">
+              ${imgCell}
+            </td>
+            <td class="p-3">
+              <div class="text-xs font-semibold text-gray-800 dark:text-gray-200">${item.assigned_staff || '<span class="text-gray-400 italic">Chưa phân công</span>'}</div>
+              <button onclick="adminAssignStaffToService('${item.code}')" class="text-[10px] text-sky-600 hover:underline mt-0.5 block">Phân công lại</button>
+            </td>
+            <td class="p-3">
               ${badgeStatus}
             </td>
-            <td class="p-3.5 text-right">
-              <button 
-                onclick="deleteQuote('${q.quote_code}')" 
-                class="text-xs text-red-600 hover:text-red-800 font-bold px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition" 
-                title="Xóa yêu cầu báo giá"
-              >
-                🗑️ Xóa
-              </button>
+            <td class="p-3 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                <button onclick="adminToggleServiceStatus('${item.code}', '${item.source}')" class="text-xs text-blue-600 hover:text-blue-800 font-bold px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-950/40 transition" title="Đổi trạng thái">
+                  🔄 Trạng thái
+                </button>
+                <button onclick="adminDeleteServiceOrQuote('${item.code}', '${item.source}')" class="text-xs text-red-600 hover:text-red-800 font-bold px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition" title="Xóa">
+                  🗑️ Xóa
+                </button>
+              </div>
             </td>
           </tr>
         `;
       }).join('');
     }
+
+    function adminToggleServiceStatus(code, source) {
+      if (source === 'quote') {
+        const q = ALL_QUOTES.find(item => item.quote_code === code);
+        if (q) {
+          const next = q.status === 'pending' ? 'negotiating' : (q.status === 'negotiating' ? 'approved' : 'pending');
+          q.status = next;
+          localStorage.setItem('morioo_quotes', JSON.stringify(ALL_QUOTES));
+          renderAdminQuotesTable();
+          showToast(`Đã cập nhật trạng thái báo giá #${code}!`, 'success');
+        }
+      } else {
+        const s = localStorage.getItem('morioo_service_requests');
+        let list = s ? JSON.parse(s) : [];
+        const item = list.find(r => r.code === code);
+        if (item) {
+          const next = item.status === 'pending' ? 'quoted' : (item.status === 'quoted' ? 'shipping' : (item.status === 'shipping' ? 'completed' : 'pending'));
+          item.status = next;
+          localStorage.setItem('morioo_service_requests', JSON.stringify(list));
+          renderAdminQuotesTable();
+          showToast(`Đã chuyển yêu cầu dịch vụ #${code} sang trạng thái mới!`, 'success');
+
+          // Broadcast cho các tab khác
+          try {
+            const bc = new BroadcastChannel('morioo_sync_channel');
+            bc.postMessage({ type: 'SERVICE_REQUEST_STATUS_CHANGED', code: code, status: next });
+            setTimeout(() => bc.close(), 1000);
+          } catch(e) {}
+        }
+      }
+    }
+
+    function adminAssignStaffToService(code) {
+      const staffList = (ALL_ACCOUNTS || []).filter(a => a.role === 'staff' || a.role === 'admin');
+      const staffNames = staffList.map(s => s.full_name).join(', ') || 'Lê Văn Nhân Viên, Quản Trị Viên MORIOO';
+      const chosen = prompt(`Nhập tên nhân viên phân công phụ trách #${code} (${staffNames}):`, 'Lê Văn Nhân Viên');
+      if (!chosen) return;
+
+      const s = localStorage.getItem('morioo_service_requests');
+      let list = s ? JSON.parse(s) : [];
+      const item = list.find(r => r.code === code);
+      if (item) {
+        item.assigned_staff = chosen;
+        localStorage.setItem('morioo_service_requests', JSON.stringify(list));
+        renderAdminQuotesTable();
+        showToast(`Đã phân công ${chosen} phụ trách #${code}!`, 'success');
+      }
+    }
+
+    function adminDeleteServiceOrQuote(code, source) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa yêu cầu #${code}?`)) return;
+      if (source === 'quote') {
+        ALL_QUOTES = ALL_QUOTES.filter(q => q.quote_code !== code);
+        localStorage.setItem('morioo_quotes', JSON.stringify(ALL_QUOTES));
+      } else {
+        const s = localStorage.getItem('morioo_service_requests');
+        let list = s ? JSON.parse(s) : [];
+        list = list.filter(r => r.code !== code);
+        localStorage.setItem('morioo_service_requests', JSON.stringify(list));
+      }
+      renderAdminQuotesTable();
+      showToast(`Đã xóa yêu cầu #${code}!`, 'info');
+    }
+
+    function openAdminLightboxImage(url) {
+      if (!url) return;
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; display:flex; align-items:center; justify-content:center; padding:20px;';
+      overlay.onclick = () => overlay.remove();
+      overlay.innerHTML = `
+        <div style="position:relative; max-width:90vw; max-height:90vh;">
+          <img src="${url}" style="max-width:100%; max-height:85vh; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+          <div style="text-align:center; color:#fff; font-size:12px; margin-top:8px;">Bấm bất kỳ đâu để đóng ảnh</div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+
 
     function deleteQuote(quoteCode) {
       if (confirm(`Bạn có chắc chắn muốn xóa yêu cầu báo giá #${quoteCode}?`)) {

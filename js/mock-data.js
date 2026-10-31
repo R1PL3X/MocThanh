@@ -5,10 +5,11 @@
 
 export const INITIAL_CATEGORIES = [
     { slug: "all", name: "Tất Cả Sản Phẩm", icon: "grid" },
-    { slug: "phong-ngu", name: "Phòng Ngủ", icon: "bed", count: 3 },
-    { slug: "phong-khach", name: "Phòng Khách", icon: "sofa", count: 4 },
+    { slug: "phong-khach", name: "Phòng Khách", icon: "sofa", count: 3 },
+    { slug: "phong-ngu", name: "Phòng Ngủ", icon: "bed", count: 2 },
     { slug: "phong-an", name: "Phòng Ăn & Bếp", icon: "utensils", count: 1 },
-    { slug: "lam-viec", name: "Góc Làm Việc", icon: "briefcase", count: 2 },
+    { slug: "lam-viec", name: "Góc Làm Việc", icon: "briefcase", count: 1 },
+    { slug: "tu-ke", name: "Tủ & Kệ", icon: "box", count: 5 },
     { slug: "decor", name: "Phụ Kiện Gỗ & Decor", icon: "sparkles", count: 2 }
 ];
 
@@ -112,7 +113,7 @@ export const INITIAL_PRODUCTS = [
         id: "prod-5",
         slug: "ke-tivi-go-soi-ngan-keo-toi-gian",
         name: "Kệ Tivi Gỗ Sồi Tự Nhiên 3 Ngăn Kéo MORIOO",
-        category_slug: "phong-khach",
+        category_slug: "tu-ke",
         wood_type: "Gỗ Sồi Trắng Bắc Mỹ",
         price: 5200000,
         original_price: 6500000,
@@ -176,7 +177,7 @@ export const INITIAL_PRODUCTS = [
         id: "prod-8",
         slug: "ke-sach-go-tu-nhien-4-tang-modul",
         name: "Kệ Sách Gỗ Tự Nhiên 4 Tầng Ghép Khối Modul MORIOO",
-        category_slug: "lam-viec",
+        category_slug: "tu-ke",
         wood_type: "Gỗ Tần Bì Ash",
         price: 3200000,
         original_price: 3900000,
@@ -197,7 +198,7 @@ export const INITIAL_PRODUCTS = [
         id: "prod-9",
         slug: "tu-quan-ao-go-soi-cua-lua-wabi-sabi",
         name: "Tủ Quần Áo Gỗ Sồi Cửa Lùa Phong Cách Wabi-Sabi",
-        category_slug: "phong-ngu",
+        category_slug: "tu-ke",
         wood_type: "Gỗ Sồi Trắng & Nan Gỗ Thông",
         price: 14500000,
         original_price: 17900000,
@@ -240,7 +241,7 @@ export const INITIAL_PRODUCTS = [
         id: "prod-11",
         slug: "tab-dau-giuong-go-soi-1-ngan-keo",
         name: "Tủ Kệ Đầu Giường Gỗ Sồi 1 Ngăn Kéo Nhỏ Gọn",
-        category_slug: "phong-ngu",
+        category_slug: "tu-ke",
         wood_type: "Gỗ Sồi Trắng Bắc Mỹ",
         price: 1650000,
         original_price: 2100000,
@@ -276,6 +277,27 @@ export const INITIAL_PRODUCTS = [
         is_new: false,
         is_bestseller: false,
         image_url: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=1000&q=80",
+        secondary_images: []
+    },
+    {
+        id: "prod-13",
+        slug: "tu-giay-go-soi-3-canh-nan-thong-thoang-khi",
+        name: "Tủ Giày Gỗ Sồi 3 Cánh Nan Thông Thoáng Khí MORIOO",
+        category_slug: "tu-ke",
+        wood_type: "Gỗ Sồi Trắng Bắc Mỹ",
+        price: 4650000,
+        original_price: 5800000,
+        rating: 4.9,
+        reviews_count: 35,
+        dimensions: "105 x 35 x 98 cm",
+        short_desc: "Tủ giày cửa nan thoáng khí chống ẩm mốc mùi hôi, chứa 18-24 đôi giày, ngăn kéo tiện lợi để chìa khóa.",
+        description: "Chế tác từ gỗ sồi trắng tự nhiên nguyên khối kết hợp cánh nan gỗ truyền thống phong cách Nhật. Các khe nan được vát góc tỉ mỉ giúp không khí luôn lưu thông khô ráo tự nhiên. Bản lề giảm chấn chống ồn cao cấp.",
+        in_stock: true,
+        stock_quantity: 14,
+        is_featured: true,
+        is_new: true,
+        is_bestseller: true,
+        image_url: "https://images.unsplash.com/photo-1595514535415-dae89835e5a6?auto=format&fit=crop&w=1000&q=80",
         secondary_images: []
     }
 ];
