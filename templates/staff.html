@@ -654,7 +654,9 @@
     // Clean Mock Data - pure Cloud state
     let STAFF_PRODUCTS = [];
     let STAFF_ORDERS = [];
+    let STAFF_SERVICES = [];
     let ACTIVE_STAFF_FILTER = 'all';
+    let ACTIVE_STAFF_SERVICE_FILTER = 'all';
     let UPLOADED_BASE64_IMG = '';
 
     function purgeLegacyMockData() {
@@ -1495,8 +1497,6 @@
     // =========================================================================
     // XỬ LÝ 5 GÓI DỊCH VỤ KHÁCH HÀNG (STAFF SERVICES MANAGEMENT - SUPABASE CLOUD)
     // =========================================================================
-    let STAFF_SERVICES = [];
-    let ACTIVE_STAFF_SERVICE_FILTER = 'all';
 
     async function loadStaffServiceRequests() {
       try {
@@ -1514,7 +1514,6 @@
       STAFF_SERVICES = [];
       updateStaffServicesBadge();
       renderStaffServicesTable();
-    }
     }
 
     function updateStaffServicesBadge() {

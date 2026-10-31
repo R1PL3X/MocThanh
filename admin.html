@@ -1098,6 +1098,7 @@
     let ALL_PRODUCTS = [];
     let ALL_ORDERS = [];
     let ALL_SERVICES = [];
+    let ALL_QUOTES = [];
     let ALL_ACCOUNTS = [];
     let CURRENT_ACCOUNT_FILTER = 'all';
 
@@ -1560,7 +1561,7 @@
       document.getElementById('statRevenue').textContent = formatPrice(totalRev);
       document.getElementById('statOrders').textContent = ALL_ORDERS.length;
       document.getElementById('statProducts').textContent = ALL_PRODUCTS.length;
-      document.getElementById('statQuotes').textContent = ALL_QUOTES.length;
+      document.getElementById('statQuotes').textContent = (ALL_SERVICES || []).length;
       if (document.getElementById('statAccounts')) {
         document.getElementById('statAccounts').textContent = ALL_ACCOUNTS.length;
       }
@@ -1577,7 +1578,7 @@
 
       document.getElementById('ordersCountBadge').textContent = ALL_ORDERS.length;
       document.getElementById('productsCountBadge').textContent = ALL_PRODUCTS.length;
-      document.getElementById('quotesCountBadge').textContent = ALL_QUOTES.length;
+      document.getElementById('quotesCountBadge').textContent = (ALL_SERVICES || []).length;
       if (document.getElementById('accountsCountBadge')) {
         document.getElementById('accountsCountBadge').textContent = ALL_ACCOUNTS.length;
       }
@@ -3037,7 +3038,6 @@
       }
 
       persistAccounts();
-    }
     }
 
     async function deleteAccount(accId, email) {

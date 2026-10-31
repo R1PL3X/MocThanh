@@ -165,6 +165,17 @@ class SupabaseDataService {
                         (p.short_desc && p.short_desc.toLowerCase().includes(q))
                     );
                 }
+                if (filters.sort) {
+                    if (filters.sort === 'bestseller') {
+                        list.sort((a, b) => (b.is_bestseller ? 1 : 0) - (a.is_bestseller ? 1 : 0));
+                    } else if (filters.sort === 'price-asc') {
+                        list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+                    } else if (filters.sort === 'price-desc') {
+                        list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+                    } else if (filters.sort === 'rating') {
+                        list.sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
+                    }
+                }
                 return list;
             }
         } catch (err) {
@@ -192,6 +203,17 @@ class SupabaseDataService {
                 (p.short_desc && p.short_desc.toLowerCase().includes(q)) ||
                 (p.description && p.description.toLowerCase().includes(q))
             );
+        }
+        if (filters.sort) {
+            if (filters.sort === 'bestseller') {
+                list.sort((a, b) => (b.is_bestseller ? 1 : 0) - (a.is_bestseller ? 1 : 0));
+            } else if (filters.sort === 'price-asc') {
+                list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+            } else if (filters.sort === 'price-desc') {
+                list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+            } else if (filters.sort === 'rating') {
+                list.sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
+            }
         }
         return list;
     }
