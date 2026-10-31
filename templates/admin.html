@@ -59,14 +59,14 @@
       </div>
 
       <div class="flex items-center gap-2 sm:gap-3">
-        <!-- Supabase Cloud Sync Button -->
+        <!-- System Refresh Data Button -->
         <button 
           type="button" 
           onclick="loadDataFromSupabase()" 
-          class="hidden sm:inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-zinc-800 hover:bg-emerald-100 dark:hover:bg-zinc-700 text-emerald-900 dark:text-emerald-300 border border-emerald-200 dark:border-zinc-700 font-semibold transition" 
-          title="Đồng bộ lại dữ liệu mới nhất từ Supabase Cloud"
+          class="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-zinc-800 hover:bg-emerald-100 dark:hover:bg-zinc-700 text-emerald-900 dark:text-emerald-300 border border-emerald-200 dark:border-zinc-700 font-semibold transition" 
+          title="Làm mới toàn bộ dữ liệu mới nhất từ hệ thống"
         >
-          <span>☁️ Đồng Bộ Cloud</span>
+          <span>🔄 Làm Mới Dữ Liệu</span>
         </button>
 
         <!-- Dark/Light Theme Toggle -->
@@ -1094,46 +1094,44 @@
     let CURRENT_TAB = 'revenue';
     let CURRENT_ORDER_FILTER = 'all';
 
-    // State Variables
+    // State Variables - 100% Pure Cloud State
     let ALL_PRODUCTS = [];
     let ALL_ORDERS = [];
-    let ALL_QUOTES = [];
+    let ALL_SERVICES = [];
     let ALL_ACCOUNTS = [];
     let CURRENT_ACCOUNT_FILTER = 'all';
 
-    // Default Seed Accounts (Admin, Staff, Customer)
-    const DEFAULT_ACCOUNTS = [
-      {
-        id: "acc-admin-supreme",
-        email: "admin@morioo.vn",
-        password_hash: "Admin123!",
-        full_name: "Quản Trị Viên MORIOO",
-        phone: "0901234567",
-        role: "admin",
-        department: "Ban Giám Đốc & Quản Trị Hệ Thống",
-        created_at: new Date().toISOString()
-      },
-      {
-        id: "acc-staff-1",
-        email: "nhanvien@morioo.vn",
-        password_hash: "Staff123!",
-        full_name: "Lê Văn Nhân Viên",
-        phone: "0912345678",
-        role: "staff",
-        department: "Xử Lý Đơn Hàng & Kho Vận",
-        created_at: new Date().toISOString()
-      },
-      {
-        id: "acc-customer-1",
-        email: "khachhang@gmail.com",
-        password_hash: "Khach123!",
-        full_name: "Trần Khách Hàng",
-        phone: "0987654321",
-        role: "customer",
-        department: "Khách Hàng Thân Thiết",
-        created_at: new Date().toISOString()
-      }
-    ];
+    function purgeLegacyMockData() {
+      try {
+        const rawOrders = localStorage.getItem('morioo_orders');
+        if (rawOrders) {
+          const list = JSON.parse(rawOrders);
+          if (Array.isArray(list)) {
+            const clean = list.filter(o => o.order_code && !o.order_code.startsWith('MR-2610-'));
+            localStorage.setItem('morioo_orders', JSON.stringify(clean));
+          }
+        }
+        const rawProds = localStorage.getItem('morioo_products');
+        if (rawProds) {
+          const list = JSON.parse(rawProds);
+          if (Array.isArray(list)) {
+            const clean = list.filter(p => p.id && !String(p.id).startsWith('p-'));
+            localStorage.setItem('morioo_products', JSON.stringify(clean));
+          }
+        }
+        const rawSvcs = localStorage.getItem('morioo_service_requests');
+        if (rawSvcs) {
+          const list = JSON.parse(rawSvcs);
+          if (Array.isArray(list)) {
+            const clean = list.filter(s => s.code && !s.code.startsWith('DV-TV-8') && !s.code.startsWith('DV-DD-3') && !s.code.startsWith('DV-VC-5') && !s.code.startsWith('DV-BT-7') && !s.code.startsWith('DV-KG-9'));
+            localStorage.setItem('morioo_service_requests', JSON.stringify(clean));
+          }
+        }
+        localStorage.removeItem('morioo_quotes');
+        localStorage.removeItem('morioo_order_status_overrides');
+        localStorage.removeItem('morioo_deleted_order_codes');
+      } catch(e) {}
+    }
 
     // Image Presets for Quick Fill
     const IMAGE_PRESETS = {
@@ -1363,13 +1361,13 @@
 
       if (status === 'connected') {
         pill.className = "inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 shadow-xs";
-        text.textContent = "Supabase Cloud Trực Tuyến";
+        text.textContent = "Hệ Thống Trực Tuyến";
       } else if (status === 'connecting') {
         pill.className = "inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-300 dark:border-amber-800 shadow-xs";
-        text.textContent = "Đang kết nối Cloud...";
+        text.textContent = "Đang đồng bộ...";
       } else {
-        pill.className = "inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-400 border border-blue-300 dark:border-blue-800 shadow-xs";
-        text.textContent = "Bộ Nhớ Đệm Nội Bộ";
+        pill.className = "inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-semibold bg-gray-100 text-gray-800 dark:bg-zinc-800 dark:text-gray-300 border border-gray-300 dark:border-zinc-700 shadow-xs";
+        text.textContent = "Hệ Thống Sẵn Sàng";
       }
     }
 
@@ -1415,18 +1413,29 @@
         }
       } catch(e) {}
 
-      const kpiRecords = JSON.parse(localStorage.getItem('morioo_staff_kpi_records') || '{}');
-      const rec = kpiRecords[o.order_code] || (o.id ? kpiRecords[o.id] : null);
+      let staffId = o.confirmed_by_staff_id || null;
+      let staffName = o.confirmed_by_staff_name || null;
+      let confirmedAt = o.confirmed_at || null;
 
-      let staffId = o.confirmed_by_staff_id || (rec ? rec.staff_id : null);
-      let staffName = o.confirmed_by_staff_name || (rec ? rec.staff_name : null);
-      let confirmedAt = o.confirmed_at || (rec ? rec.confirmed_at : null);
+      // Extract permanent KPI confirmation from note if stored on Cloud
+      if (o.note && o.note.includes('[KPI:')) {
+        const m = o.note.match(/\[KPI:\s*([^\|\]]+)(?:\|\s*ID:\s*([^\|\]]+))?(?:\|\s*([^\]]+))?\]/);
+        if (m) {
+          staffName = m[1] ? m[1].trim() : staffName;
+          staffId = m[2] ? m[2].trim() : staffId;
+          confirmedAt = m[3] ? m[3].trim() : confirmedAt;
+        }
+      }
 
-      // Seed default confirmed orders for 'Lê Văn Nhân Viên' (acc-staff-1)
-      if (!staffId && ['MR-2610-8491', 'MR-2610-3829', 'MR-2610-7164', 'MR-2610-1205'].includes(o.order_code)) {
-        staffId = 'acc-staff-1';
-        staffName = 'Lê Văn Nhân Viên';
-        confirmedAt = o.created_at || '2026-10-29 17:00';
+      // Secondary check from local KPI records
+      if (!staffId) {
+        const kpiRecords = JSON.parse(localStorage.getItem('morioo_staff_kpi_records') || '{}');
+        const rec = kpiRecords[o.order_code] || (o.id ? kpiRecords[o.id] : null);
+        if (rec) {
+          staffId = rec.staff_id;
+          staffName = rec.staff_name;
+          confirmedAt = rec.confirmed_at;
+        }
       }
 
       return {
@@ -1438,6 +1447,7 @@
         total_amount: Number(o.total_amount) || 0,
         payment_method: (o.payment_method || 'BANK_TRANSFER').toUpperCase().includes('BANK') ? 'BANK_TRANSFER' : 'COD',
         status: o.status || 'pending',
+        note: o.note || '',
         created_at: createdStr || 'Vừa xong',
         confirmed_by_staff_id: staffId,
         confirmed_by_staff_name: staffName,
@@ -1466,7 +1476,7 @@
     }
 
     // =========================================================================
-    // LOAD DATA DIRECTLY FROM SUPABASE CLOUD
+    // LOAD DATA DIRECTLY FROM SUPABASE CLOUD (100% ONLINE)
     // =========================================================================
     async function loadProductsFromSupabase() {
       try {
@@ -1477,71 +1487,42 @@
           renderAdminProductsTable();
           updateStatsCards();
           console.log('[Supabase Cloud] Đã làm mới thành công', ALL_PRODUCTS.length, 'sản phẩm từ Cloud!');
-        } else {
-          loadFallbackProducts();
         }
       } catch (err) {
         console.warn('[Supabase Cloud] Không tải được sản phẩm online:', err);
-        loadFallbackProducts();
       }
     }
 
     async function loadDataFromSupabase() {
+      purgeLegacyMockData();
       updateCloudStatusPill('connecting');
 
       // 1. Fetch products from Supabase Cloud
       await loadProductsFromSupabase();
 
-      // 2. Fetch orders from Supabase Cloud (with seamless local merge)
+      // 2. Fetch orders from Supabase Cloud
       try {
         const cloudOrders = await supabaseFetch('orders?select=*&order=created_at.desc');
-        if (cloudOrders && Array.isArray(cloudOrders) && cloudOrders.length > 0) {
-          const statusOverrides = JSON.parse(localStorage.getItem('morioo_order_status_overrides') || '{}');
-          const deletedCodes = JSON.parse(localStorage.getItem('morioo_deleted_order_codes') || '[]');
-
-          const normalizedCloud = cloudOrders
-            .filter(o => !deletedCodes.includes(o.order_code) && !deletedCodes.includes(o.id))
-            .map(o => {
-              const norm = normalizeOrder(o);
-              if (statusOverrides[norm.id] !== undefined) {
-                norm.status = statusOverrides[norm.id];
-              } else if (statusOverrides[norm.order_code] !== undefined) {
-                norm.status = statusOverrides[norm.order_code];
-              }
-              return norm;
-            });
-
-          // Merge: Preserve any in-flight local orders that haven't synced to Cloud yet
-          let localSaved = [];
-          try {
-            const raw = localStorage.getItem('morioo_orders');
-            if (raw) localSaved = JSON.parse(raw);
-          } catch(e) {}
-          const candidateLocals = [...ALL_ORDERS, ...localSaved];
-
-          const mergedMap = new Map();
-          normalizedCloud.forEach(o => mergedMap.set(o.order_code, o));
-          candidateLocals.forEach(lo => {
-            if (lo && lo.order_code && !deletedCodes.includes(lo.order_code)) {
-              if (!mergedMap.has(lo.order_code)) {
-                mergedMap.set(lo.order_code, normalizeOrder(lo));
-              }
-            }
-          });
-
-          ALL_ORDERS = Array.from(mergedMap.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        if (cloudOrders && Array.isArray(cloudOrders)) {
+          ALL_ORDERS = cloudOrders.map(normalizeOrder);
           localStorage.setItem('morioo_orders', JSON.stringify(ALL_ORDERS));
-          console.log('[Supabase Cloud] Đã đồng bộ thành công', ALL_ORDERS.length, 'đơn hàng từ Cloud & Bộ nhớ đệm!');
-        } else {
-          loadFallbackOrders();
+          console.log('[Supabase Cloud] Đã tải thành công', ALL_ORDERS.length, 'đơn hàng từ Cloud!');
         }
       } catch (err) {
         console.warn('[Supabase Cloud] Không tải được đơn hàng online:', err);
-        loadFallbackOrders();
       }
 
-      // 3. Load B2B Quotes
-      loadQuotes();
+      // 3. Fetch service requests & B2B from Supabase Cloud
+      try {
+        const cloudSvcs = await supabaseFetch('service_requests?select=*&order=created_at.desc');
+        if (cloudSvcs && Array.isArray(cloudSvcs)) {
+          ALL_SERVICES = cloudSvcs;
+          localStorage.setItem('morioo_service_requests', JSON.stringify(ALL_SERVICES));
+          console.log('[Supabase Cloud] Đã tải thành công', ALL_SERVICES.length, 'yêu cầu dịch vụ từ Cloud!');
+        }
+      } catch (err) {
+        console.warn('[Supabase Cloud] Không tải được dịch vụ online:', err);
+      }
 
       // 4. Fetch accounts from Supabase Cloud (Admin, Staff, Customer)
       try {
@@ -1550,116 +1531,14 @@
           ALL_ACCOUNTS = cloudAccounts.map(normalizeAccount);
           localStorage.setItem('morioo_accounts', JSON.stringify(ALL_ACCOUNTS));
           console.log('[Supabase Cloud] Đã tải thành công', ALL_ACCOUNTS.length, 'tài khoản từ Cloud!');
-        } else {
-          loadFallbackAccounts();
         }
       } catch (err) {
-        console.warn('[Supabase Cloud] Bảng accounts chưa tồn tại hoặc lỗi, dùng cache hệ thống:', err.message);
-        loadFallbackAccounts();
+        console.warn('[Supabase Cloud] Không tải được tài khoản online:', err.message);
       }
 
       updateCloudStatusPill('connected');
       renderAllData();
-      showToast('☁️ Đã đồng bộ toàn bộ dữ liệu mới nhất từ Supabase Cloud!', 'success');
-    }
-
-    function loadFallbackProducts() {
-      const saved = localStorage.getItem('morioo_products');
-      if (saved) {
-        try {
-          const list = JSON.parse(saved);
-          if (Array.isArray(list) && list.length > 0) {
-            ALL_PRODUCTS = list.map(normalizeProduct);
-            return;
-          }
-        } catch(e) {}
-      }
-      ALL_PRODUCTS = [];
-    }
-
-    function loadFallbackOrders() {
-      const saved = localStorage.getItem('morioo_orders');
-      if (saved) {
-        try {
-          const list = JSON.parse(saved);
-          if (Array.isArray(list) && list.length > 0) {
-            const statusOverrides = JSON.parse(localStorage.getItem('morioo_order_status_overrides') || '{}');
-            ALL_ORDERS = list.map(o => {
-              const norm = normalizeOrder(o);
-              if (statusOverrides[norm.id] !== undefined) {
-                norm.status = statusOverrides[norm.id];
-              } else if (statusOverrides[norm.order_code] !== undefined) {
-                norm.status = statusOverrides[norm.order_code];
-              }
-              return norm;
-            });
-            return;
-          }
-        } catch(e) {}
-      }
-      ALL_ORDERS = [];
-    }
-
-    function loadQuotes() {
-      const saved = localStorage.getItem('morioo_quotes');
-      if (saved) {
-        try {
-          const list = JSON.parse(saved);
-          if (Array.isArray(list) && list.length > 0) {
-            ALL_QUOTES = list;
-            return;
-          }
-        } catch(e) {}
-      }
-
-      ALL_QUOTES = [
-        {
-          quote_code: "BG-MORIOO-01",
-          customer_name: "KTS. Đặng Minh Quân (Công ty V-Studio)",
-          customer_phone: "0918 333 444",
-          project_type: "Biệt thự nghỉ dưỡng 3 tầng tại Đà Lạt",
-          items_desc: "Trọn gói nội thất 4 phòng ngủ gỗ sồi, 1 phòng khách Wabi-Sabi, 1 bàn ăn 10 ghế",
-          estimated_budget: 350000000,
-          status: "negotiating",
-          created_at: "2026-10-27 10:20"
-        },
-        {
-          quote_code: "BG-MORIOO-02",
-          customer_name: "Bà Hoàng Yến (Chuỗi Cà Phê Mộc Trà)",
-          customer_phone: "0909 888 999",
-          project_type: "Chuỗi 3 chi nhánh Cà phê phong cách Zen Nhật Bản",
-          items_desc: "60 bàn trà gỗ sồi chân thấp, 180 đôn lười hạt xốp, 20 kệ trang trí",
-          estimated_budget: 185000000,
-          status: "pending",
-          created_at: "2026-10-29 15:40"
-        },
-        {
-          quote_code: "BG-MORIOO-03",
-          customer_name: "Công ty Cổ phần Bất Động Sản An Gia",
-          customer_phone: "0982 123 456",
-          project_type: "Trang bị nội thất 12 căn hộ mẫu Zen Living",
-          items_desc: "12 bộ giường ngủ Tatami kèm 4 hộc kéo, 12 bộ bàn ăn chân thuôn",
-          estimated_budget: 520000000,
-          status: "approved",
-          created_at: "2026-10-30 09:00"
-        }
-      ];
-      localStorage.setItem('morioo_quotes', JSON.stringify(ALL_QUOTES));
-    }
-
-    function loadFallbackAccounts() {
-      const saved = localStorage.getItem('morioo_accounts');
-      if (saved) {
-        try {
-          const list = JSON.parse(saved);
-          if (Array.isArray(list) && list.length > 0) {
-            ALL_ACCOUNTS = list.map(normalizeAccount);
-            return;
-          }
-        } catch(e) {}
-      }
-      ALL_ACCOUNTS = DEFAULT_ACCOUNTS.map(normalizeAccount);
-      localStorage.setItem('morioo_accounts', JSON.stringify(ALL_ACCOUNTS));
+      showToast('☁️ Đã đồng bộ toàn bộ dữ liệu mới nhất từ Database Cloud!', 'success');
     }
 
     // Persist Products to Local Cache and Trigger Events
@@ -2235,28 +2114,11 @@
       if (order) {
         order.status = newStatus;
 
-        // Lưu override tức thì để không bao giờ bị trả về trạng thái cũ
-        const overrides = JSON.parse(localStorage.getItem('morioo_order_status_overrides') || '{}');
-        overrides[order.order_code] = newStatus;
-        if (order.id) overrides[order.id] = newStatus;
-        localStorage.setItem('morioo_order_status_overrides', JSON.stringify(overrides));
-
         persistOrders();
         renderAdminRevenueTable();
         renderAdminOrdersTable();
         renderAdminKpiTable();
         showToast(`⚡ Đang cập nhật trạng thái đơn #${orderCode} lên Database...`, 'info');
-
-        // Phát tín hiệu thời gian thực cho Cổng Nhân Viên qua BroadcastChannel
-        try {
-          const syncChan = new BroadcastChannel('morioo_sync_channel');
-          syncChan.postMessage({
-            type: 'ORDER_STATUS_CHANGED',
-            orderCode: orderCode,
-            status: newStatus
-          });
-          setTimeout(() => syncChan.close(), 1000);
-        } catch(e) {}
 
         // Gửi PATCH trực tiếp lên Supabase Cloud
         try {
@@ -2268,34 +2130,52 @@
           });
           showToast(`✅ Đã đồng bộ trạng thái đơn #${orderCode} sang "${newStatus}" trên Database!`, 'success');
         } catch (err) {
-          console.warn('[Supabase Cloud] Lưu ý RLS đơn hàng:', err);
+          console.warn('[Supabase Cloud] Lỗi cập nhật đơn hàng:', err);
           showToast(`✅ Đã lưu trạng thái đơn #${orderCode} sang "${newStatus}"!`, 'success');
         }
+
+        // Phát tín hiệu thời gian thực cho Cổng Nhân Viên qua BroadcastChannel
+        try {
+          const syncChan = new BroadcastChannel('morioo_sync_channel');
+          syncChan.postMessage({
+            type: 'ORDER_STATUS_CHANGED',
+            orderCode: orderCode,
+            status: newStatus
+          });
+          setTimeout(() => syncChan.close(), 1000);
+        } catch(e) {}
       }
     }
 
     async function deleteOrder(orderCode) {
-      if (confirm(`Bạn có chắc chắn muốn xóa đơn hàng #${orderCode}?`)) {
+      if (confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng #${orderCode} trên Database Cloud?`)) {
         const order = ALL_ORDERS.find(o => o.order_code === orderCode || o.id === orderCode);
-
-        // Lưu mã đơn đã xóa vào bộ nhớ vĩnh viễn
-        const deletedCodes = JSON.parse(localStorage.getItem('morioo_deleted_order_codes') || '[]');
-        deletedCodes.push(orderCode);
-        if (order && order.id) deletedCodes.push(order.id);
-        localStorage.setItem('morioo_deleted_order_codes', JSON.stringify(deletedCodes));
 
         ALL_ORDERS = ALL_ORDERS.filter(o => o.order_code !== orderCode && (!order || o.id !== order.id));
         persistOrders();
         renderAdminRevenueTable();
         renderAdminOrdersTable();
+        renderAdminKpiTable();
 
         // Gửi DELETE lên Supabase Cloud
         try {
           const queryParam = order && order.id ? `id=eq.${order.id}` : `order_code=eq.${orderCode}`;
           await supabaseFetch(`orders?${queryParam}`, { method: 'DELETE' });
+        } catch(e) {
+          console.warn('[Supabase Cloud] Lỗi xóa đơn hàng:', e);
+        }
+
+        // Broadcast sang các tab khác
+        try {
+          const syncChan = new BroadcastChannel('morioo_sync_channel');
+          syncChan.postMessage({
+            type: 'ORDER_DELETED',
+            orderCode: orderCode
+          });
+          setTimeout(() => syncChan.close(), 1000);
         } catch(e) {}
 
-        showToast(`🗑️ Đã xóa đơn hàng #${orderCode} khỏi Database & Hệ thống!`, 'info');
+        showToast(`🗑️ Đã xóa đơn hàng #${orderCode} khỏi Database Cloud!`, 'info');
       }
     }
 
@@ -2685,24 +2565,25 @@
       const tbody = document.getElementById('adminQuotesTableBody');
       if (!tbody) return;
 
-      // 1. Tải danh sách yêu cầu dịch vụ từ LocalStorage / Cloud
-      let serviceReqs = [];
-      const s = localStorage.getItem('morioo_service_requests');
-      if (s) {
-        try { serviceReqs = JSON.parse(s); } catch(e){}
+      // 1. Tải danh sách yêu cầu dịch vụ từ Cloud
+      let serviceReqs = ALL_SERVICES && ALL_SERVICES.length > 0 ? ALL_SERVICES : [];
+      if (serviceReqs.length === 0) {
+        const s = localStorage.getItem('morioo_service_requests');
+        if (s) {
+          try { serviceReqs = JSON.parse(s); } catch(e){}
+        }
       }
 
       // 2. Chuyển đổi và chuẩn hóa thành danh sách đồng nhất
       let unifiedList = [];
 
-      // Dịch vụ khách hàng
       serviceReqs.forEach(r => {
         unifiedList.push({
           source: 'service',
           code: r.code || r.id,
           type: r.service_type || 'tu-van',
-          customer_name: r.customer_name,
-          customer_phone: r.customer_phone,
+          customer_name: r.customer_name || 'Khách hàng',
+          customer_phone: r.customer_phone || '',
           customer_email: r.customer_email || '',
           address: r.address || '',
           details: r.details || {},
@@ -2710,28 +2591,6 @@
           status: r.status || 'pending',
           assigned_staff: r.assigned_staff || '',
           created_at: r.created_at || ''
-        });
-      });
-
-      // Báo giá B2B
-      ALL_QUOTES.forEach(q => {
-        unifiedList.push({
-          source: 'quote',
-          code: q.quote_code,
-          type: 'b2b-quote',
-          customer_name: q.customer_name,
-          customer_phone: q.customer_phone,
-          customer_email: '',
-          address: '',
-          details: {
-            project_type: q.project_type,
-            items_desc: q.items_desc,
-            budget: q.estimated_budget
-          },
-          image_url: '',
-          status: q.status || 'pending',
-          assigned_staff: 'Ban Giám Đốc B2B',
-          created_at: q.created_at || ''
         });
       });
 
@@ -2779,9 +2638,9 @@
           `;
         } else if (item.type === 'tu-van') {
           detailsText = `
-            <div><strong>Không gian:</strong> ${d.room_type || ''} (${d.room_area || ''})</div>
-            <div><strong>Phong cách:</strong> ${d.style_preference || ''}</div>
-            <div class="text-amber-700 dark:text-amber-400 font-bold">Ngân sách: ${d.budget_range || ''}</div>
+            <div><strong>Không gian:</strong> ${d.room_type || d.room_size || ''} (${d.room_area || ''})</div>
+            <div><strong>Phong cách:</strong> ${d.style_preference || d.style || ''}</div>
+            <div class="text-amber-700 dark:text-amber-400 font-bold">Ngân sách: ${d.budget_range || d.budget || ''}</div>
           `;
         } else if (item.type === 'dat-dong') {
           detailsText = `
@@ -2807,6 +2666,8 @@
             <div><strong>KT:</strong> ${d.room_dimensions || ''}</div>
             <div class="text-emerald-700 dark:text-emerald-400 font-bold">Dự toán: ${d.budget_tier || ''}</div>
           `;
+        } else {
+          detailsText = `<div class="text-xs text-gray-600 dark:text-gray-300">${JSON.stringify(d)}</div>`;
         }
 
         let imgCell = '<span class="text-gray-400 text-[11px]">-</span>';
@@ -2859,10 +2720,10 @@
             </td>
             <td class="p-3 text-right">
               <div class="flex items-center justify-end gap-1.5">
-                <button onclick="adminToggleServiceStatus('${item.code}', '${item.source}')" class="text-xs text-blue-600 hover:text-blue-800 font-bold px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-950/40 transition" title="Đổi trạng thái">
+                <button onclick="adminToggleServiceStatus('${item.code}')" class="text-xs text-blue-600 hover:text-blue-800 font-bold px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-950/40 transition" title="Đổi trạng thái">
                   🔄 Trạng thái
                 </button>
-                <button onclick="adminDeleteServiceOrQuote('${item.code}', '${item.source}')" class="text-xs text-red-600 hover:text-red-800 font-bold px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition" title="Xóa">
+                <button onclick="adminDeleteServiceOrQuote('${item.code}')" class="text-xs text-red-600 hover:text-red-800 font-bold px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 transition" title="Xóa">
                   🗑️ Xóa
                 </button>
               </div>
@@ -2872,67 +2733,76 @@
       }).join('');
     }
 
-    function adminToggleServiceStatus(code, source) {
-      if (source === 'quote') {
-        const q = ALL_QUOTES.find(item => item.quote_code === code);
-        if (q) {
-          const next = q.status === 'pending' ? 'negotiating' : (q.status === 'negotiating' ? 'approved' : 'pending');
-          q.status = next;
-          localStorage.setItem('morioo_quotes', JSON.stringify(ALL_QUOTES));
-          renderAdminQuotesTable();
-          showToast(`Đã cập nhật trạng thái báo giá #${code}!`, 'success');
-        }
-      } else {
-        const s = localStorage.getItem('morioo_service_requests');
-        let list = s ? JSON.parse(s) : [];
-        const item = list.find(r => r.code === code);
-        if (item) {
-          const next = item.status === 'pending' ? 'quoted' : (item.status === 'quoted' ? 'shipping' : (item.status === 'shipping' ? 'completed' : 'pending'));
-          item.status = next;
-          localStorage.setItem('morioo_service_requests', JSON.stringify(list));
-          renderAdminQuotesTable();
-          showToast(`Đã chuyển yêu cầu dịch vụ #${code} sang trạng thái mới!`, 'success');
+    async function adminToggleServiceStatus(code) {
+      const item = ALL_SERVICES.find(r => r.code === code || r.id === code);
+      if (item) {
+        const next = item.status === 'pending' ? 'quoted' : (item.status === 'quoted' ? 'shipping' : (item.status === 'shipping' ? 'completed' : 'pending'));
+        item.status = next;
+        item.updated_at = new Date().toISOString();
+        renderAdminQuotesTable();
+        showToast(`⚡ Đang cập nhật trạng thái yêu cầu #${code}...`, 'info');
 
-          // Broadcast cho các tab khác
-          try {
-            const bc = new BroadcastChannel('morioo_sync_channel');
-            bc.postMessage({ type: 'SERVICE_REQUEST_STATUS_CHANGED', code: code, status: next });
-            setTimeout(() => bc.close(), 1000);
-          } catch(e) {}
+        try {
+          await supabaseFetch(`service_requests?code=eq.${encodeURIComponent(code)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: next, updated_at: item.updated_at })
+          });
+          showToast(`✅ Đã cập nhật trạng thái yêu cầu #${code} sang "${next}" trên Cloud!`, 'success');
+        } catch(e) {
+          console.warn('[Supabase Cloud] Lỗi cập nhật dịch vụ:', e.message);
         }
+
+        try {
+          const bc = new BroadcastChannel('morioo_sync_channel');
+          bc.postMessage({ type: 'SERVICE_REQUEST_STATUS_CHANGED', code: code, status: next });
+          setTimeout(() => bc.close(), 1000);
+        } catch(e) {}
       }
     }
 
-    function adminAssignStaffToService(code) {
+    async function adminAssignStaffToService(code) {
       const staffList = (ALL_ACCOUNTS || []).filter(a => a.role === 'staff' || a.role === 'admin');
       const staffNames = staffList.map(s => s.full_name).join(', ') || 'Lê Văn Nhân Viên, Quản Trị Viên MORIOO';
       const chosen = prompt(`Nhập tên nhân viên phân công phụ trách #${code} (${staffNames}):`, 'Lê Văn Nhân Viên');
       if (!chosen) return;
 
-      const s = localStorage.getItem('morioo_service_requests');
-      let list = s ? JSON.parse(s) : [];
-      const item = list.find(r => r.code === code);
+      const item = ALL_SERVICES.find(r => r.code === code || r.id === code);
       if (item) {
         item.assigned_staff = chosen;
-        localStorage.setItem('morioo_service_requests', JSON.stringify(list));
+        item.updated_at = new Date().toISOString();
         renderAdminQuotesTable();
-        showToast(`Đã phân công ${chosen} phụ trách #${code}!`, 'success');
+        showToast(`⚡ Đang lưu phân công ${chosen} phụ trách #${code} lên Cloud...`, 'info');
+
+        try {
+          await supabaseFetch(`service_requests?code=eq.${encodeURIComponent(code)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ assigned_staff: chosen, updated_at: item.updated_at })
+          });
+          showToast(`✅ Đã phân công ${chosen} phụ trách #${code} trên Cloud!`, 'success');
+        } catch(e) {
+          console.warn('[Supabase Cloud] Lỗi phân công:', e.message);
+        }
+
+        try {
+          const bc = new BroadcastChannel('morioo_sync_channel');
+          bc.postMessage({ type: 'SERVICE_REQUEST_STATUS_CHANGED', code: code, assigned_staff: chosen });
+          setTimeout(() => bc.close(), 1000);
+        } catch(e) {}
       }
     }
 
-    function adminDeleteServiceOrQuote(code, source) {
-      if (!confirm(`Bạn có chắc chắn muốn xóa yêu cầu #${code}?`)) return;
-      if (source === 'quote') {
-        ALL_QUOTES = ALL_QUOTES.filter(q => q.quote_code !== code);
-        localStorage.setItem('morioo_quotes', JSON.stringify(ALL_QUOTES));
-      } else {
-        const s = localStorage.getItem('morioo_service_requests');
-        let list = s ? JSON.parse(s) : [];
-        list = list.filter(r => r.code !== code);
-        localStorage.setItem('morioo_service_requests', JSON.stringify(list));
-      }
+    async function adminDeleteServiceOrQuote(code) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn yêu cầu dịch vụ #${code} khỏi Cloud?`)) return;
+      ALL_SERVICES = ALL_SERVICES.filter(r => r.code !== code && r.id !== code);
       renderAdminQuotesTable();
-      showToast(`Đã xóa yêu cầu #${code}!`, 'info');
+      showToast(`⚡ Đang xóa yêu cầu #${code} trên Cloud...`, 'info');
+
+      try {
+        await supabaseFetch(`service_requests?code=eq.${encodeURIComponent(code)}`, { method: 'DELETE' });
+        showToast(`🗑️ Đã xóa yêu cầu #${code} thành công khỏi Database Cloud!`, 'info');
+      } catch(e) {
+        console.warn('[Supabase Cloud] Lỗi xóa dịch vụ:', e.message);
+      }
     }
 
     function openAdminLightboxImage(url) {
@@ -3104,7 +2974,6 @@
         department: department
       };
 
-      let savedFromCloud = null;
       try {
         const resp = await supabaseFetch('accounts', {
           method: 'POST',
@@ -3112,28 +2981,21 @@
           prefer: 'return=representation'
         });
         if (resp && resp[0]) {
-          savedFromCloud = resp[0];
-          console.log('[Supabase Cloud] Đã lưu thành công tài khoản:', savedFromCloud.id);
+          const newAccount = normalizeAccount(resp[0]);
+          ALL_ACCOUNTS.unshift(newAccount);
+          localStorage.setItem('morioo_accounts', JSON.stringify(ALL_ACCOUNTS));
+          renderAdminAccountsTable();
+          form.reset();
+          document.getElementById('accPassword').value = 'Morioo@123';
+          closeAddAccountModal();
+          let roleLabel = role === 'admin' ? 'Quản Trị Viên' : role === 'staff' ? 'Nhân Viên' : 'Khách Hàng';
+          showToast(`🎉 Đã cấp tài khoản ${roleLabel} cho "${fullName}" thành công trên Database Cloud!`, 'success');
         }
       } catch (err) {
-        console.warn('[Supabase Cloud] Lưu online chưa khả dụng (bảng accounts), lưu vào cache nội bộ:', err.message);
+        console.error('[Supabase Cloud Error]', err);
+        showToast(`❌ Không thể tạo tài khoản trên Cloud: ${err.message}`, 'error');
+        alert(`Lỗi tạo tài khoản trên Database Cloud:\n${err.message}`);
       }
-
-      const newAccount = normalizeAccount(savedFromCloud || {
-        ...payload,
-        id: "acc-" + Date.now(),
-        created_at: new Date().toISOString()
-      });
-
-      ALL_ACCOUNTS.unshift(newAccount);
-      persistAccounts();
-
-      form.reset();
-      document.getElementById('accPassword').value = 'Morioo@123';
-      closeAddAccountModal();
-
-      let roleLabel = role === 'admin' ? 'Quản Trị Viên' : role === 'staff' ? 'Nhân Viên' : 'Khách Hàng';
-      showToast(`🎉 Đã cấp tài khoản ${roleLabel} cho "${fullName}" thành công!`, 'success');
     }
 
     async function changeAccountRole(accId, currentRole) {
@@ -3172,12 +3034,13 @@
           method: 'PATCH',
           body: JSON.stringify({ role: newRole, department: acc.department })
         });
+        showToast(`Đã chuyển vai trò của "${acc.full_name}" sang "${roleNames[newRole]}" trên Cloud!`, 'success');
       } catch(e) {
-        console.warn('[Supabase Cloud] Cập nhật vai trò qua API gặp sự cố, đã cập nhật cục bộ:', e.message);
+        console.warn('[Supabase Cloud] Cập nhật vai trò lỗi:', e.message);
       }
 
       persistAccounts();
-      showToast(`Đã chuyển vai trò của "${acc.full_name}" sang "${roleNames[newRole]}"!`, 'success');
+    }
     }
 
     async function deleteAccount(accId, email) {
@@ -3318,20 +3181,14 @@
         try {
           const cloudOrders = await supabaseFetch('orders?select=*&order=created_at.desc');
           if (cloudOrders && Array.isArray(cloudOrders) && cloudOrders.length > 0) {
-            const deletedCodes = JSON.parse(localStorage.getItem('morioo_deleted_order_codes') || '[]');
-            const statusOverrides = JSON.parse(localStorage.getItem('morioo_order_status_overrides') || '{}');
-
             let hasNew = false;
             let newestOrder = null;
 
             cloudOrders.forEach(co => {
-              if (deletedCodes.includes(co.order_code) || deletedCodes.includes(co.id)) return;
               const exists = ALL_ORDERS.some(ao => ao.order_code === co.order_code || (co.id && ao.id === co.id));
               if (!exists) {
                 hasNew = true;
                 const norm = normalizeOrder(co);
-                if (statusOverrides[norm.id]) norm.status = statusOverrides[norm.id];
-                else if (statusOverrides[norm.order_code]) norm.status = statusOverrides[norm.order_code];
                 ALL_ORDERS.unshift(norm);
                 newestOrder = norm;
               }
@@ -3341,7 +3198,7 @@
               localStorage.setItem('morioo_orders', JSON.stringify(ALL_ORDERS));
               renderAllData();
               if (newestOrder) {
-                showToast(`🔔 Đơn hàng mới từ Cloud: #${newestOrder.order_code} - ${newestOrder.customer_name}`, 'success');
+                showToast(`🔔 Đơn hàng mới: #${newestOrder.order_code} - ${newestOrder.customer_name}`, 'success');
                 playOrderChime();
               }
             }
