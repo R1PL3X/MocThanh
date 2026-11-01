@@ -44,12 +44,18 @@ function compressImageFile(file, maxWidth = 1000, quality = 0.75) {
 }
 
 /**
- * Mở Modal Dịch Vụ và chuyển đến Tab chỉ định
+ * Mở Modal Dịch Vụ và chuyển đến Tab & Chế độ chỉ định
  */
-window.openServiceModal = function(serviceType = "tu-van") {
+window.openServiceModal = function(serviceType = "tu-van", initialMode = "customer") {
     const modal = document.getElementById("serviceModal");
     if (!modal) return;
+    
+    // Đảm bảo hiển thị hoàn toàn cả class active lẫn style inline
+    modal.classList.add("active");
     modal.style.display = "flex";
+    modal.style.opacity = "1";
+    modal.style.visibility = "visible";
+    modal.style.pointerEvents = "auto";
     document.body.style.overflow = "hidden";
 
     if (!modal.dataset.hasBackdropListener) {
@@ -69,6 +75,9 @@ window.openServiceModal = function(serviceType = "tu-van") {
 
     const targetTab = typeToTab[serviceType] || "svcTabConsult";
     window.switchServiceModalTab(targetTab);
+
+    // Kích hoạt chế độ Khách Hàng hoặc Nhân Viên Trả Lời
+    window.switchServiceFormMode(serviceType, initialMode);
 };
 
 /**
@@ -77,7 +86,11 @@ window.openServiceModal = function(serviceType = "tu-van") {
 window.closeServiceModal = function() {
     const modal = document.getElementById("serviceModal");
     if (modal) {
+        modal.classList.remove("active");
         modal.style.display = "none";
+        modal.style.opacity = "0";
+        modal.style.visibility = "hidden";
+        modal.style.pointerEvents = "none";
         document.body.style.overflow = "";
     }
 };
@@ -100,13 +113,431 @@ window.switchServiceModalTab = function(tabId) {
         }
     });
 
+    const tabToType = {
+        "svcTabConsult": "tu-van",
+        "svcTabCustom": "dat-dong",
+        "svcTabDelivery": "van-chuyen",
+        "svcTabMaint": "bao-tri",
+        "svcTabSpace": "thiet-ke-khong-gian"
+    };
+
     document.querySelectorAll(".svc-tab-pane").forEach(pane => {
         if (pane.id === tabId) {
             pane.style.display = "block";
+            const svcType = tabToType[tabId] || "tu-van";
+            window.populateStorefrontStaffRequestSelector(svcType);
         } else {
             pane.style.display = "none";
         }
     });
+};
+
+/**
+ * Chuyển đổi giữa chế độ Khách Hàng Gửi Yêu Cầu và Nhân Viên Trả Lời
+ */
+window.switchServiceFormMode = function(serviceType, mode = "customer") {
+    const cleanType = serviceType.replace(/-/g, "_");
+    const paneCust = document.getElementById(`paneCustomer_${cleanType}`);
+    const paneStaff = document.getElementById(`paneStaff_${cleanType}`);
+    const btnCust = document.getElementById(`btnModeCustomer_${cleanType}`);
+    const btnStaff = document.getElementById(`btnModeStaff_${cleanType}`);
+
+    if (mode === "staff") {
+        if (paneCust) paneCust.style.display = "none";
+        if (paneStaff) paneStaff.style.display = "block";
+        if (btnCust) {
+            btnCust.classList.remove("active");
+            btnCust.style.background = "transparent";
+            btnCust.style.color = "#71717a";
+            btnCust.style.fontWeight = "600";
+        }
+        if (btnStaff) {
+            btnStaff.classList.add("active");
+            btnStaff.style.background = "#fff";
+            btnStaff.style.color = "#7f1d1d";
+            btnStaff.style.fontWeight = "700";
+        }
+        window.populateStorefrontStaffRequestSelector(serviceType);
+    } else {
+        if (paneCust) paneCust.style.display = "block";
+        if (paneStaff) paneStaff.style.display = "none";
+        if (btnCust) {
+            btnCust.classList.add("active");
+            btnCust.style.background = "#fff";
+            btnCust.style.color = "#7f1d1d";
+            btnCust.style.fontWeight = "700";
+        }
+        if (btnStaff) {
+            btnStaff.classList.remove("active");
+            btnStaff.style.background = "transparent";
+            btnStaff.style.color = "#71717a";
+            btnStaff.style.fontWeight = "600";
+        }
+    }
+};
+
+/**
+ * Nạp danh sách yêu cầu dịch vụ vào dropdown chọn để nhân viên trả lời
+ */
+window.populateStorefrontStaffRequestSelector = function(serviceType) {
+    const cleanType = serviceType.replace(/-/g, "_");
+    const select = document.getElementById(`sf_${cleanType}_codeSelect`);
+    if (!select) return;
+
+    let svcs = [];
+    try {
+        const raw = localStorage.getItem("morioo_service_requests");
+        if (raw) svcs = JSON.parse(raw);
+    } catch(e) {}
+
+    const matching = svcs.filter(r => (r.service_type || "tu-van") === serviceType);
+
+    let html = `<option value="">-- Chọn khách hàng đã gửi yêu cầu (${matching.length} yêu cầu) --</option>`;
+    matching.forEach(r => {
+        const hasReply = !!(r.staff_response || (r.details && r.details.staff_response));
+        const badge = hasReply ? "💬 [Đã trả lời]" : "⏳ [Chờ trả lời]";
+        html += `<option value="${r.code}">${badge} #${r.code} - ${r.customer_name} (${r.customer_phone || "SĐT"})</option>`;
+    });
+
+    if (matching.length === 0) {
+        html += `<option value="DEMO">Mẫu demo: #DV-${cleanType.toUpperCase()}-001 - Khách hàng mẫu</option>`;
+    }
+
+    select.innerHTML = html;
+
+    // Tự động chọn yêu cầu đầu tiên hoặc DEMO và điền sẵn dữ liệu mẫu cho nhân viên dễ thao tác
+    if (matching.length > 0) {
+        select.value = matching[0].code;
+        window.onStorefrontSelectRequestToReply(serviceType, matching[0].code);
+    } else {
+        select.value = "DEMO";
+        window.onStorefrontSelectRequestToReply(serviceType, "DEMO");
+    }
+};
+
+/**
+ * Tự động điền thông tin khi nhân viên chọn 1 yêu cầu để trả lời
+ */
+window.onStorefrontSelectRequestToReply = function(serviceType, code) {
+    if (!code) return;
+    const cleanType = serviceType.replace(/-/g, "_");
+
+    let svcs = [];
+    try {
+        const raw = localStorage.getItem("morioo_service_requests");
+        if (raw) svcs = JSON.parse(raw);
+    } catch(e) {}
+
+    const req = svcs.find(r => r.code === code) || {
+        code: code,
+        customer_name: "Khách hàng mẫu",
+        customer_phone: "0912 345 678",
+        service_type: serviceType,
+        details: {}
+    };
+
+    const d = req.details || {};
+    const sr = req.staff_response || d.staff_response || {};
+
+    if (serviceType === "tu-van") {
+        const statusEl = document.getElementById("sf_tu_van_status");
+        if (statusEl) statusEl.value = sr.status || req.status || "consulting";
+        const staffEl = document.getElementById("sf_tu_van_staff");
+        if (staffEl) staffEl.value = sr.assigned_staff || req.assigned_staff || "KTS. Lê Văn Nhân Viên";
+        const phoneEl = document.getElementById("sf_tu_van_phone");
+        if (phoneEl) phoneEl.value = sr.staff_phone || "097 114 1140";
+        const budgetEl = document.getElementById("sf_tu_van_budget");
+        if (budgetEl) budgetEl.value = sr.suggested_budget || d.budget_range || "35.000.000 VNĐ";
+        const styleEl = document.getElementById("sf_tu_van_styleRec");
+        if (styleEl) styleEl.value = sr.style_recommendation || `Đề xuất phong cách ${d.style_preference || "Wabi-Sabi"} cho không gian ${d.room_type || "phòng khách"}`;
+        const prodEl = document.getElementById("sf_tu_van_products");
+        if (prodEl) prodEl.value = sr.suggested_products || "1. Sofa Vải Đay Khung Sồi; 2. Bàn Trà Noguchi Sồi; 3. Kệ Tivi Nan Gỗ 1m8";
+        const appEl = document.getElementById("sf_tu_van_appointment");
+        if (appEl) appEl.value = sr.appointment_time || "14h30 - Thứ 7 tuần này tại Showroom MORIOO";
+        const msgEl = document.getElementById("sf_tu_van_message");
+        if (msgEl) msgEl.value = sr.staff_message || req.staff_notes || `Chào bạn ${req.customer_name}, MORIOO đã lên phương án tư vấn hoàn chỉnh cho phòng ${d.room_type || ""}. Chúng tôi sẵn sàng hỗ trợ bạn!`;
+    } else if (serviceType === "dat-dong") {
+        const statusEl = document.getElementById("sf_dat_dong_status");
+        if (statusEl) statusEl.value = sr.status || req.status || "consulting";
+        const staffEl = document.getElementById("sf_dat_dong_staff");
+        if (staffEl) staffEl.value = sr.assigned_staff || req.assigned_staff || "Nghệ nhân Đặng Văn Tuấn - Xưởng Mộc Thạnh";
+        const phoneEl = document.getElementById("sf_dat_dong_phone");
+        if (phoneEl) phoneEl.value = sr.staff_phone || "097 114 1140";
+        const leadEl = document.getElementById("sf_dat_dong_leadTime");
+        if (leadEl) leadEl.value = sr.lead_time || "12 ngày làm việc";
+        const specsEl = document.getElementById("sf_dat_dong_specs");
+        if (specsEl) specsEl.value = sr.production_specs || d.dimensions || "Dài 1800 x Rộng 850 x Cao 750 mm";
+        const woodEl = document.getElementById("sf_dat_dong_woodFinish");
+        if (woodEl) woodEl.value = sr.wood_finish || `${d.wood_material || "Gỗ Sồi Trắng Bắc Mỹ FAS"}, lau dầu Osmo Đức`;
+        const totalEl = document.getElementById("sf_dat_dong_totalPrice");
+        if (totalEl) totalEl.value = sr.total_price || "14.500.000 VNĐ";
+        const depEl = document.getElementById("sf_dat_dong_deposit");
+        if (depEl) depEl.value = sr.deposit_amount || "4.500.000 VNĐ (30%)";
+        const remEl = document.getElementById("sf_dat_dong_remaining");
+        if (remEl) remEl.value = sr.remaining_amount || "10.000.000 VNĐ";
+        const drawEl = document.getElementById("sf_dat_dong_drawingUrl");
+        if (drawEl) drawEl.value = sr.drawing_url || "";
+        const msgEl = document.getElementById("sf_dat_dong_message");
+        if (msgEl) msgEl.value = sr.staff_message || req.staff_notes || `Xưởng mộc MORIOO xác nhận bản vẽ chế tác ${d.product_category || "nội thất"}. Cam kết gỗ phôi sấy chuẩn và mộng ghép âm dương.`;
+    } else if (serviceType === "van-chuyen") {
+        const statusEl = document.getElementById("sf_van_chuyen_status");
+        if (statusEl) statusEl.value = sr.status || req.status || "shipping";
+        const driverEl = document.getElementById("sf_van_chuyen_driver");
+        if (driverEl) driverEl.value = sr.driver_name || sr.assigned_staff || "Bác tài Nguyễn Văn Hùng - 0912.345.678";
+        const plateEl = document.getElementById("sf_van_chuyen_plate");
+        if (plateEl) plateEl.value = sr.license_plate || "29C-886.99 (Thùng kín)";
+        const workerEl = document.getElementById("sf_van_chuyen_worker");
+        if (workerEl) workerEl.value = sr.installation_worker || "Thợ mộc Trần Văn Tuấn";
+        const feeEl = document.getElementById("sf_van_chuyen_fee");
+        if (feeEl) feeEl.value = sr.delivery_fee || "Miễn phí 0 VNĐ";
+        const slotEl = document.getElementById("sf_van_chuyen_timeSlot");
+        if (slotEl) slotEl.value = sr.delivery_timeslot || `${req.preferred_date || "Hôm nay"} (09h00 - 11h30)`;
+        const msgEl = document.getElementById("sf_van_chuyen_message");
+        if (msgEl) msgEl.value = sr.staff_message || req.staff_notes || `Đội vận chuyển MORIOO đang xử lý giao hàng đến địa chỉ của bạn. Bác tài sẽ liên hệ trước 30 phút.`;
+    } else if (serviceType === "bao-tri") {
+        const statusEl = document.getElementById("sf_bao_tri_status");
+        if (statusEl) statusEl.value = sr.status || req.status || "quoted";
+        const staffEl = document.getElementById("sf_bao_tri_staff");
+        if (staffEl) staffEl.value = sr.assigned_staff || req.assigned_staff || "KTV. Hoàng Đức Trọng - Đội Bảo Trì Gỗ";
+        const phoneEl = document.getElementById("sf_bao_tri_phone");
+        if (phoneEl) phoneEl.value = sr.staff_phone || "097 114 1140";
+        const appEl = document.getElementById("sf_bao_tri_appointment");
+        if (appEl) appEl.value = sr.appointment_time || req.preferred_date || "15h00 - Thứ 6 tuần này";
+        const diagEl = document.getElementById("sf_bao_tri_diagnosis");
+        if (diagEl) diagEl.value = sr.diagnosis || `Chẩn đoán: ${d.issue_type || "Hao mòn tự nhiên"}. Phương án: Xả nhám P400 và quét phục hồi 2 lớp dầu dưỡng Osmo Đức.`;
+        const costEl = document.getElementById("sf_bao_tri_cost");
+        if (costEl) costEl.value = sr.service_cost || "Miễn phí 100% (Bảo hành 36 tháng MORIOO)";
+        const msgEl = document.getElementById("sf_bao_tri_message");
+        if (msgEl) msgEl.value = sr.staff_message || req.staff_notes || `Kỹ thuật viên MORIOO đã tiếp nhận sự cố ${d.product_item || ""}. Chúng tôi sẽ đến xử lý hoàn thiện tại nhà.`;
+    } else if (serviceType === "thiet-ke-khong-gian") {
+        const statusEl = document.getElementById("sf_thiet_ke_khong_gian_status");
+        if (statusEl) statusEl.value = sr.status || req.status || "quoted";
+        const archEl = document.getElementById("sf_thiet_ke_khong_gian_architect");
+        if (archEl) archEl.value = sr.assigned_staff || req.assigned_staff || "KTS. Trần Hải Đăng - Studio Không Gian Mộc";
+        const phoneEl = document.getElementById("sf_thiet_ke_khong_gian_phone");
+        if (phoneEl) phoneEl.value = sr.staff_phone || "097 114 1140";
+        const leadEl = document.getElementById("sf_thiet_ke_khong_gian_leadTime");
+        if (leadEl) leadEl.value = sr.lead_time || "15 - 20 ngày thi công hoàn thiện";
+        const anaEl = document.getElementById("sf_thiet_ke_khong_gian_analysis");
+        if (anaEl) anaEl.value = sr.design_analysis || `Giải pháp mặt bằng cho ${d.space_category || "không gian"}: Tối ưu luồng giao thông 1m2 rộng rãi, đón sáng tự nhiên qua hệ lam gỗ.`;
+        const renEl = document.getElementById("sf_thiet_ke_khong_gian_renderUrl");
+        if (renEl) renEl.value = sr.render_url || "";
+        const budEl = document.getElementById("sf_thiet_ke_khong_gian_budget");
+        if (budEl) budEl.value = sr.estimated_budget || d.budget_tier || "68.500.000 VNĐ";
+        const msgEl = document.getElementById("sf_thiet_ke_khong_gian_message");
+        if (msgEl) msgEl.value = sr.staff_message || req.staff_notes || `KTS đã hoàn thành phương án 2D/3D sơ bộ. Mời bạn xem chi tiết và liên hệ để tinh chỉnh phương án!`;
+    }
+};
+
+/**
+ * Xử lý khi nhân viên lưu và gửi phản hồi từ form trên storefront
+ */
+window.handleStorefrontStaffReplySubmit = async function(e, serviceType) {
+    e.preventDefault();
+    const cleanType = serviceType.replace(/-/g, "_");
+    const codeSelect = document.getElementById(`sf_${cleanType}_codeSelect`);
+    let selectedCode = codeSelect ? codeSelect.value : "";
+
+    let svcs = [];
+    try {
+        const raw = localStorage.getItem("morioo_service_requests");
+        if (raw) svcs = JSON.parse(raw);
+    } catch(err) {}
+
+    let req = svcs.find(r => r.code === selectedCode);
+    if (!req) {
+        // Tạo một mã yêu cầu mới nếu chưa chọn
+        selectedCode = selectedCode || `DV-${cleanType.toUpperCase().slice(0, 2)}-${Math.floor(100000 + Math.random() * 900000)}`;
+        req = {
+            code: selectedCode,
+            service_type: serviceType,
+            customer_name: "Khách hàng MORIOO",
+            customer_phone: "097 114 1140",
+            address: "Địa chỉ nhận dịch vụ",
+            created_at: new Date().toISOString(),
+            details: {}
+        };
+        svcs.unshift(req);
+    }
+
+    let replyData = {
+        service_type: serviceType,
+        replied_at: new Date().toISOString()
+    };
+    let newStatus = "consulting";
+    let assignedStaff = "Lê Văn Nhân Viên";
+    let staffNotes = "";
+
+    if (serviceType === "tu-van") {
+        newStatus = document.getElementById("sf_tu_van_status")?.value || "consulting";
+        assignedStaff = document.getElementById("sf_tu_van_staff")?.value || "Lê Văn Nhân Viên";
+        const phone = document.getElementById("sf_tu_van_phone")?.value || "";
+        const budget = document.getElementById("sf_tu_van_budget")?.value || "";
+        const styleRec = document.getElementById("sf_tu_van_styleRec")?.value || "";
+        const products = document.getElementById("sf_tu_van_products")?.value || "";
+        const appointment = document.getElementById("sf_tu_van_appointment")?.value || "";
+        const message = document.getElementById("sf_tu_van_message")?.value || "";
+        staffNotes = message;
+
+        replyData = {
+            service_type: "tu-van",
+            service_title: "Tư Vấn Nội Thất",
+            status: newStatus,
+            assigned_staff: assignedStaff,
+            staff_phone: phone,
+            suggested_budget: budget,
+            style_recommendation: styleRec,
+            suggested_products: products,
+            appointment_time: appointment,
+            staff_message: message,
+            replied_at: new Date().toISOString()
+        };
+    } else if (serviceType === "dat-dong") {
+        newStatus = document.getElementById("sf_dat_dong_status")?.value || "consulting";
+        assignedStaff = document.getElementById("sf_dat_dong_staff")?.value || "Nghệ nhân xưởng mộc";
+        const phone = document.getElementById("sf_dat_dong_phone")?.value || "";
+        const leadTime = document.getElementById("sf_dat_dong_leadTime")?.value || "";
+        const specs = document.getElementById("sf_dat_dong_specs")?.value || "";
+        const woodFinish = document.getElementById("sf_dat_dong_woodFinish")?.value || "";
+        const totalPrice = document.getElementById("sf_dat_dong_totalPrice")?.value || "";
+        const deposit = document.getElementById("sf_dat_dong_deposit")?.value || "";
+        const remaining = document.getElementById("sf_dat_dong_remaining")?.value || "";
+        const drawingUrl = document.getElementById("sf_dat_dong_drawingUrl")?.value || "";
+        const message = document.getElementById("sf_dat_dong_message")?.value || "";
+        staffNotes = message;
+
+        replyData = {
+            service_type: "dat-dong",
+            service_title: "Thiết Kế & May Đo Đặt Đóng",
+            status: newStatus,
+            assigned_staff: assignedStaff,
+            staff_phone: phone,
+            lead_time: leadTime,
+            production_specs: specs,
+            wood_finish: woodFinish,
+            total_price: totalPrice,
+            deposit_amount: deposit,
+            remaining_amount: remaining,
+            drawing_url: drawingUrl,
+            staff_message: message,
+            replied_at: new Date().toISOString()
+        };
+    } else if (serviceType === "van-chuyen") {
+        newStatus = document.getElementById("sf_van_chuyen_status")?.value || "shipping";
+        const driver = document.getElementById("sf_van_chuyen_driver")?.value || "";
+        assignedStaff = driver;
+        const plate = document.getElementById("sf_van_chuyen_plate")?.value || "";
+        const worker = document.getElementById("sf_van_chuyen_worker")?.value || "";
+        const fee = document.getElementById("sf_van_chuyen_fee")?.value || "";
+        const timeSlot = document.getElementById("sf_van_chuyen_timeSlot")?.value || "";
+        const message = document.getElementById("sf_van_chuyen_message")?.value || "";
+        staffNotes = message;
+
+        replyData = {
+            service_type: "van-chuyen",
+            service_title: "Vận Chuyển & Lắp Đặt",
+            status: newStatus,
+            assigned_staff: driver,
+            driver_name: driver,
+            license_plate: plate,
+            installation_worker: worker,
+            delivery_fee: fee,
+            delivery_timeslot: timeSlot,
+            staff_message: message,
+            replied_at: new Date().toISOString()
+        };
+    } else if (serviceType === "bao-tri") {
+        newStatus = document.getElementById("sf_bao_tri_status")?.value || "quoted";
+        assignedStaff = document.getElementById("sf_bao_tri_staff")?.value || "KTV MORIOO";
+        const phone = document.getElementById("sf_bao_tri_phone")?.value || "";
+        const appointment = document.getElementById("sf_bao_tri_appointment")?.value || "";
+        const diagnosis = document.getElementById("sf_bao_tri_diagnosis")?.value || "";
+        const cost = document.getElementById("sf_bao_tri_cost")?.value || "";
+        const message = document.getElementById("sf_bao_tri_message")?.value || "";
+        staffNotes = message;
+
+        replyData = {
+            service_type: "bao-tri",
+            service_title: "Bảo Trì & Sửa Chữa",
+            status: newStatus,
+            assigned_staff: assignedStaff,
+            staff_phone: phone,
+            appointment_time: appointment,
+            diagnosis: diagnosis,
+            service_cost: cost,
+            staff_message: message,
+            replied_at: new Date().toISOString()
+        };
+    } else if (serviceType === "thiet-ke-khong-gian") {
+        newStatus = document.getElementById("sf_thiet_ke_khong_gian_status")?.value || "quoted";
+        assignedStaff = document.getElementById("sf_thiet_ke_khong_gian_architect")?.value || "KTS MORIOO";
+        const phone = document.getElementById("sf_thiet_ke_khong_gian_phone")?.value || "";
+        const leadTime = document.getElementById("sf_thiet_ke_khong_gian_leadTime")?.value || "";
+        const analysis = document.getElementById("sf_thiet_ke_khong_gian_analysis")?.value || "";
+        const renderUrl = document.getElementById("sf_thiet_ke_khong_gian_renderUrl")?.value || "";
+        const budget = document.getElementById("sf_thiet_ke_khong_gian_budget")?.value || "";
+        const message = document.getElementById("sf_thiet_ke_khong_gian_message")?.value || "";
+        staffNotes = message;
+
+        replyData = {
+            service_type: "thiet-ke-khong-gian",
+            service_title: "Thiết Kế Không Gian",
+            status: newStatus,
+            assigned_staff: assignedStaff,
+            staff_phone: phone,
+            lead_time: leadTime,
+            design_analysis: analysis,
+            render_url: renderUrl,
+            estimated_budget: budget,
+            staff_message: message,
+            replied_at: new Date().toISOString()
+        };
+    }
+
+    req.status = newStatus;
+    req.assigned_staff = assignedStaff;
+    req.staff_notes = staffNotes;
+    req.staff_response = replyData;
+    req.details = req.details || {};
+    req.details.staff_response = replyData;
+    req.updated_at = new Date().toISOString();
+
+    localStorage.setItem("morioo_service_requests", JSON.stringify(svcs));
+
+    // Đồng bộ lên Supabase Cloud
+    try {
+        await db.restFetch(`service_requests?code=eq.${encodeURIComponent(req.code)}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+                status: req.status,
+                assigned_staff: req.assigned_staff,
+                staff_notes: req.staff_notes,
+                details: req.details,
+                updated_at: req.updated_at
+            })
+        });
+    } catch(err) {}
+
+    // Phát BroadcastChannel
+    try {
+        const bc = new BroadcastChannel("morioo_sync_channel");
+        bc.postMessage({
+            type: "SERVICE_REQUEST_STATUS_CHANGED",
+            code: req.code,
+            status: req.status,
+            assigned_staff: req.assigned_staff,
+            staff_notes: req.staff_notes,
+            staff_response: replyData,
+            timestamp: Date.now()
+        });
+        setTimeout(() => bc.close(), 1000);
+    } catch(err) {}
+
+    // Hiển thị thông báo
+    alert(`🎉 Đã lưu và gửi phản hồi thành công cho yêu cầu #${req.code}!\n\nKhách hàng khi tra cứu mã #${req.code} sẽ đọc được toàn bộ báo giá, lịch hẹn và lời nhắn này.`);
+    
+    // Đổi lại danh sách
+    window.populateStorefrontStaffRequestSelector(serviceType);
 };
 
 /**

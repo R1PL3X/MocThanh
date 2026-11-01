@@ -293,6 +293,41 @@
     visibility: visible !important;
 }
 
+#serviceModal {
+    z-index: 99999 !important;
+}
+
+#serviceModal.active {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+.svc-mode-btn {
+    flex: 1;
+    padding: 8px 14px;
+    border: none;
+    background: transparent;
+    border-radius: 7px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #71717a;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.svc-mode-btn.active {
+    background: #ffffff;
+    color: #7f1d1d;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
 .modal-dialog {
     background: #ffffff;
     border-radius: 8px;
