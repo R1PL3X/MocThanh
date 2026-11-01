@@ -2,10 +2,10 @@
  * MODULE QUẢN TRỊ ADMIN & CỔNG TÁC NGHIỆP NHÂN VIÊN MORIOO
  */
 
-import { SupabaseConfig } from "./supabase-config.js";
-import { db } from "./supabase-client.js";
-import { auth } from "./auth.js";
-import { cart } from "./cart.js";
+import { SupabaseConfig } from "./supabase-config.js?v=3.5";
+import { db } from "./supabase-client.js?v=3.5";
+import { auth } from "./auth.js?v=3.5";
+import { cart } from "./cart.js?v=3.5";
 
 export function initAdminControls() {
     // Modal Cấu hình Supabase
@@ -36,15 +36,26 @@ export function initAdminControls() {
 
         setupBtns.forEach(btn => {
             btn.addEventListener("click", () => {
-                if (setupModal) setupModal.classList.add("active");
+                if (setupModal) {
+                    setupModal.classList.add("active");
+                    document.body.style.overflow = "hidden";
+                }
             });
         });
 
         if (closeSetupModal) {
             closeSetupModal.addEventListener("click", () => {
                 setupModal.classList.remove("active");
+                document.body.style.overflow = "";
             });
         }
+
+        setupModal?.addEventListener("click", (e) => {
+            if (e.target === setupModal) {
+                setupModal.classList.remove("active");
+                document.body.style.overflow = "";
+            }
+        });
 
         if (btnTest) {
             btnTest.addEventListener("click", async () => {

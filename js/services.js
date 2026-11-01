@@ -7,7 +7,7 @@
  * 5. Dịch vụ thiết kế không gian (Kích thước phòng & tải bản vẽ)
  */
 
-import { db } from "./supabase-client.js";
+import { db } from "./supabase-client.js?v=3.5";
 
 let UPLOADED_MAINT_IMG = "";
 let UPLOADED_SPACE_IMG = "";
@@ -51,6 +51,13 @@ window.openServiceModal = function(serviceType = "tu-van") {
     if (!modal) return;
     modal.style.display = "flex";
     document.body.style.overflow = "hidden";
+
+    if (!modal.dataset.hasBackdropListener) {
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) window.closeServiceModal();
+        });
+        modal.dataset.hasBackdropListener = "true";
+    }
 
     const typeToTab = {
         "tu-van": "svcTabConsult",

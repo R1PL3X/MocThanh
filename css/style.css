@@ -34,6 +34,7 @@
 
 html {
     scroll-behavior: smooth;
+    overflow-y: auto;
 }
 
 body {
@@ -42,6 +43,11 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    overflow-y: auto;
+}
+
+body.modal-open {
+    overflow: hidden !important;
 }
 
 a {

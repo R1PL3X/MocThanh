@@ -3,9 +3,9 @@
  * Tự động nhận diện quyền Admin, Nhân Viên, Khách Hàng
  */
 
-import { auth } from "./auth.js";
-import { db } from "./supabase-client.js";
-import { cart } from "./cart.js";
+import { auth } from "./auth.js?v=3.5";
+import { db } from "./supabase-client.js?v=3.5";
+import { cart } from "./cart.js?v=3.5";
 
 export function initAuthUI() {
     const authModal = document.getElementById("authModal");
@@ -17,6 +17,13 @@ export function initAuthUI() {
     const closeCustOrdersBtn = document.getElementById("closeCustomerOrdersModal");
     const btnOpenCustOrders = document.getElementById("btnOpenCustomerOrders");
 
+    const unlock = () => {
+        document.body.classList.remove("modal-open");
+        document.body.style.removeProperty("overflow");
+        document.body.style.overflow = "";
+        window.ensureScrollUnlocked?.();
+    };
+
     // Mở Auth Modal
     openAuthBtns.forEach(btn => {
         btn.addEventListener("click", () => {
@@ -27,10 +34,26 @@ export function initAuthUI() {
 
     closeAuthBtn?.addEventListener("click", () => {
         authModal?.classList.remove("active");
+        unlock();
+    });
+
+    authModal?.addEventListener("click", (e) => {
+        if (e.target === authModal) {
+            authModal.classList.remove("active");
+            unlock();
+        }
     });
 
     closeCustOrdersBtn?.addEventListener("click", () => {
         customerOrdersModal?.classList.remove("active");
+        unlock();
+    });
+
+    customerOrdersModal?.addEventListener("click", (e) => {
+        if (e.target === customerOrdersModal) {
+            customerOrdersModal.classList.remove("active");
+            unlock();
+        }
     });
 
     // Chuyển tab giữa Đăng Nhập & Đăng Ký (Gộp làm 1)
@@ -64,6 +87,8 @@ export function initAuthUI() {
         if (res.success) {
             setTimeout(() => {
                 authModal?.classList.remove("active");
+                document.body.classList.remove("modal-open");
+                document.body.style.overflow = "";
                 formLogin.reset();
 
                 // Tự động chuyển tới trang riêng theo đúng vai trò
@@ -71,6 +96,16 @@ export function initAuthUI() {
                     window.location.href = "admin.html";
                 } else if (res.user.role === "staff") {
                     window.location.href = "staff.html";
+                } else if (sessionStorage.getItem("morioo_pending_checkout") === "true") {
+                    sessionStorage.removeItem("morioo_pending_checkout");
+                    const checkoutModal = document.getElementById("checkoutModal");
+                    if (checkoutModal) {
+                        checkoutModal.classList.add("active");
+                        document.body.classList.add("modal-open");
+                        document.body.style.overflow = "hidden";
+                        window.dispatchEvent(new CustomEvent("auth-state-changed"));
+                        window.renderCheckoutSummary?.();
+                    }
                 }
             }, 600);
         }
@@ -100,7 +135,21 @@ export function initAuthUI() {
         if (res.success) {
             setTimeout(() => {
                 authModal?.classList.remove("active");
+                document.body.classList.remove("modal-open");
+                document.body.style.overflow = "";
                 formRegister.reset();
+
+                if (sessionStorage.getItem("morioo_pending_checkout") === "true") {
+                    sessionStorage.removeItem("morioo_pending_checkout");
+                    const checkoutModal = document.getElementById("checkoutModal");
+                    if (checkoutModal) {
+                        checkoutModal.classList.add("active");
+                        document.body.classList.add("modal-open");
+                        document.body.style.overflow = "hidden";
+                        window.dispatchEvent(new CustomEvent("auth-state-changed"));
+                        window.renderCheckoutSummary?.();
+                    }
+                }
             }, 800);
         }
     });
@@ -129,6 +178,7 @@ export function initAuthUI() {
         userDropdownMenu?.classList.remove("active");
         renderCustomerOrders();
         customerOrdersModal?.classList.add("active");
+        document.body.style.overflow = "hidden";
     });
 
     // Lắng nghe thay đổi trạng thái đăng nhập
@@ -160,6 +210,8 @@ export function openAuthModal(mode = "login", customMessage = null) {
     }
 
     authModal.classList.add("active");
+    document.body.classList.add("modal-open");
+    document.body.style.overflow = "hidden";
 }
 
 function updateTopBarUserUI() {
@@ -220,6 +272,18 @@ function autofillCheckoutUser() {
     const phoneInput = document.getElementById("customerPhone");
     const emailInput = document.getElementById("customerEmail");
     const checkoutNotice = document.getElementById("checkoutRoleNotice");
+    const banner = document.getElementById("checkoutUserBanner");
+    const bannerText = document.getElementById("checkoutUserBannerText");
+
+    if (banner && bannerText) {
+        if (user) {
+            banner.style.display = "flex";
+            const roleBadge = user.role === "admin" ? "👑 Admin" : (user.role === "staff" ? "💼 Nhân viên" : "👤 Khách hàng");
+            bannerText.innerHTML = `${roleBadge}: <strong>${user.full_name || user.email}</strong> (${user.email || user.phone || ''})`;
+        } else {
+            banner.style.display = "none";
+        }
+    }
 
     // Staff or Admin logged in: DO NOT autofill staff credentials into customer checkout!
     if (user && (user.role === "admin" || user.role === "staff")) {

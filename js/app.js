@@ -2,12 +2,42 @@
  * ỨNG DỤNG WEB NỘI THẤT GỖ MORIOO & SUPABASE
  */
 
-import { db } from "./supabase-client.js";
-import { cart } from "./cart.js";
-import { auth } from "./auth.js";
-import { initAdminControls } from "./admin.js";
-import { initAuthUI } from "./auth-ui.js";
-import "./services.js";
+import { db } from "./supabase-client.js?v=3.5";
+import { cart } from "./cart.js?v=3.5";
+import { auth } from "./auth.js?v=3.5";
+import { initAdminControls } from "./admin.js?v=3.5";
+import { initAuthUI, openAuthModal } from "./auth-ui.js?v=3.5";
+import "./services.js?v=3.5";
+
+/**
+ * Tiện ích khóa / khôi phục thanh cuộn trang toàn cục
+ */
+export function unlockScroll() {
+    document.body.classList.remove("modal-open");
+    document.documentElement.classList.remove("modal-open");
+    document.body.style.removeProperty("overflow");
+    document.documentElement.style.removeProperty("overflow");
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+    document.body.style.overflowY = "auto";
+    document.documentElement.style.overflowY = "auto";
+}
+
+export function lockScroll() {
+    document.body.classList.add("modal-open");
+    document.body.style.overflow = "hidden";
+}
+
+export function ensureScrollUnlocked() {
+    const hasActiveModal = document.querySelector(".custom-modal.active, .cart-drawer.active, .cart-overlay.active");
+    if (!hasActiveModal) {
+        unlockScroll();
+    }
+}
+
+window.restorePageScroll = unlockScroll;
+window.lockPageScroll = lockScroll;
+window.ensureScrollUnlocked = ensureScrollUnlocked;
 
 // Trạng thái ứng dụng
 const state = {
@@ -24,10 +54,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initAdminControls();
     initAuthUI();
 
-    // 2. Tải sản phẩm từ Supabase / Local
-    await loadProducts();
-
-    // 3. Khởi tạo các sự kiện giao diện
+    // 2. Khởi tạo các sự kiện giao diện, giỏ hàng, checkout trước để phản hồi ngay lập tức
     initNavigation();
     initFilters();
     initSearch();
@@ -38,9 +65,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     initFloatingWidgets();
     updateCartUI();
 
+    // 3. Tải sản phẩm từ Supabase / Local
+    await loadProducts();
+
     // Lắng nghe sự kiện giỏ hàng
     window.addEventListener("cart-updated", updateCartUI);
-    window.addEventListener("product-list-changed", loadProducts);
+    window.addEventListener("product-list-changed", () => loadProducts(false));
 
     // Đồng bộ tức thì đa tab qua BroadcastChannel khi Admin / Nhân viên thêm, sửa, xóa sản phẩm
     if (typeof BroadcastChannel !== "undefined") {
@@ -50,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!data) return;
             console.log("[Storefront Sync] Nhận tín hiệu thời gian thực từ Admin/Staff:", data.type);
             if (data.type === "PRODUCT_ADDED" || data.type === "PRODUCT_UPDATED" || data.type === "PRODUCT_DELETED" || data.type === "STOCK_UPDATED") {
-                loadProducts();
+                loadProducts(false);
             } else if (data.type === "NEW_ORDER") {
                 updateCartUI();
             }
@@ -61,41 +91,75 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.addEventListener("storage", (e) => {
         if (e.key === "morioo_products") {
             console.log("[Sync] Phát hiện sản phẩm thay đổi từ Admin/Staff, đang làm mới web...");
-            loadProducts();
+            loadProducts(false);
         }
         if (e.key === "morioo_cart") {
             updateCartUI();
         }
     });
 
-    // Khi người dùng chuyển tab quay lại web, tự động tải lại dữ liệu mới nhất
-    window.addEventListener("focus", () => {
-        loadProducts();
+    // Đóng modal bằng phím Escape và khôi phục thanh cuộn trang
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            document.querySelectorAll(".custom-modal.active").forEach(m => m.classList.remove("active"));
+            const cartDrawer = document.getElementById("cartDrawer");
+            const cartOverlay = document.getElementById("cartOverlay");
+            if (cartDrawer?.classList.contains("active")) {
+                cartDrawer.classList.remove("active");
+                cartOverlay?.classList.remove("active");
+            }
+            unlockScroll();
+            ensureScrollUnlocked();
+        }
+    });
+
+    // Luôn bảo đảm mở khóa thanh cuộn khi người dùng đóng các cửa sổ popup
+    document.addEventListener("click", () => {
+        setTimeout(ensureScrollUnlocked, 100);
     });
 });
 
 /**
  * Tải danh sách sản phẩm từ Supabase / Mock
+ * @param {boolean} forceSpinner - Có bắt buộc hiển thị loader xoay tròn hay không
  */
-async function loadProducts() {
+async function loadProducts(forceSpinner = false) {
     const grid = document.getElementById("productGrid");
     if (!grid) return;
 
-    grid.innerHTML = `
-        <div class="loading-state">
-            <div class="loader-circle"></div>
-            <p>Đang tải bộ sưu tập nội thất gỗ MORIOO...</p>
-        </div>
-    `;
+    // Chỉ hiển thị loading-state nếu danh sách hiện tại chưa có sản phẩm (lần tải đầu tiên)
+    // Nếu đã có sản phẩm thì KHÔNG xóa DOM để tránh giật giao diện và mất vị trí cuộn trang khi lướt web
+    const isInitialLoad = !state.products || state.products.length === 0;
+    if (isInitialLoad || forceSpinner) {
+        grid.innerHTML = `
+            <div class="loading-state">
+                <div class="loader-circle"></div>
+                <p>Đang tải bộ sưu tập nội thất gỗ MORIOO...</p>
+            </div>
+        `;
+    }
 
-    state.products = await db.getProducts({
-        category: state.currentCategory,
-        woodType: state.currentWoodType,
-        sort: state.currentSort,
-        search: state.searchQuery
-    });
+    try {
+        const fetched = await db.getProducts({
+            category: state.currentCategory,
+            woodType: state.currentWoodType,
+            sort: state.currentSort,
+            search: state.searchQuery
+        });
 
-    renderProductGrid();
+        state.products = fetched || [];
+        renderProductGrid();
+    } catch (err) {
+        console.error("[MORIOO] Lỗi khi tải sản phẩm:", err);
+        if (isInitialLoad) {
+            grid.innerHTML = `
+                <div class="empty-products">
+                    <h3>Không thể tải danh sách sản phẩm</h3>
+                    <p>Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau.</p>
+                </div>
+            `;
+        }
+    }
 }
 
 /**
@@ -270,12 +334,13 @@ function initCartDrawer() {
         if (open) {
             cartDrawer.classList.add("active");
             cartOverlay?.classList.add("active");
-            document.body.style.overflow = "hidden";
+            lockScroll();
             renderCartDrawerItems();
         } else {
             cartDrawer.classList.remove("active");
             cartOverlay?.classList.remove("active");
-            document.body.style.overflow = "";
+            unlockScroll();
+            ensureScrollUnlocked();
         }
     };
 
@@ -366,7 +431,43 @@ function renderCartDrawerItems() {
     const shipProg = cart.getFreeShippingProgress();
     if (shippingBar) shippingBar.style.width = `${shipProg.percent}%`;
     if (shippingMsg) shippingMsg.textContent = shipProg.message;
+
+    const authNoticeEl = document.getElementById("cartAuthNotice");
+    if (authNoticeEl) {
+        if (!auth.isLoggedIn()) {
+            authNoticeEl.innerHTML = `
+                <div style="margin: 10px 0 6px; padding: 10px 12px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; font-size: 12px; color: #9a3412; line-height: 1.4;">
+                    <strong>⚠️ Yêu cầu đăng nhập:</strong> Quý khách cần đăng nhập tài khoản trước khi tiến hành đặt hàng.
+                </div>
+            `;
+        } else {
+            const curUser = auth.getCurrentUser() || {};
+            authNoticeEl.innerHTML = `
+                <div style="margin: 10px 0 6px; padding: 8px 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; font-size: 12px; color: #166534; display: flex; justify-content: space-between; align-items: center;">
+                    <span>👤 Tài khoản: <strong>${curUser.full_name || curUser.email || 'Khách'}</strong></span>
+                    <button type="button" onclick="window.moriooSwitchUser()" style="background: none; border: none; color: #dc2626; font-size: 11.5px; cursor: pointer; text-decoration: underline; font-weight: 600;">[Đổi tài khoản]</button>
+                </div>
+            `;
+        }
+    }
+
+    if (checkoutBtn && items.length > 0) {
+        if (!auth.isLoggedIn()) {
+            checkoutBtn.innerHTML = `🔒 Đăng Nhập Để Đặt Hàng →`;
+        } else {
+            checkoutBtn.innerHTML = `Tiến Hành Đặt Hàng →`;
+        }
+    }
 }
+
+window.moriooSwitchUser = function() {
+    auth.logout();
+    updateCartUI();
+    const checkoutModal = document.getElementById("checkoutModal");
+    if (checkoutModal) checkoutModal.classList.remove("active");
+    ensureScrollUnlocked();
+    openAuthModal("login", "Vui lòng đăng nhập tài khoản khác để tiếp tục đặt hàng!");
+};
 
 /**
  * Modal Xem Chi Tiết Sản Phẩm
@@ -375,10 +476,18 @@ function initProductModal() {
     const modal = document.getElementById("productDetailModal");
     const closeBtn = document.getElementById("closeProductModal");
 
+    const closeModal = () => {
+        if (modal) {
+            modal.classList.remove("active");
+            unlockScroll();
+            ensureScrollUnlocked();
+        }
+    };
+
     if (closeBtn && modal) {
-        closeBtn.addEventListener("click", () => modal.classList.remove("active"));
+        closeBtn.addEventListener("click", closeModal);
         modal.addEventListener("click", (e) => {
-            if (e.target === modal) modal.classList.remove("active");
+            if (e.target === modal) closeModal();
         });
     }
 }
@@ -389,6 +498,7 @@ window.viewProductDetail = async function (productId) {
     if (!modal || !body) return;
 
     modal.classList.add("active");
+    lockScroll();
     body.innerHTML = `<div class="loading-state"><div class="loader-circle"></div><p>Đang tải chi tiết sản phẩm MORIOO...</p></div>`;
 
     const product = await db.getProduct(productId);
@@ -494,6 +604,8 @@ window.addCurrentToCart = function () {
     cart.addItem(state.selectedProduct, qty);
     showToast(`Đã thêm ${qty} x "${state.selectedProduct.name}" vào giỏ hàng!`);
     document.getElementById("productDetailModal")?.classList.remove("active");
+    unlockScroll();
+    ensureScrollUnlocked();
 };
 
 window.addToCartById = async function (id) {
@@ -521,25 +633,113 @@ function initCheckout() {
     const btnProceed = document.getElementById("btnProceedCheckout");
     const closeBtn = document.getElementById("closeCheckoutModal");
     const form = document.getElementById("checkoutForm");
+    const payInputs = document.querySelectorAll("input[name='paymentMethod']");
+    const chkQr = document.getElementById("confirmQrScanned");
+
+    const closeCheckout = () => {
+        if (checkoutModal) {
+            checkoutModal.classList.remove("active");
+            unlockScroll();
+            ensureScrollUnlocked();
+        }
+    };
 
     btnProceed?.addEventListener("click", () => {
+        // Yêu cầu đăng nhập trước khi đặt hàng
+        if (!auth.isLoggedIn()) {
+            document.getElementById("cartDrawer")?.classList.remove("active");
+            document.getElementById("cartOverlay")?.classList.remove("active");
+            unlockScroll();
+            sessionStorage.setItem("morioo_pending_checkout", "true");
+            openAuthModal("login", "Vui lòng đăng nhập hoặc đăng ký tài khoản MORIOO trước khi tiến hành thanh toán!");
+            showToast("Vui lòng đăng nhập để tiến hành đặt hàng!");
+            return;
+        }
+
         document.getElementById("cartDrawer")?.classList.remove("active");
         document.getElementById("cartOverlay")?.classList.remove("active");
         if (checkoutModal) {
             checkoutModal.classList.add("active");
+            lockScroll();
             window.dispatchEvent(new CustomEvent("auth-state-changed"));
             renderCheckoutSummary();
         }
     });
 
-    closeBtn?.addEventListener("click", () => {
-        checkoutModal?.classList.remove("active");
+    closeBtn?.addEventListener("click", closeCheckout);
+    checkoutModal?.addEventListener("click", (e) => {
+        if (e.target === checkoutModal) closeCheckout();
     });
+
+    // Cập nhật trạng thái hiển thị mã QR ngay trước nút thanh toán và khóa/mở nút
+    function updatePaymentUI() {
+        const selected = document.querySelector("input[name='paymentMethod']:checked")?.value || "cod";
+        const qrBox = document.getElementById("vietQrSection");
+        const submitBtn = document.getElementById("btnSubmitOrder");
+        const qrAmountDisplay = document.getElementById("qrAmountDisplay");
+        const qrImg = document.getElementById("vietQrImage");
+        const total = cart.getTotal();
+
+        if (!submitBtn) return;
+
+        if (selected === "bank_transfer") {
+            if (qrBox) qrBox.style.display = "block";
+            if (qrAmountDisplay) qrAmountDisplay.textContent = cart.formatCurrency(total);
+            if (qrImg) {
+                qrImg.src = `https://api.vietqr.io/image/970422-0988888888-q8U3XvD.jpg?amount=${total}&addInfo=MORIOO%20NOI%20THAT`;
+            }
+
+            // Phải tích xác nhận đã quét QR chuyển khoản trước khi bấm được nút thanh toán
+            if (chkQr && !chkQr.checked) {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = "0.55";
+                submitBtn.style.cursor = "not-allowed";
+                submitBtn.style.backgroundColor = "#71717a";
+                submitBtn.innerHTML = `⚠️ Vui Lòng Quét QR & Tích Xác Nhận Bên Trên`;
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = "1";
+                submitBtn.style.cursor = "pointer";
+                submitBtn.style.backgroundColor = "var(--brand-red)";
+                submitBtn.innerHTML = `✅ Xác Nhận Đã Chuyển Khoản & Hoàn Tất Đặt Hàng`;
+            }
+        } else {
+            if (qrBox) qrBox.style.display = "none";
+            if (chkQr) chkQr.checked = false;
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = "1";
+            submitBtn.style.cursor = "pointer";
+            submitBtn.style.backgroundColor = "var(--brand-red)";
+            submitBtn.innerHTML = `Hoàn Tất Đặt Hàng (COD)`;
+        }
+    }
+
+    payInputs.forEach(input => {
+        input.addEventListener("change", updatePaymentUI);
+    });
+
+    chkQr?.addEventListener("change", updatePaymentUI);
 
     if (form) {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
             const submitBtn = document.getElementById("btnSubmitOrder");
+
+            // Kiểm tra đăng nhập
+            if (!auth.isLoggedIn()) {
+                alert("Vui lòng đăng nhập tài khoản trước khi hoàn tất đặt hàng!");
+                closeCheckout();
+                openAuthModal("login", "Vui lòng đăng nhập để hoàn tất đặt hàng!");
+                return;
+            }
+
+            const paymentMethod = document.querySelector("input[name='paymentMethod']:checked")?.value || "cod";
+            if (paymentMethod === "bank_transfer" && chkQr && !chkQr.checked) {
+                alert("Quý khách đã chọn Chuyển khoản VietQR. Vui lòng quét mã QR và tích chọn 'Tôi đã quét mã QR & chuyển khoản thành công' trước khi bấm Hoàn tất đặt hàng!");
+                chkQr.focus();
+                chkQr.scrollIntoView({ behavior: "smooth", block: "center" });
+                return;
+            }
 
             const custName = (document.getElementById("customerName")?.value || "").trim();
             const custPhone = (document.getElementById("customerPhone")?.value || "").trim();
@@ -579,7 +779,7 @@ function initCheckout() {
                 customerEmail: custEmail,
                 shippingAddress: shipAddr,
                 city: city,
-                paymentMethod: document.querySelector("input[name='paymentMethod']:checked")?.value || "cod",
+                paymentMethod: paymentMethod,
                 note: (document.getElementById("orderNote")?.value || "").trim(),
                 items: [...cart.items],
                 totalAmount: cart.getTotal(),
@@ -612,15 +812,8 @@ function initCheckout() {
         });
     }
 
-    const payInputs = document.querySelectorAll("input[name='paymentMethod']");
-    payInputs.forEach(input => {
-        input.addEventListener("change", () => {
-            const qrBox = document.getElementById("vietQrSection");
-            if (qrBox) {
-                qrBox.style.display = input.value === "bank_transfer" ? "block" : "none";
-            }
-        });
-    });
+    // Expose updatePaymentUI for use in summary render
+    window.updateCheckoutPaymentUI = updatePaymentUI;
 }
 
 function renderCheckoutSummary() {
@@ -637,12 +830,11 @@ function renderCheckoutSummary() {
 
     if (totalEl) totalEl.textContent = cart.formatCurrency(cart.getTotal());
 
-    const qrImg = document.getElementById("vietQrImage");
-    if (qrImg) {
-        const total = cart.getTotal();
-        qrImg.src = `https://api.vietqr.io/image/970422-0988888888-q8U3XvD.jpg?amount=${total}&addInfo=MORIOO%20NOI%20THAT`;
+    if (window.updateCheckoutPaymentUI) {
+        window.updateCheckoutPaymentUI();
     }
 }
+window.renderCheckoutSummary = renderCheckoutSummary;
 
 function showOrderSuccessModal(code, isCloud, payload) {
     const successModal = document.getElementById("orderSuccessModal");
@@ -660,9 +852,23 @@ function showOrderSuccessModal(code, isCloud, payload) {
     }
 
     successModal.classList.add("active");
-    document.getElementById("closeSuccessModal")?.addEventListener("click", () => {
+    lockScroll();
+
+    const closeSuccess = () => {
         successModal.classList.remove("active");
-    });
+        unlockScroll();
+        ensureScrollUnlocked();
+    };
+
+    const closeBtn = document.getElementById("closeSuccessModal");
+    if (closeBtn) closeBtn.onclick = closeSuccess;
+
+    const closeX = document.getElementById("closeSuccessModalX");
+    if (closeX) closeX.onclick = closeSuccess;
+
+    successModal.onclick = (e) => {
+        if (e.target === successModal) closeSuccess();
+    };
 }
 
 /**

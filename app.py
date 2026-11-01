@@ -30,6 +30,13 @@ app = Flask(
 )
 app.secret_key = os.environ.get('SECRET_KEY', 'morioo-vietnam-natural-wood-secret-key-2026')
 
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 class VercelPathFixMiddleware:
     """
     WSGI Middleware to accurately restore the original request path when deployed on Vercel
