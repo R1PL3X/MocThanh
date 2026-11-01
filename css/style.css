@@ -1363,3 +1363,104 @@ img {
         width: max-content;
     }
 }
+
+/* ==============================================================================
+   SERVICES SUITE (5 GÓI DỊCH VỤ - 1 HÀNG DUY NHẤT)
+   ============================================================================== */
+.services-suite-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
+}
+
+.service-suite-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e4e4e7;
+    padding: 22px 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s ease;
+}
+
+.service-suite-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.service-suite-card.highlighted {
+    background: linear-gradient(180deg, #ffffff 0%, #fdfbf7 100%);
+    border: 2px solid #b91c1c;
+    box-shadow: 0 8px 20px rgba(185, 28, 28, 0.08);
+}
+
+.service-suite-card .svc-icon {
+    font-size: 34px;
+    margin-bottom: 10px;
+}
+
+.service-suite-card .svc-tag {
+    display: inline-block;
+    align-self: flex-start;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    white-space: nowrap;
+}
+
+.service-suite-card .svc-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #18181b;
+    margin-bottom: 8px;
+    line-height: 1.35;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
+
+.service-suite-card .svc-desc {
+    font-size: 12.5px;
+    color: #52525b;
+    line-height: 1.55;
+    margin-bottom: 14px;
+    flex-grow: 1;
+}
+
+.service-suite-card .svc-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px;
+    font-size: 12px;
+    color: #3f3f46;
+    line-height: 1.7;
+}
+
+.service-suite-card .svc-btn {
+    width: 100%;
+    padding: 10px 6px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+    margin-top: auto;
+    white-space: nowrap;
+}
+
+@media (max-width: 1180px) {
+    .services-suite-grid {
+        grid-template-columns: repeat(5, 250px);
+        overflow-x: auto;
+        padding-bottom: 16px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+    .service-suite-card {
+        scroll-snap-align: start;
+        flex-shrink: 0;
+    }
+}

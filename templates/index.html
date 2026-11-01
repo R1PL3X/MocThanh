@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- CSS Stylesheets -->
-    <link rel="stylesheet" href="css/style.css?v=3.5">
+    <link rel="stylesheet" href="css/style.css?v=3.6">
     <link rel="stylesheet" href="css/components.css?v=3.5">
 
     <!-- Supabase JS Library (Chính thức qua CDN để kết nối Database Cloud) -->
@@ -288,7 +288,7 @@
          8. DỊCH VỤ NỘI THẤT MAY ĐO & ĐỒNG HÀNH TOÀN DIỆN CÙNG MORIOO (5 DỊCH VỤ)
          ============================================================================== -->
     <section class="services-suite-section" id="servicesSection" style="padding: 70px 0; background: #faf8f5; border-top: 1px solid #ebd9c8; border-bottom: 1px solid #ebd9c8;">
-        <div class="container">
+        <div class="container" style="max-width: 1540px; width: 100%;">
             <div style="text-align: center; max-width: 820px; margin: 0 auto 46px;">
                 <span style="display:inline-block; font-size:11px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:#854d0e; background:#fef9c3; border:1px solid #fef08a; padding:4px 14px; border-radius:20px; margin-bottom:12px;">
                     ✨ GIẢI PHÁP NỘI THẤT MAY ĐO TOÀN DIỆN
@@ -301,103 +301,103 @@
                 </p>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+            <div class="services-suite-grid">
                 <!-- Dịch vụ 1: Tư vấn nội thất -->
-                <div class="service-suite-card" style="background:#fff; border-radius:12px; border:1px solid #e4e4e7; padding:28px 24px; display:flex; flex-direction:column; box-shadow:0 2px 8px rgba(0,0,0,0.04); transition:all 0.25s ease;">
-                    <div style="font-size: 38px; margin-bottom: 16px;">🛋️</div>
-                    <span style="display:inline-block; align-self:flex-start; font-size:11px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:3px 10px; border-radius:12px; margin-bottom:12px;">
+                <div class="service-suite-card">
+                    <div class="svc-icon">🛋️</div>
+                    <span class="svc-tag" style="color:#0369a1; background:#e0f2fe;">
                         Tư Vấn Miễn Phí 100%
                     </span>
-                    <h3 style="font-size: 19px; font-weight: 800; color: #18181b; margin-bottom: 10px;">Dịch Vụ Tư Vấn Nội Thất</h3>
-                    <p style="font-size: 13.5px; color: #52525b; line-height: 1.6; margin-bottom: 16px; flex-grow: 1;">
+                    <h3 class="svc-title">Dịch Vụ Tư Vấn Nội Thất</h3>
+                    <p class="svc-desc">
                         Khách hàng gửi nhu cầu, diện tích phòng, phong cách yêu thích và ngân sách. Nhân viên MORIOO tiếp nhận và tư vấn gợi ý sản phẩm phù hợp tối ưu nhất.
                     </p>
-                    <ul style="list-style:none; padding:0; margin:0 0 20px; font-size:12.5px; color:#3f3f46; line-height:1.8;">
+                    <ul class="svc-checklist">
                         <li><strong style="color:#15803d;">✓</strong> Phân tích diện tích & công năng phòng</li>
                         <li><strong style="color:#15803d;">✓</strong> Định hình phong cách Zen / Wabi-Sabi</li>
                         <li><strong style="color:#15803d;">✓</strong> Gợi ý sản phẩm vừa vặn với ngân sách</li>
                     </ul>
-                    <button type="button" onclick="window.openServiceModal('tu-van')" class="btn-brand-primary" style="width:100%; padding:11px; border-radius:6px; font-weight:700; font-size:13px; text-align:center;">
+                    <button type="button" onclick="window.openServiceModal('tu-van')" class="btn-brand-primary svc-btn">
                         Nhận Tư Vấn Miễn Phí →
                     </button>
                 </div>
 
                 <!-- Dịch vụ 2: Thiết kế và đặt đóng theo yêu cầu -->
-                <div class="service-suite-card" style="background:#fff; border-radius:12px; border:1px solid #e4e4e7; padding:28px 24px; display:flex; flex-direction:column; box-shadow:0 2px 8px rgba(0,0,0,0.04); transition:all 0.25s ease;">
-                    <div style="font-size: 38px; margin-bottom: 16px;">📐</div>
-                    <span style="display:inline-block; align-self:flex-start; font-size:11px; font-weight:700; color:#b45309; background:#fef3c7; padding:3px 10px; border-radius:12px; margin-bottom:12px;">
+                <div class="service-suite-card">
+                    <div class="svc-icon">📐</div>
+                    <span class="svc-tag" style="color:#b45309; background:#fef3c7;">
                         May Đo Theo Hiện Trạng
                     </span>
-                    <h3 style="font-size: 19px; font-weight: 800; color: #18181b; margin-bottom: 10px;">Thiết Kế & Đặt Đóng Theo Yêu Cầu</h3>
-                    <p style="font-size: 13.5px; color: #52525b; line-height: 1.6; margin-bottom: 16px; flex-grow: 1;">
+                    <h3 class="svc-title">Thiết Kế & Đặt Đóng Theo Yêu Cầu</h3>
+                    <p class="svc-desc">
                         Lựa chọn kích thước chuẩn từng centimet, chất liệu gỗ sồi/tần bì/óc chó, màu lau dầu và kiểu dáng. Nhân viên tiếp nhận, báo giá minh bạch và xác nhận đơn thiết kế.
                     </p>
-                    <ul style="list-style:none; padding:0; margin:0 0 20px; font-size:12.5px; color:#3f3f46; line-height:1.8;">
+                    <ul class="svc-checklist">
                         <li><strong style="color:#15803d;">✓</strong> Tùy chọn kích thước Dài x Rộng x Cao</li>
                         <li><strong style="color:#15803d;">✓</strong> Gỗ tự nhiên tuyển chọn, chống co ngót</li>
                         <li><strong style="color:#15803d;">✓</strong> Báo giá chi tiết & chốt hợp đồng nhanh</li>
                     </ul>
-                    <button type="button" onclick="window.openServiceModal('dat-dong')" class="btn-brand-primary" style="width:100%; padding:11px; border-radius:6px; font-weight:700; font-size:13px; text-align:center;">
+                    <button type="button" onclick="window.openServiceModal('dat-dong')" class="btn-brand-primary svc-btn">
                         Đặt Đóng Theo Yêu Cầu →
                     </button>
                 </div>
 
                 <!-- Dịch vụ 3: Vận chuyển và lắp đặt -->
-                <div class="service-suite-card highlighted" style="background:linear-gradient(180deg, #fff 0%, #fdfbf7 100%); border-radius:12px; border:2px solid #b91c1c; padding:28px 24px; display:flex; flex-direction:column; box-shadow:0 8px 20px rgba(185,28,28,0.08); position:relative; transition:all 0.25s ease;">
-                    <div style="font-size: 38px; margin-bottom: 16px;">🚚</div>
-                    <span style="display:inline-block; align-self:flex-start; font-size:11px; font-weight:700; color:#fff; background:#b91c1c; padding:3px 10px; border-radius:12px; margin-bottom:12px;">
+                <div class="service-suite-card highlighted">
+                    <div class="svc-icon">🚚</div>
+                    <span class="svc-tag" style="color:#fff; background:#b91c1c;">
                         Đặt Lịch & Theo Dõi Live
                     </span>
-                    <h3 style="font-size: 19px; font-weight: 800; color: #18181b; margin-bottom: 10px;">Dịch Vụ Vận Chuyển & Lắp Đặt</h3>
-                    <p style="font-size: 13.5px; color: #52525b; line-height: 1.6; margin-bottom: 16px; flex-grow: 1;">
+                    <h3 class="svc-title">Dịch Vụ Vận Chuyển & Lắp Đặt</h3>
+                    <p class="svc-desc">
                         Đăng ký lịch hẹn giao hàng, lắp đặt tận nơi cẩn trọng và <strong>theo dõi tiến độ thực hiện trực tiếp</strong> qua mã đơn hàng hoặc số điện thoại.
                     </p>
-                    <ul style="list-style:none; padding:0; margin:0 0 20px; font-size:12.5px; color:#3f3f46; line-height:1.8;">
+                    <ul class="svc-checklist">
                         <li><strong style="color:#15803d;">✓</strong> Đặt lịch hẹn ngày giờ chính xác</li>
                         <li><strong style="color:#15803d;">✓</strong> Thợ lành nghề mang đồ bọc lót lắp ráp</li>
                         <li><strong style="color:#15803d;">✓</strong> Tra cứu tiến độ timeline 5 bước live</li>
                     </ul>
-                    <button type="button" onclick="window.openServiceModal('van-chuyen')" class="btn-brand-primary" style="width:100%; padding:11px; border-radius:6px; font-weight:700; font-size:13px; text-align:center; background:#b91c1c;">
+                    <button type="button" onclick="window.openServiceModal('van-chuyen')" class="btn-brand-primary svc-btn" style="background:#b91c1c;">
                         Đặt Lịch & Tra Cứu Tiến Độ →
                     </button>
                 </div>
 
                 <!-- Dịch vụ 4: Bảo trì và sửa chữa -->
-                <div class="service-suite-card" style="background:#fff; border-radius:12px; border:1px solid #e4e4e7; padding:28px 24px; display:flex; flex-direction:column; box-shadow:0 2px 8px rgba(0,0,0,0.04); transition:all 0.25s ease;">
-                    <div style="font-size: 38px; margin-bottom: 16px;">🛠️</div>
-                    <span style="display:inline-block; align-self:flex-start; font-size:11px; font-weight:700; color:#6d28d9; background:#ede9fe; padding:3px 10px; border-radius:12px; margin-bottom:12px;">
+                <div class="service-suite-card">
+                    <div class="svc-icon">🛠️</div>
+                    <span class="svc-tag" style="color:#6d28d9; background:#ede9fe;">
                         Đính Kèm Ảnh Từ Máy
                     </span>
-                    <h3 style="font-size: 19px; font-weight: 800; color: #18181b; margin-bottom: 10px;">Dịch Vụ Bảo Trì & Sửa Chữa</h3>
-                    <p style="font-size: 13.5px; color: #52525b; line-height: 1.6; margin-bottom: 16px; flex-grow: 1;">
+                    <h3 class="svc-title">Dịch Vụ Bảo Trì & Sửa Chữa</h3>
+                    <p class="svc-desc">
                         Gửi yêu cầu bảo trì, đính kèm hình ảnh thực tế chụp từ máy tính, mô tả tình trạng sản phẩm và đặt lịch hẹn kỹ thuật viên MORIOO hỗ trợ tận nhà.
                     </p>
-                    <ul style="list-style:none; padding:0; margin:0 0 20px; font-size:12.5px; color:#3f3f46; line-height:1.8;">
+                    <ul class="svc-checklist">
                         <li><strong style="color:#15803d;">✓</strong> Tải ảnh sự cố trực tiếp từ máy tính</li>
                         <li><strong style="color:#15803d;">✓</strong> Xử lý trầy xước, xệ cánh, lau dầu Osmo</li>
                         <li><strong style="color:#15803d;">✓</strong> Đặt lịch hẹn kỹ thuật viên đến tận nơi</li>
                     </ul>
-                    <button type="button" onclick="window.openServiceModal('bao-tri')" class="btn-brand-primary" style="width:100%; padding:11px; border-radius:6px; font-weight:700; font-size:13px; text-align:center;">
+                    <button type="button" onclick="window.openServiceModal('bao-tri')" class="btn-brand-primary svc-btn">
                         Yêu Cầu Bảo Trì & Sửa Chữa →
                     </button>
                 </div>
 
                 <!-- Dịch vụ 5: Thiết kế không gian -->
-                <div class="service-suite-card" style="background:#fff; border-radius:12px; border:1px solid #e4e4e7; padding:28px 24px; display:flex; flex-direction:column; box-shadow:0 2px 8px rgba(0,0,0,0.04); transition:all 0.25s ease;">
-                    <div style="font-size: 38px; margin-bottom: 16px;">🏠</div>
-                    <span style="display:inline-block; align-self:flex-start; font-size:11px; font-weight:700; color:#15803d; background:#dcfce7; padding:3px 10px; border-radius:12px; margin-bottom:12px;">
+                <div class="service-suite-card">
+                    <div class="svc-icon">🏠</div>
+                    <span class="svc-tag" style="color:#15803d; background:#dcfce7;">
                         Bản Vẽ 3D & Dự Toán 24h
                     </span>
-                    <h3 style="font-size: 19px; font-weight: 800; color: #18181b; margin-bottom: 10px;">Dịch Vụ Thiết Kế Không Gian</h3>
-                    <p style="font-size: 13.5px; color: #52525b; line-height: 1.6; margin-bottom: 16px; flex-grow: 1;">
+                    <h3 class="svc-title">Dịch Vụ Thiết Kế Không Gian</h3>
+                    <p class="svc-desc">
                         Khách hàng cung cấp kích thước phòng hoặc tải lên bản vẽ để nhận phương án bố trí nội thất 2D/3D thông minh và bảng dự toán chi phí chi tiết.
                     </p>
-                    <ul style="list-style:none; padding:0; margin:0 0 20px; font-size:12.5px; color:#3f3f46; line-height:1.8;">
+                    <ul class="svc-checklist">
                         <li><strong style="color:#15803d;">✓</strong> Tải lên bản vẽ hoặc ảnh phòng từ máy</li>
                         <li><strong style="color:#15803d;">✓</strong> Phác thảo bố trí nội thất tối ưu luồng đi</li>
                         <li><strong style="color:#15803d;">✓</strong> Bảng dự toán chi phí vật tư trong 24h</li>
                     </ul>
-                    <button type="button" onclick="window.openServiceModal('thiet-ke-khong-gian')" class="btn-brand-primary" style="width:100%; padding:11px; border-radius:6px; font-weight:700; font-size:13px; text-align:center;">
+                    <button type="button" onclick="window.openServiceModal('thiet-ke-khong-gian')" class="btn-brand-primary svc-btn">
                         Nhận Phương Án & Dự Toán →
                     </button>
                 </div>
