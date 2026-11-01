@@ -611,6 +611,20 @@ class SupabaseDataService {
             const code = item.code || item.id;
             if (!map.has(code)) {
                 map.set(code, item);
+            } else {
+                const existing = map.get(code);
+                // Merge cloud and local details / staff_response
+                const mergedDetails = { ...(existing.details || {}), ...(item.details || {}) };
+                const mergedStaffResponse = item.staff_response || existing.staff_response || mergedDetails.staff_response;
+                map.set(code, {
+                    ...existing,
+                    ...item,
+                    details: mergedDetails,
+                    staff_response: mergedStaffResponse,
+                    status: item.status || existing.status,
+                    assigned_staff: item.assigned_staff || existing.assigned_staff,
+                    staff_notes: item.staff_notes || existing.staff_notes
+                });
             }
         });
         return Array.from(map.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));

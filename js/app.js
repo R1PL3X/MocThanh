@@ -2,12 +2,12 @@
  * ỨNG DỤNG WEB NỘI THẤT GỖ MORIOO & SUPABASE
  */
 
-import { db } from "./supabase-client.js?v=3.5";
-import { cart } from "./cart.js?v=3.5";
-import { auth } from "./auth.js?v=3.5";
-import { initAdminControls } from "./admin.js?v=3.5";
-import { initAuthUI, openAuthModal } from "./auth-ui.js?v=3.5";
-import "./services.js?v=3.5";
+import { db } from "./supabase-client.js?v=3.6";
+import { cart } from "./cart.js?v=3.6";
+import { auth } from "./auth.js?v=3.6";
+import { initAdminControls } from "./admin.js?v=3.6";
+import { initAuthUI, openAuthModal } from "./auth-ui.js?v=3.6";
+import "./services.js?v=3.6";
 
 /**
  * Tiện ích khóa / khôi phục thanh cuộn trang toàn cục

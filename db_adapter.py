@@ -733,12 +733,13 @@ def get_service_requests():
         result.append(d)
     return result
 
-def update_service_status(code, new_status, staff_notes=None, assigned_staff=None):
+def update_service_status(code, new_status, staff_notes=None, assigned_staff=None, details=None):
     if is_supabase_enabled():
         try:
             up = {'status': new_status}
             if staff_notes is not None: up['staff_notes'] = staff_notes
             if assigned_staff is not None: up['assigned_staff'] = assigned_staff
+            if details is not None: up['details'] = details
             supabase_client.table('service_requests').update(up).eq('code', code).execute()
             return True
         except Exception as e:
@@ -746,7 +747,12 @@ def update_service_status(code, new_status, staff_notes=None, assigned_staff=Non
 
     init_db()
     conn = get_db_connection()
-    conn.execute('UPDATE service_requests SET status = ? WHERE code = ?', (new_status, code))
+    if details is not None:
+        import json
+        details_str = json.dumps(details, ensure_ascii=False) if isinstance(details, (dict, list)) else details
+        conn.execute('UPDATE service_requests SET status = ?, staff_notes = COALESCE(?, staff_notes), assigned_staff = COALESCE(?, assigned_staff), details = ? WHERE code = ?', (new_status, staff_notes, assigned_staff, details_str, code))
+    else:
+        conn.execute('UPDATE service_requests SET status = ?, staff_notes = COALESCE(?, staff_notes), assigned_staff = COALESCE(?, assigned_staff) WHERE code = ?', (new_status, staff_notes, assigned_staff, code))
     conn.commit()
     conn.close()
     return True

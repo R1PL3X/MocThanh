@@ -2676,6 +2676,7 @@
             </td>
             <td class="p-3">
               <div class="text-xs font-semibold text-gray-800 dark:text-gray-200">${item.assigned_staff || '<span class="text-gray-400 italic">Chưa phân công</span>'}</div>
+              ${(item.staff_response || (item.details && item.details.staff_response)) ? '<div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">💬 Đã phản hồi khách</div>' : ''}
               <button onclick="adminAssignStaffToService('${item.code}')" class="text-[10px] text-sky-600 hover:underline mt-0.5 block">Phân công lại</button>
             </td>
             <td class="p-3">

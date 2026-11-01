@@ -508,12 +508,13 @@ def update_service_status(code):
     new_status = data.get('status')
     staff_notes = data.get('staff_notes')
     assigned_staff = data.get('assigned_staff')
+    details = data.get('details')
 
     if not new_status:
         return jsonify({'error': 'Thiếu trạng thái mới'}), 400
 
     try:
-        db_adapter.update_service_status(code, new_status, staff_notes, assigned_staff)
+        db_adapter.update_service_status(code, new_status, staff_notes, assigned_staff, details)
         return jsonify({'success': True, 'message': 'Cập nhật trạng thái dịch vụ thành công'})
     except Exception as e:
         return jsonify({'error': f'Lỗi cập nhật dịch vụ: {str(e)}'}), 500

@@ -557,6 +557,489 @@
   <!-- TOAST CONTAINER -->
   <div id="toastContainer" class="fixed top-16 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
+  <!-- ==============================================================================
+       MODAL PHẢN HỒI YÊU CẦU DỊCH VỤ DÀNH CHO NHÂN VIÊN (5 FORM RIÊNG BIỆT)
+       ============================================================================== -->
+  <div id="staffServiceReplyModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto flex items-center justify-center">
+    <div class="relative w-full max-w-3xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-800 overflow-hidden my-auto max-h-[92vh] flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-gray-200 dark:border-zinc-800 bg-gray-50/70 dark:bg-zinc-800/40 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div id="modalSvcIconBox" class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 flex items-center justify-center text-xl shrink-0">
+            🛋️
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span id="modalSvcTypeBadge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
+                Tư Vấn Nội Thất
+              </span>
+              <span id="modalSvcCode" class="font-mono font-bold text-xs text-sky-700 dark:text-sky-400">#DV-TV-xxxxxx</span>
+            </div>
+            <h3 id="modalSvcTitle" class="text-base font-bold text-gray-900 dark:text-white mt-0.5">
+              Tác Nghiệp & Phản Hồi Khách Hàng
+            </h3>
+          </div>
+        </div>
+        <button type="button" onclick="closeStaffServiceReplyModal()" class="w-8 h-8 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center justify-center transition text-base">
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-6">
+        
+        <!-- SECTION 1: THÔNG TIN KHÁCH HÀNG & YÊU CẦU ĐÃ GỬI -->
+        <div class="bg-gray-50 dark:bg-zinc-800/50 rounded-xl p-4 border border-gray-200 dark:border-zinc-700/80">
+          <div class="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+            <span>📋</span>
+            <span>Thông Tin Yêu Cầu Khách Hàng Gửi</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Khách hàng:</span>
+              <strong id="modalCustName" class="text-gray-900 dark:text-white ml-1 font-semibold">--</strong>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Số điện thoại:</span>
+              <a id="modalCustPhoneLink" href="#" class="text-amber-700 dark:text-amber-400 font-mono font-bold ml-1 hover:underline">--</a>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Địa chỉ:</span>
+              <span id="modalCustAddress" class="text-gray-800 dark:text-gray-200 ml-1">--</span>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Thời gian gửi:</span>
+              <span id="modalCustCreatedAt" class="text-gray-800 dark:text-gray-200 ml-1">--</span>
+            </div>
+          </div>
+
+          <!-- Specific Submitted Details -->
+          <div id="modalCustSpecificDetails" class="mt-3 pt-3 border-t border-gray-200/80 dark:border-zinc-700/80 text-xs">
+            <!-- Loaded dynamically based on service -->
+          </div>
+
+          <!-- Attached Image (if any) -->
+          <div id="modalCustImageContainer" class="mt-3 pt-3 border-t border-gray-200/80 dark:border-zinc-700/80 hidden">
+            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 block mb-1.5">Ảnh hiện trạng / Bản vẽ khách đính kèm:</span>
+            <div id="modalCustImageContent"></div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: BIỂU MẪU PHẢN HỒI RIÊNG BIỆT DÀNH CHO NHÂN VIÊN (5 FORM) -->
+        <div>
+          <div class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <span>💬</span>
+            <span id="modalFormHeadingTitle">Biểu Mẫu Tác Nghiệp & Trả Lời Khách Hàng</span>
+          </div>
+
+          <!-- Form 1: Tư Vấn Nội Thất -->
+          <form id="staffReplyForm_tu_van" class="space-y-4 hidden" onsubmit="saveStaffServiceReply(event)">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Trạng thái tư vấn <span class="text-red-500">*</span>
+                </label>
+                <select id="tuVan_status" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-red-600">
+                  <option value="consulting">📞 Đang liên hệ & Tư vấn giải pháp</option>
+                  <option value="quoted">📝 Đã gửi phương án & Báo giá combo</option>
+                  <option value="completed">✅ Khách hàng đã chốt chọn mẫu sản phẩm</option>
+                  <option value="cancelled">❌ Khách hủy / Không liên lạc được</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Chuyên viên tư vấn phụ trách <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="tuVan_staff" required class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: KTS. Lê Văn Nhân Viên">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Hotline / Zalo tư vấn trực tiếp
+                </label>
+                <input type="text" id="tuVan_phone" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="097 114 1140">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Ước tính ngân sách tư vấn (VNĐ)
+                </label>
+                <input type="text" id="tuVan_budget" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-mono font-bold text-amber-700 dark:text-amber-400 focus:outline-none focus:border-red-600" placeholder="VD: 35.000.000 VNĐ">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Định hình phong cách & Phân tích giải pháp không gian
+              </label>
+              <textarea id="tuVan_styleRec" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: Không gian phòng khách 25m2 đón sáng tự nhiên, thích hợp phong cách Wabi-Sabi mộc mạc kết hợp gỗ sồi tự nhiên và tone be ấm tối giản..."></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Gợi ý Combo / Sản phẩm MORIOO phù hợp
+              </label>
+              <textarea id="tuVan_products" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: 1. Sofa Vải Đay Khung Sồi Tự Nhiên; 2. Bàn Trà Noguchi Sồi; 3. Kệ Tivi Nan Gỗ Thoáng Khí 1m8..."></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Lịch hẹn tư vấn lại / Ghé Showroom trải nghiệm
+              </label>
+              <input type="text" id="tuVan_appointment" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: 14h30 - Thứ 7 tuần này tại Showroom MORIOO">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Lời nhắn & Hướng dẫn gửi khách hàng <span class="text-red-500">*</span>
+              </label>
+              <textarea id="tuVan_message" required rows="3" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="Nhập lời dặn dò hoặc tư vấn chi tiết gửi khách hàng. Khách hàng sẽ đọc được nội dung này khi tra cứu tiến độ..."></textarea>
+            </div>
+
+            <div class="pt-3 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-end gap-3">
+              <button type="button" onclick="closeStaffServiceReplyModal()" class="px-4 py-2 rounded-xl border border-gray-300 dark:border-zinc-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+                Đóng
+              </button>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow-lg transition flex items-center gap-1.5">
+                <span>💾</span>
+                <span>Lưu & Gửi Phản Hồi Tư Vấn</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Form 2: May Đo Đặt Đóng -->
+          <form id="staffReplyForm_dat_dong" class="space-y-4 hidden" onsubmit="saveStaffServiceReply(event)">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Tiến độ đơn đặt đóng xưởng <span class="text-red-500">*</span>
+                </label>
+                <select id="datDong_status" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-red-600">
+                  <option value="consulting">📐 Đang khảo sát & Thẩm định kỹ thuật xưởng</option>
+                  <option value="quoted">📝 Đã duyệt bản vẽ & Gửi báo giá sản xuất</option>
+                  <option value="shipping">🔨 Đang gia công chế tác tại xưởng mộc</option>
+                  <option value="completed">🎉 Sản phẩm hoàn thiện, sẵn sàng xuất xưởng</option>
+                  <option value="cancelled">❌ Đơn hủy / Không khả thi kỹ thuật</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Thợ cả / Kỹ sư xưởng phụ trách <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="datDong_staff" required class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: Nghệ nhân Đặng Văn Tuấn - Xưởng Mộc Thạnh">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Hotline kỹ thuật xưởng
+                </label>
+                <input type="text" id="datDong_phone" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="097 114 1140">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Thời gian hoàn thiện xưởng dự kiến
+                </label>
+                <input type="text" id="datDong_leadTime" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: 10 - 14 ngày (Dự kiến xong 15/11)">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Kích thước chốt sản xuất (mm)
+                </label>
+                <input type="text" id="datDong_specs" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: Dài 1800 x Rộng 850 x Cao 750 mm (Mặt dày 38mm)">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Chất liệu gỗ & Hoàn thiện bề mặt
+                </label>
+                <input type="text" id="datDong_woodFinish" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: Gỗ Sồi Trắng Bắc Mỹ FAS tuyển vân, lau dầu Osmo Polyx-Oil Đức">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Tổng chi phí sản xuất (VNĐ)
+                </label>
+                <input type="text" id="datDong_totalPrice" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-mono font-bold text-amber-700 dark:text-amber-400 focus:outline-none focus:border-red-600" placeholder="VD: 12.800.000 VNĐ">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Mức cọc yêu cầu (30-50%)
+                </label>
+                <input type="text" id="datDong_deposit" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-mono font-semibold text-rose-600 dark:text-rose-400 focus:outline-none focus:border-red-600" placeholder="VD: 4.000.000 VNĐ (30%)">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Thanh toán khi bàn giao
+                </label>
+                <input type="text" id="datDong_remaining" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-mono text-gray-700 dark:text-gray-300 focus:outline-none focus:border-red-600" placeholder="VD: 8.800.000 VNĐ">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Link bản vẽ kỹ thuật 2D/3D (nếu có)
+              </label>
+              <input type="url" id="datDong_drawingUrl" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-mono text-sky-600 focus:outline-none focus:border-red-600" placeholder="https://drive.google.com/... hoặc link ảnh bản vẽ mộng gỗ">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Lời nhắn & Cam kết kỹ thuật gửi khách hàng <span class="text-red-500">*</span>
+              </label>
+              <textarea id="datDong_message" required rows="3" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="Cam kết chất lượng phôi gỗ sấy đạt chuẩn độ ẩm 10-12%, hướng dẫn kiểm tra mộng và xác nhận đơn đặt đóng..."></textarea>
+            </div>
+
+            <div class="pt-3 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-end gap-3">
+              <button type="button" onclick="closeStaffServiceReplyModal()" class="px-4 py-2 rounded-xl border border-gray-300 dark:border-zinc-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+                Đóng
+              </button>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow-lg transition flex items-center gap-1.5">
+                <span>💾</span>
+                <span>Lưu & Gửi Báo Giá Đặt Đóng</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Form 3: Vận Chuyển & Lắp Đặt -->
+          <form id="staffReplyForm_van_chuyen" class="space-y-4 hidden" onsubmit="saveStaffServiceReply(event)">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Tiến độ vận chuyển 5 bước live <span class="text-red-500">*</span>
+                </label>
+                <select id="vanChuyen_status" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-red-600">
+                  <option value="pending">1. 📦 Đã tiếp nhận yêu cầu & Lên lệnh điều xe</option>
+                  <option value="confirmed">2. 🛡️ Chuẩn bị hàng & Bọc nệm chống trầy tại kho</option>
+                  <option value="shipping">3. 🚚 Xe tải MORIOO đang vận chuyển trên đường</option>
+                  <option value="installing">4. 🔧 Thợ mộc đang có mặt lắp ráp hoàn thiện tại nhà</option>
+                  <option value="completed">5. 🎉 Đã bàn giao nghiệm thu & Kích hoạt bảo hành</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Bác tài phụ trách & SĐT liên hệ <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="vanChuyen_driver" required class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: Bác tài Nguyễn Văn Hùng - 0912.345.678">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Biển số xe tải chuyên dụng
+                </label>
+                <input type="text" id="vanChuyen_plate" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-mono text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: 29C-886.99 (Thùng kín)">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Thợ mộc đi cùng lắp đặt
+                </label>
+                <input type="text" id="vanChuyen_worker" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: Thợ mộc Trần Văn Tuấn">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Cước vận chuyển & Lắp đặt
+                </label>
+                <input type="text" id="vanChuyen_fee" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-semibold text-emerald-600 focus:outline-none focus:border-red-600" placeholder="VD: Miễn phí 0 VNĐ">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Khung giờ giao hàng cam kết
+              </label>
+              <input type="text" id="vanChuyen_timeSlot" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: Ngày 04/11 - Khung giờ sáng 09h00 - 11h30">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Lời dặn & Hướng dẫn nhận hàng <span class="text-red-500">*</span>
+              </label>
+              <textarea id="vanChuyen_message" required rows="3" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="Bác tài sẽ gọi trước 30 phút khi xe đến. Quý khách vui lòng chuẩn bị mặt bằng lắp đặt và kiểm tra kỹ bề mặt gỗ khi thợ hoàn thiện..."></textarea>
+            </div>
+
+            <div class="pt-3 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-end gap-3">
+              <button type="button" onclick="closeStaffServiceReplyModal()" class="px-4 py-2 rounded-xl border border-gray-300 dark:border-zinc-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+                Đóng
+              </button>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow-lg transition flex items-center gap-1.5">
+                <span>💾</span>
+                <span>Lưu & Cập Nhật Lịch Giao</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Form 4: Bảo Trì Sửa Chữa -->
+          <form id="staffReplyForm_bao_tri" class="space-y-4 hidden" onsubmit="saveStaffServiceReply(event)">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Trạng thái xử lý sự cố <span class="text-red-500">*</span>
+                </label>
+                <select id="baoTri_status" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-red-600">
+                  <option value="consulting">🔍 Đang thẩm định ảnh sự cố & Chẩn đoán</option>
+                  <option value="quoted">📅 Đã lên lịch hẹn kỹ thuật viên đến tận nhà</option>
+                  <option value="shipping">🛠️ Kỹ thuật viên đang di chuyển đến nhà hỗ trợ</option>
+                  <option value="completed">✨ Đã bảo dưỡng, phục hồi sản phẩm như mới</option>
+                  <option value="cancelled">❌ Đã hủy yêu cầu bảo dưỡng</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Kỹ thuật viên bảo hành phụ trách <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="baoTri_staff" required class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: KTV. Hoàng Đức Trọng - Đội Bảo Trì Gỗ">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Số điện thoại kỹ thuật viên
+                </label>
+                <input type="text" id="baoTri_phone" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="097 114 1140">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Lịch hẹn kỹ thuật viên đến nhà
+                </label>
+                <input type="text" id="baoTri_appointment" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: 15h00 - Thứ 6 (06/11)">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Chẩn đoán sự cố & Phương án xử lý kỹ thuật
+              </label>
+              <textarea id="baoTri_diagnosis" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: Vết xước mờ trên lớp dầu mặt bàn sồi, kết cấu mộng còn hoàn hảo. Quy trình: Xả nhám P400 cục bộ và quét phủ 2 lớp dầu lau dưỡng Osmo CHLB Đức..."></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Chính sách chi phí bảo dưỡng
+                </label>
+                <input type="text" id="baoTri_cost" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-semibold text-emerald-600 focus:outline-none focus:border-red-600" placeholder="VD: Miễn phí 100% (Theo bảo hành 36 tháng MORIOO)">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Vật tư / Dầu dưỡng sử dụng
+                </label>
+                <input type="text" id="baoTri_materials" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: Dầu thực vật tự nhiên Osmo Đức chính hãng">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Dặn dò chuẩn bị gửi khách hàng <span class="text-red-500">*</span>
+              </label>
+              <textarea id="baoTri_message" required rows="3" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="Kỹ thuật viên sẽ mang đầy đủ đồ nghề. Quý khách vui lòng dọn đồ vật trên mặt sản phẩm trước khi thợ đến và mở cửa thông gió khi lau dầu..."></textarea>
+            </div>
+
+            <div class="pt-3 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-end gap-3">
+              <button type="button" onclick="closeStaffServiceReplyModal()" class="px-4 py-2 rounded-xl border border-gray-300 dark:border-zinc-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+                Đóng
+              </button>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow-lg transition flex items-center gap-1.5">
+                <span>💾</span>
+                <span>Lưu & Gửi Lịch Bảo Trì</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Form 5: Thiết Kế Không Gian -->
+          <form id="staffReplyForm_thiet_ke_khong_gian" class="space-y-4 hidden" onsubmit="saveStaffServiceReply(event)">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Tiến độ hồ sơ thiết kế <span class="text-red-500">*</span>
+                </label>
+                <select id="khongGian_status" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-red-600">
+                  <option value="consulting">📐 Đang phân tích mặt bằng & Lên Concept ý tưởng</option>
+                  <option value="quoted">📊 Đã hoàn thiện phương án 2D/3D & Dự toán 24h</option>
+                  <option value="shipping">📁 Bàn giao trọn bộ hồ sơ & Chốt danh mục thi công</option>
+                  <option value="completed">🏆 Nghiệm thu hoàn tất hồ sơ thiết kế</option>
+                  <option value="cancelled">❌ Đã hủy hồ sơ thiết kế</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Kiến trúc sư chủ trì hồ sơ <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="khongGian_architect" required class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: KTS. Trần Hải Đăng - Studio Không Gian Mộc">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Hotline / Zalo KTS trao đổi bản vẽ
+                </label>
+                <input type="text" id="khongGian_phone" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="097 114 1140">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Thời gian thi công sản xuất dự kiến
+                </label>
+                <input type="text" id="khongGian_leadTime" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: 15 - 20 ngày kể từ ngày chốt bản vẽ">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Đánh giá giải pháp mặt bằng & Tối ưu luồng di chuyển
+              </label>
+              <textarea id="khongGian_analysis" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="VD: Bố trí không gian mở liền mạch phòng khách và bếp ăn, hành lang luồng đi 1m2 thông thoáng, tối ưu ánh sáng tự nhiên qua hệ lam gỗ sồi..."></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Link xem phối cảnh 3D & Bản vẽ mặt bằng
+                </label>
+                <input type="url" id="khongGian_renderUrl" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-mono text-sky-600 focus:outline-none focus:border-red-600" placeholder="https://drive.google.com/... hoặc link xem 3D">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  Bảng dự toán tổng kinh phí 24h (VNĐ)
+                </label>
+                <input type="text" id="khongGian_budget" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 focus:outline-none focus:border-red-600" placeholder="VD: 68.500.000 VNĐ">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Lời nhắn & Hẹn duyệt phương án gửi khách hàng <span class="text-red-500">*</span>
+              </label>
+              <textarea id="khongGian_message" required rows="3" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-red-600" placeholder="KTS đã hoàn thành phương án 2D/3D sơ bộ. Mời quý khách xem theo link trên hoặc đặt hẹn trao đổi trực tiếp tại Studio để duyệt chất liệu..."></textarea>
+            </div>
+
+            <div class="pt-3 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-end gap-3">
+              <button type="button" onclick="closeStaffServiceReplyModal()" class="px-4 py-2 rounded-xl border border-gray-300 dark:border-zinc-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+                Đóng
+              </button>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow-lg transition flex items-center gap-1.5">
+                <span>💾</span>
+                <span>Lưu & Gửi Dự Toán 3D</span>
+              </button>
+            </div>
+          </form>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <!-- STANDALONE JAVASCRIPT -->
   <script>
     const SUPABASE_URL = "https://vkhgbegximfhecwgfyow.supabase.co";
@@ -1654,10 +2137,13 @@
           `;
         }
 
+        const sr = req.staff_response || (req.details && req.details.staff_response);
+        const hasResponse = !!sr;
+
         let statusBadge = '';
         if (req.status === 'completed') {
           statusBadge = `<span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 px-2 py-0.5 rounded text-[11px] font-bold">✅ Đã hoàn tất</span>`;
-        } else if (req.status === 'in_progress' || req.status === 'shipping') {
+        } else if (req.status === 'in_progress' || req.status === 'shipping' || req.status === 'installing') {
           statusBadge = `<span class="bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 px-2 py-0.5 rounded text-[11px] font-bold">🚚 Đang giao/lắp</span>`;
         } else if (req.status === 'quoted') {
           statusBadge = `<span class="bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 px-2 py-0.5 rounded text-[11px] font-bold">📝 Đã gửi báo giá</span>`;
@@ -1665,6 +2151,25 @@
           statusBadge = `<span class="bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 px-2 py-0.5 rounded text-[11px] font-bold">📞 Đã gọi tư vấn</span>`;
         } else {
           statusBadge = `<span class="bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 px-2 py-0.5 rounded text-[11px] font-bold animate-pulse">⏳ Chờ tiếp nhận</span>`;
+        }
+
+        let responseSummary = '';
+        if (hasResponse) {
+          let extraInfo = '';
+          if (sr.suggested_budget) extraInfo = sr.suggested_budget;
+          else if (sr.total_price) extraInfo = sr.total_price;
+          else if (sr.delivery_timeslot) extraInfo = sr.delivery_timeslot;
+          else if (sr.appointment_time) extraInfo = sr.appointment_time;
+          else if (sr.estimated_budget) extraInfo = sr.estimated_budget;
+
+          responseSummary = `
+            <div class="mt-1 flex items-center gap-1 flex-wrap">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                💬 Đã phản hồi
+              </span>
+              ${extraInfo ? `<span class="text-[10px] text-gray-500 dark:text-gray-400 font-semibold truncate max-w-[140px]" title="${extraInfo}">(${extraInfo})</span>` : ''}
+            </div>
+          `;
         }
 
         return `
@@ -1689,33 +2194,436 @@
             </td>
             <td class="p-3">
               ${statusBadge}
-              ${req.assigned_staff ? `<div class="text-[10px] text-sky-600 mt-1">👤 Phụ trách: <strong>${req.assigned_staff}</strong></div>` : ''}
+              ${req.assigned_staff ? `<div class="text-[10px] text-sky-600 dark:text-sky-400 mt-1">👤 Phụ trách: <strong>${req.assigned_staff}</strong></div>` : ''}
+              ${responseSummary}
             </td>
             <td class="p-3 text-right">
-              <div class="flex flex-col gap-1 items-end">
-                ${req.status === 'pending' ? `
-                  <button onclick="updateStaffServiceStatus('${req.code}', 'consulting')" class="text-xs bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 px-2 py-1 rounded hover:bg-sky-100 font-medium">
-                    📞 Đã Gọi Tư Vấn
-                  </button>
-                ` : ''}
-                ${req.status !== 'completed' ? `
-                  <button onclick="updateStaffServiceStatus('${req.code}', 'quoted')" class="text-xs bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-1 rounded hover:bg-blue-100 font-medium">
-                    📝 Gửi Báo Giá
-                  </button>
-                  <button onclick="updateStaffServiceStatus('${req.code}', 'shipping')" class="text-xs bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-2 py-1 rounded hover:bg-purple-100 font-medium">
-                    🚚 Lên Lịch Giao/Lắp
-                  </button>
-                  <button onclick="updateStaffServiceStatus('${req.code}', 'completed')" class="text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-2 py-1 rounded hover:bg-emerald-100 font-bold">
-                    ✅ Hoàn Tất
-                  </button>
-                ` : `
-                  <span class="text-xs text-emerald-600 font-bold">🎉 Đã Xong</span>
-                `}
+              <div class="flex flex-col gap-1.5 items-end">
+                <button onclick="openStaffServiceReplyModal('${req.code}')" class="w-full sm:w-auto px-3 py-1.5 bg-red-700 hover:bg-red-800 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
+                  <span>💬</span>
+                  <span>${hasResponse ? 'Sửa Phản Hồi' : 'Trả Lời Yêu Cầu'}</span>
+                </button>
+                <div class="flex items-center gap-1 flex-wrap justify-end">
+                  ${req.status === 'pending' ? `
+                    <button onclick="updateStaffServiceStatus('${req.code}', 'consulting')" class="text-[11px] bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 px-2 py-0.5 rounded hover:bg-sky-100 font-medium">
+                      📞 Tư Vấn
+                    </button>
+                  ` : ''}
+                  ${req.status !== 'completed' ? `
+                    <button onclick="updateStaffServiceStatus('${req.code}', 'completed')" class="text-[11px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded hover:bg-emerald-100 font-bold">
+                      ✅ Xong
+                    </button>
+                  ` : `
+                    <span class="text-[11px] text-emerald-600 font-bold">🎉 Hoàn tất</span>
+                  `}
+                </div>
               </div>
             </td>
           </tr>
         `;
       }).join('');
+    }
+
+    // Biến toàn cục lưu mã yêu cầu đang mở modal phản hồi
+    let CURRENT_EDITING_SERVICE_CODE = null;
+
+    // Mở modal phản hồi dịch vụ với 1 trong 5 form tương ứng
+    function openStaffServiceReplyModal(code) {
+      const req = STAFF_SERVICES.find(r => r.code === code);
+      if (!req) {
+        showToast('Không tìm thấy yêu cầu dịch vụ #' + code, 'error');
+        return;
+      }
+
+      CURRENT_EDITING_SERVICE_CODE = code;
+      const modal = document.getElementById('staffServiceReplyModal');
+      if (!modal) return;
+
+      const currentStaff = JSON.parse(localStorage.getItem('morioo_current_user') || 'null') || {
+        full_name: "Lê Văn Nhân Viên"
+      };
+
+      const type = req.service_type || 'tu-van';
+      const d = req.details || {};
+      const sr = req.staff_response || d.staff_response || {};
+
+      // 1. Header Information
+      const typeIcons = {
+        'tu-van': '🛋️',
+        'dat-dong': '📐',
+        'van-chuyen': '🚚',
+        'bao-tri': '🛠️',
+        'thiet-ke-khong-gian': '🏠'
+      };
+      const typeNames = {
+        'tu-van': 'Tư Vấn Nội Thất',
+        'dat-dong': 'May Đo Đặt Đóng',
+        'van-chuyen': 'Vận Chuyển & Lắp Đặt',
+        'bao-tri': 'Bảo Trì & Sửa Chữa',
+        'thiet-ke-khong-gian': 'Thiết Kế Không Gian'
+      };
+
+      document.getElementById('modalSvcIconBox').textContent = typeIcons[type] || '🛎️';
+      document.getElementById('modalSvcTypeBadge').textContent = typeNames[type] || type;
+      document.getElementById('modalSvcCode').textContent = '#' + req.code;
+      document.getElementById('modalSvcTitle').textContent = `Tác Nghiệp & Phản Hồi: ${typeNames[type] || type}`;
+      document.getElementById('modalFormHeadingTitle').textContent = `Biểu Mẫu Phản Hồi: ${typeNames[type] || type}`;
+
+      // 2. Customer Information Box
+      document.getElementById('modalCustName').textContent = req.customer_name || 'Khách hàng';
+      const phoneLink = document.getElementById('modalCustPhoneLink');
+      phoneLink.textContent = req.customer_phone || 'Chưa cung cấp';
+      phoneLink.href = req.customer_phone ? `tel:${req.customer_phone}` : '#';
+      document.getElementById('modalCustAddress').textContent = req.address || 'Tại xưởng / Chưa có địa chỉ';
+      document.getElementById('modalCustCreatedAt').textContent = req.created_at ? new Date(req.created_at).toLocaleString('vi-VN') : 'Mới đây';
+
+      // 3. Render Specific Submitted Customer Details
+      let specificHtml = '';
+      if (type === 'tu-van') {
+        specificHtml = `
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div><strong>Loại phòng:</strong> ${d.room_type || 'Chưa chọn'} (${d.room_area || 'Chưa rõ m2'})</div>
+            <div><strong>Phong cách thích:</strong> ${d.style_preference || 'Chưa chọn'}</div>
+            <div><strong>Ngân sách dự kiến:</strong> <span class="text-amber-700 dark:text-amber-400 font-bold">${d.budget_range || 'Chưa chọn'}</span></div>
+          </div>
+          ${d.customer_note ? `<div class="mt-2 text-gray-600 dark:text-gray-300 italic">"Ghi chú: ${d.customer_note}"</div>` : ''}
+        `;
+      } else if (type === 'dat-dong') {
+        specificHtml = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div><strong>Danh mục:</strong> ${d.product_category || 'Chưa chọn'}</div>
+            <div><strong>Kích thước yêu cầu:</strong> ${d.dimensions || 'Theo tư vấn'}</div>
+            <div><strong>Chất liệu gỗ:</strong> ${d.wood_material || 'Gỗ tự nhiên'}</div>
+            <div><strong>Màu sơn hoàn thiện:</strong> ${d.color_finish || 'Tự nhiên'}</div>
+          </div>
+          ${d.customer_note ? `<div class="mt-2 text-gray-600 dark:text-gray-300 italic">"Ghi chú kỹ thuật: ${d.customer_note}"</div>` : ''}
+        `;
+      } else if (type === 'van-chuyen') {
+        specificHtml = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div><strong>Mã đơn hàng liên quan:</strong> <code class="text-sky-600 font-bold">${d.order_code || 'Không có'}</code></div>
+            <div><strong>Địa thế nhà:</strong> ${d.house_type || 'Chung cư/Nhà phố'}</div>
+            <div><strong>Yêu cầu lắp đặt:</strong> ${d.installation_service || 'Lắp ráp hoàn thiện'}</div>
+            <div><strong>Ngày giờ mong muốn:</strong> ${req.preferred_date || 'Sớm nhất'} (${req.preferred_time || 'Giờ hành chính'})</div>
+          </div>
+        `;
+      } else if (type === 'bao-tri') {
+        specificHtml = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div><strong>Sản phẩm bảo trì:</strong> ${d.product_item || 'Đồ gỗ MORIOO'}</div>
+            <div><strong>Loại sự cố:</strong> <span class="text-rose-600 font-semibold">${d.issue_type || 'Trầy xước/căn chỉnh'}</span></div>
+            <div><strong>Lịch khách mong muốn:</strong> ${req.preferred_date || 'Sớm nhất'}</div>
+          </div>
+          ${d.problem_description ? `<div class="mt-2 text-gray-600 dark:text-gray-300 italic">"Mô tả hiện trạng: ${d.problem_description}"</div>` : ''}
+        `;
+      } else if (type === 'thiet-ke-khong-gian') {
+        specificHtml = `
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div><strong>Loại không gian:</strong> ${d.space_category || 'Căn hộ/Nhà phố'}</div>
+            <div><strong>Mặt bằng diện tích:</strong> ${d.room_dimensions || 'Theo bản vẽ'}</div>
+            <div><strong>Mức dự toán:</strong> <span class="text-emerald-700 dark:text-emerald-400 font-bold">${d.budget_tier || 'Tiêu chuẩn'}</span></div>
+          </div>
+          ${d.function_notes ? `<div class="mt-2 text-gray-600 dark:text-gray-300 italic">"Nhu cầu công năng: ${d.function_notes}"</div>` : ''}
+        `;
+      }
+      document.getElementById('modalCustSpecificDetails').innerHTML = specificHtml;
+
+      // Attached Image
+      const imgContainer = document.getElementById('modalCustImageContainer');
+      const imgContent = document.getElementById('modalCustImageContent');
+      if (req.image_url) {
+        imgContainer.classList.remove('hidden');
+        imgContent.innerHTML = `
+          <div class="flex items-center gap-3">
+            <img src="${req.image_url}" class="w-16 h-16 object-cover rounded-lg border border-gray-300 dark:border-zinc-700 cursor-pointer hover:scale-105 transition" onclick="openLightboxImage('${req.image_url}')">
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              <div>Ảnh chụp thực tế từ khách hàng</div>
+              <button type="button" onclick="openLightboxImage('${req.image_url}')" class="text-sky-600 hover:underline font-semibold mt-1">🔍 Bấm để xem ảnh phóng to</button>
+            </div>
+          </div>
+        `;
+      } else {
+        imgContainer.classList.add('hidden');
+        imgContent.innerHTML = '';
+      }
+
+      // 4. Toggle Forms (Show only relevant form)
+      const allForms = [
+        'staffReplyForm_tu_van',
+        'staffReplyForm_dat_dong',
+        'staffReplyForm_van_chuyen',
+        'staffReplyForm_bao_tri',
+        'staffReplyForm_thiet_ke_khong_gian'
+      ];
+      allForms.forEach(id => {
+        const f = document.getElementById(id);
+        if (f) f.classList.add('hidden');
+      });
+
+      // Pre-fill fields based on type
+      if (type === 'tu-van') {
+        const f = document.getElementById('staffReplyForm_tu_van');
+        if (f) f.classList.remove('hidden');
+        document.getElementById('tuVan_status').value = sr.status || req.status || 'consulting';
+        document.getElementById('tuVan_staff').value = sr.assigned_staff || req.assigned_staff || currentStaff.full_name;
+        document.getElementById('tuVan_phone').value = sr.staff_phone || '097 114 1140';
+        document.getElementById('tuVan_budget').value = sr.suggested_budget || d.budget_range || '';
+        document.getElementById('tuVan_styleRec').value = sr.style_recommendation || (d.style_preference ? `Phong cách đề xuất: ${d.style_preference} kết hợp tối giản Wabi-Sabi` : '');
+        document.getElementById('tuVan_products').value = sr.suggested_products || '';
+        document.getElementById('tuVan_appointment').value = sr.appointment_time || '';
+        document.getElementById('tuVan_message').value = sr.staff_message || req.staff_notes || `Chào ${req.customer_name}, MORIOO đã tiếp nhận nhu cầu tư vấn nội thất phòng ${d.room_type || ''}. Chuyên viên sẽ gọi điện tư vấn chi tiết cho bạn!`;
+      } else if (type === 'dat-dong') {
+        const f = document.getElementById('staffReplyForm_dat_dong');
+        if (f) f.classList.remove('hidden');
+        document.getElementById('datDong_status').value = sr.status || req.status || 'consulting';
+        document.getElementById('datDong_staff').value = sr.assigned_staff || req.assigned_staff || 'Nghệ nhân Đặng Văn Tuấn - Xưởng Mộc Thạnh';
+        document.getElementById('datDong_phone').value = sr.staff_phone || '097 114 1140';
+        document.getElementById('datDong_leadTime').value = sr.lead_time || '10 - 14 ngày làm việc';
+        document.getElementById('datDong_specs').value = sr.production_specs || d.dimensions || '';
+        document.getElementById('datDong_woodFinish').value = sr.wood_finish || `${d.wood_material || 'Gỗ Sồi Trắng Bắc Mỹ FAS'}, ${d.color_finish || 'lau dầu Osmo Polyx-Oil Đức'}`;
+        document.getElementById('datDong_totalPrice').value = sr.total_price || '';
+        document.getElementById('datDong_deposit').value = sr.deposit_amount || '';
+        document.getElementById('datDong_remaining').value = sr.remaining_amount || '';
+        document.getElementById('datDong_drawingUrl').value = sr.drawing_url || '';
+        document.getElementById('datDong_message').value = sr.staff_message || req.staff_notes || `Xưởng mộc MORIOO xác nhận yêu cầu đặt may đo ${d.product_category || 'sản phẩm'}. Chúng tôi cam kết dùng gỗ phôi chuẩn sấy khô chống nứt nẻ và mộng ghép gỗ chuẩn xác.`;
+      } else if (type === 'van-chuyen') {
+        const f = document.getElementById('staffReplyForm_van_chuyen');
+        if (f) f.classList.remove('hidden');
+        document.getElementById('vanChuyen_status').value = sr.status || req.status || 'pending';
+        document.getElementById('vanChuyen_driver').value = sr.driver_name || sr.assigned_staff || 'Bác tài Nguyễn Văn Hùng - 0912.345.678';
+        document.getElementById('vanChuyen_plate').value = sr.license_plate || '29C-886.99 (Thùng kín)';
+        document.getElementById('vanChuyen_worker').value = sr.installation_worker || 'Thợ mộc Trần Văn Tuấn';
+        document.getElementById('vanChuyen_fee').value = sr.delivery_fee || 'Miễn phí 0 VNĐ';
+        document.getElementById('vanChuyen_timeSlot').value = sr.delivery_timeslot || `${req.preferred_date || 'Hôm nay'} (${req.preferred_time || '09h00 - 11h30'})`;
+        document.getElementById('vanChuyen_message').value = sr.staff_message || req.staff_notes || `Đội vận chuyển MORIOO đã tiếp nhận lịch giao hàng tại ${req.address || 'địa chỉ của bạn'}. Bác tài sẽ gọi trước 30 phút khi đến nơi.`;
+      } else if (type === 'bao-tri') {
+        const f = document.getElementById('staffReplyForm_bao_tri');
+        if (f) f.classList.remove('hidden');
+        document.getElementById('baoTri_status').value = sr.status || req.status || 'consulting';
+        document.getElementById('baoTri_staff').value = sr.assigned_staff || req.assigned_staff || 'KTV. Hoàng Đức Trọng - Đội Bảo Trì Gỗ';
+        document.getElementById('baoTri_phone').value = sr.staff_phone || '097 114 1140';
+        document.getElementById('baoTri_appointment').value = sr.appointment_time || req.preferred_date || '15h00 - Thứ 6 tuần này';
+        document.getElementById('baoTri_diagnosis').value = sr.diagnosis || `Chẩn đoán sự cố: ${d.issue_type || 'Hiện tượng hao mòn tự nhiên'}. Phương án: Xả nhám mịn và lau phục hồi dầu Osmo CHLB Đức.`;
+        document.getElementById('baoTri_cost').value = sr.service_cost || 'Miễn phí 100% (Bảo hành 36 tháng MORIOO)';
+        document.getElementById('baoTri_materials').value = sr.materials || 'Dầu thực vật tự nhiên Osmo Đức chính hãng';
+        document.getElementById('baoTri_message').value = sr.staff_message || req.staff_notes || `Đội bảo trì MORIOO đã kiểm tra tình trạng sản phẩm ${d.product_item || ''}. Kỹ thuật viên sẽ liên hệ và có mặt đúng hẹn để xử lý tại nhà cho bạn.`;
+      } else if (type === 'thiet-ke-khong-gian') {
+        const f = document.getElementById('staffReplyForm_thiet_ke_khong_gian');
+        if (f) f.classList.remove('hidden');
+        document.getElementById('khongGian_status').value = sr.status || req.status || 'consulting';
+        document.getElementById('khongGian_architect').value = sr.assigned_staff || req.assigned_staff || 'KTS. Trần Hải Đăng - Studio Không Gian Mộc';
+        document.getElementById('khongGian_phone').value = sr.staff_phone || '097 114 1140';
+        document.getElementById('khongGian_leadTime').value = sr.lead_time || '15 - 20 ngày thi công hoàn thiện';
+        document.getElementById('khongGian_analysis').value = sr.design_analysis || `Giải pháp mặt bằng cho ${d.space_category || 'không gian'}: Tối ưu luồng giao thông liền mạch, tăng diện tích đón sáng và bố trí hệ tủ nan thoáng khí.`;
+        document.getElementById('khongGian_renderUrl').value = sr.render_url || '';
+        document.getElementById('khongGian_budget').value = sr.estimated_budget || d.budget_tier || '';
+        document.getElementById('khongGian_message').value = sr.staff_message || req.staff_notes || `KTS đã lên sơ đồ mặt bằng và dự toán 24h cho không gian của bạn. Mời bạn xem chi tiết và liên hệ để tinh chỉnh phương án 3D.`;
+      }
+
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Đóng modal phản hồi
+    function closeStaffServiceReplyModal() {
+      const modal = document.getElementById('staffServiceReplyModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+      CURRENT_EDITING_SERVICE_CODE = null;
+    }
+
+    // Lưu và đồng bộ phản hồi dịch vụ cho từng form riêng biệt
+    async function saveStaffServiceReply(e) {
+      if (e) e.preventDefault();
+      const code = CURRENT_EDITING_SERVICE_CODE;
+      if (!code) return;
+
+      const req = STAFF_SERVICES.find(r => r.code === code);
+      if (!req) return;
+
+      const type = req.service_type || 'tu-van';
+      let replyData = {};
+      let newStatus = req.status;
+      let assignedStaff = req.assigned_staff;
+      let staffNotes = '';
+
+      if (type === 'tu-van') {
+        newStatus = document.getElementById('tuVan_status').value;
+        assignedStaff = document.getElementById('tuVan_staff').value.trim();
+        const phone = document.getElementById('tuVan_phone').value.trim();
+        const budget = document.getElementById('tuVan_budget').value.trim();
+        const styleRec = document.getElementById('tuVan_styleRec').value.trim();
+        const products = document.getElementById('tuVan_products').value.trim();
+        const appointment = document.getElementById('tuVan_appointment').value.trim();
+        const message = document.getElementById('tuVan_message').value.trim();
+        staffNotes = message;
+
+        replyData = {
+          service_type: 'tu-van',
+          service_title: 'Tư Vấn Nội Thất',
+          status: newStatus,
+          assigned_staff: assignedStaff,
+          staff_phone: phone,
+          suggested_budget: budget,
+          style_recommendation: styleRec,
+          suggested_products: products,
+          appointment_time: appointment,
+          staff_message: message,
+          replied_at: new Date().toISOString()
+        };
+      } else if (type === 'dat-dong') {
+        newStatus = document.getElementById('datDong_status').value;
+        assignedStaff = document.getElementById('datDong_staff').value.trim();
+        const phone = document.getElementById('datDong_phone').value.trim();
+        const leadTime = document.getElementById('datDong_leadTime').value.trim();
+        const specs = document.getElementById('datDong_specs').value.trim();
+        const woodFinish = document.getElementById('datDong_woodFinish').value.trim();
+        const totalPrice = document.getElementById('datDong_totalPrice').value.trim();
+        const deposit = document.getElementById('datDong_deposit').value.trim();
+        const remaining = document.getElementById('datDong_remaining').value.trim();
+        const drawingUrl = document.getElementById('datDong_drawingUrl').value.trim();
+        const message = document.getElementById('datDong_message').value.trim();
+        staffNotes = message;
+
+        replyData = {
+          service_type: 'dat-dong',
+          service_title: 'Thiết Kế & Đặt Đóng Theo Yêu Cầu',
+          status: newStatus,
+          assigned_staff: assignedStaff,
+          staff_phone: phone,
+          lead_time: leadTime,
+          production_specs: specs,
+          wood_finish: woodFinish,
+          total_price: totalPrice,
+          deposit_amount: deposit,
+          remaining_amount: remaining,
+          drawing_url: drawingUrl,
+          staff_message: message,
+          replied_at: new Date().toISOString()
+        };
+      } else if (type === 'van-chuyen') {
+        newStatus = document.getElementById('vanChuyen_status').value;
+        const driver = document.getElementById('vanChuyen_driver').value.trim();
+        assignedStaff = driver;
+        const plate = document.getElementById('vanChuyen_plate').value.trim();
+        const worker = document.getElementById('vanChuyen_worker').value.trim();
+        const fee = document.getElementById('vanChuyen_fee').value.trim();
+        const timeSlot = document.getElementById('vanChuyen_timeSlot').value.trim();
+        const message = document.getElementById('vanChuyen_message').value.trim();
+        staffNotes = message;
+
+        replyData = {
+          service_type: 'van-chuyen',
+          service_title: 'Vận Chuyển & Lắp Đặt',
+          status: newStatus,
+          assigned_staff: driver,
+          driver_name: driver,
+          license_plate: plate,
+          installation_worker: worker,
+          delivery_fee: fee,
+          delivery_timeslot: timeSlot,
+          staff_message: message,
+          replied_at: new Date().toISOString()
+        };
+      } else if (type === 'bao-tri') {
+        newStatus = document.getElementById('baoTri_status').value;
+        assignedStaff = document.getElementById('baoTri_staff').value.trim();
+        const phone = document.getElementById('baoTri_phone').value.trim();
+        const appointment = document.getElementById('baoTri_appointment').value.trim();
+        const diagnosis = document.getElementById('baoTri_diagnosis').value.trim();
+        const cost = document.getElementById('baoTri_cost').value.trim();
+        const materials = document.getElementById('baoTri_materials').value.trim();
+        const message = document.getElementById('baoTri_message').value.trim();
+        staffNotes = message;
+
+        replyData = {
+          service_type: 'bao-tri',
+          service_title: 'Bảo Trì & Sửa Chữa',
+          status: newStatus,
+          assigned_staff: assignedStaff,
+          staff_phone: phone,
+          appointment_time: appointment,
+          diagnosis: diagnosis,
+          service_cost: cost,
+          materials: materials,
+          staff_message: message,
+          replied_at: new Date().toISOString()
+        };
+      } else if (type === 'thiet-ke-khong-gian') {
+        newStatus = document.getElementById('khongGian_status').value;
+        assignedStaff = document.getElementById('khongGian_architect').value.trim();
+        const phone = document.getElementById('khongGian_phone').value.trim();
+        const leadTime = document.getElementById('khongGian_leadTime').value.trim();
+        const analysis = document.getElementById('khongGian_analysis').value.trim();
+        const renderUrl = document.getElementById('khongGian_renderUrl').value.trim();
+        const budget = document.getElementById('khongGian_budget').value.trim();
+        const message = document.getElementById('khongGian_message').value.trim();
+        staffNotes = message;
+
+        replyData = {
+          service_type: 'thiet-ke-khong-gian',
+          service_title: 'Thiết Kế Không Gian',
+          status: newStatus,
+          assigned_staff: assignedStaff,
+          staff_phone: phone,
+          lead_time: leadTime,
+          design_analysis: analysis,
+          render_url: renderUrl,
+          estimated_budget: budget,
+          staff_message: message,
+          replied_at: new Date().toISOString()
+        };
+      }
+
+      // Cập nhật bộ nhớ cục bộ
+      req.status = newStatus;
+      req.assigned_staff = assignedStaff;
+      req.staff_notes = staffNotes;
+      req.staff_response = replyData;
+      req.details = req.details || {};
+      req.details.staff_response = replyData;
+      req.updated_at = new Date().toISOString();
+
+      localStorage.setItem('morioo_service_requests', JSON.stringify(STAFF_SERVICES));
+      updateStaffServicesBadge();
+      renderStaffServicesTable();
+
+      // Cập nhật Supabase Cloud
+      try {
+        await supabaseStaffFetch(`service_requests?code=eq.${encodeURIComponent(req.code)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            status: req.status,
+            assigned_staff: req.assigned_staff,
+            staff_notes: req.staff_notes,
+            details: req.details,
+            updated_at: req.updated_at
+          })
+        });
+        console.log('[Staff Supabase] Đã lưu phản hồi dịch vụ lên Cloud:', req.code);
+      } catch(err) {
+        console.warn('[Staff Supabase] Lỗi lưu phản hồi dịch vụ Cloud:', err.message);
+      }
+
+      // Phát BroadcastChannel cho khách theo dõi live
+      try {
+        const syncChan = new BroadcastChannel('morioo_sync_channel');
+        syncChan.postMessage({
+          type: 'SERVICE_REQUEST_STATUS_CHANGED',
+          code: req.code,
+          status: req.status,
+          assigned_staff: req.assigned_staff,
+          staff_notes: req.staff_notes,
+          staff_response: replyData,
+          timestamp: Date.now()
+        });
+        setTimeout(() => syncChan.close(), 1000);
+      } catch(e) {}
+
+      showToast(`✅ Đã lưu và gửi phản hồi thành công cho yêu cầu #${req.code}!`, 'success');
+      closeStaffServiceReplyModal();
     }
 
     async function updateStaffServiceStatus(code, newStatus) {

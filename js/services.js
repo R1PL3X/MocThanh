@@ -492,6 +492,134 @@ function renderTrackingTimeline(container, result) {
                 </div>
                 ` : ""}
             </div>
+
+            <!-- Phản hồi chi tiết từ nhân viên MORIOO (Từng gói dịch vụ riêng biệt) -->
+            ${renderStaffResponseBoxHtml(item)}
+        </div>
+    `;
+}
+
+/**
+ * Hiển thị khối phản hồi chi tiết từ nhân viên theo từng form riêng biệt của 5 dịch vụ
+ */
+function renderStaffResponseBoxHtml(item) {
+    const sr = item.staff_response || (item.details && item.details.staff_response);
+    if (!sr) return "";
+
+    const type = item.service_type || sr.service_type || "tu-van";
+    let specificHtml = "";
+
+    if (type === "tu-van") {
+        specificHtml = `
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-bottom:12px;">
+                ${sr.style_recommendation ? `<div><span style="color:#64748b; font-size:11px;">Phong cách đề xuất:</span><br><strong style="color:#1e293b;">${sr.style_recommendation}</strong></div>` : ""}
+                ${sr.suggested_budget ? `<div><span style="color:#64748b; font-size:11px;">Ước tính ngân sách:</span><br><strong style="color:#b45309; font-size:13.5px; font-family:monospace;">${sr.suggested_budget}</strong></div>` : ""}
+                ${sr.appointment_time ? `<div><span style="color:#64748b; font-size:11px;">Lịch hẹn Showroom/Tư vấn:</span><br><strong style="color:#0284c7;">${sr.appointment_time}</strong></div>` : ""}
+            </div>
+            ${sr.suggested_products ? `
+                <div style="background:#fff; border:1px dashed #cbd5e1; border-radius:6px; padding:10px 12px; margin-bottom:12px;">
+                    <span style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase;">🛋️ Combo Sản Phẩm MORIOO Gợi Ý:</span>
+                    <div style="margin-top:4px; color:#1e293b; white-space:pre-line; font-size:12px; line-height:1.5;">${sr.suggested_products}</div>
+                </div>
+            ` : ""}
+        `;
+    } else if (type === "dat-dong") {
+        specificHtml = `
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-bottom:12px;">
+                ${sr.production_specs ? `<div><span style="color:#64748b; font-size:11px;">Kích thước chốt xưởng:</span><br><strong style="color:#1e293b;">${sr.production_specs}</strong></div>` : ""}
+                ${sr.wood_finish ? `<div><span style="color:#64748b; font-size:11px;">Chất liệu & Dầu lau:</span><br><strong style="color:#1e293b;">${sr.wood_finish}</strong></div>` : ""}
+                ${sr.lead_time ? `<div><span style="color:#64748b; font-size:11px;">Tiến độ chế tác:</span><br><strong style="color:#0284c7;">${sr.lead_time}</strong></div>` : ""}
+            </div>
+            <div style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:10px 14px; margin-bottom:12px; display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px;">
+                <div><span style="color:#64748b; font-size:11px;">Tổng chi phí xưởng:</span> <strong style="color:#b45309; font-size:14px; font-family:monospace;">${sr.total_price || "--"}</strong></div>
+                <div><span style="color:#64748b; font-size:11px;">Cọc cam kết:</span> <strong style="color:#dc2626; font-size:13px; font-family:monospace;">${sr.deposit_amount || "--"}</strong></div>
+                <div><span style="color:#64748b; font-size:11px;">Còn lại khi nhận hàng:</span> <strong style="color:#1e293b; font-size:13px; font-family:monospace;">${sr.remaining_amount || "--"}</strong></div>
+            </div>
+            ${sr.drawing_url ? `
+                <div style="margin-bottom:12px;">
+                    <a href="${sr.drawing_url}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:700; text-decoration:none;">
+                        📐 Xem Bản Vẽ Kỹ Thuật 2D/3D & Mộng Gỗ →
+                    </a>
+                </div>
+            ` : ""}
+        `;
+    } else if (type === "van-chuyen") {
+        specificHtml = `
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-bottom:12px;">
+                <div><span style="color:#64748b; font-size:11px;">Bác tài phụ trách:</span><br><strong style="color:#1e293b;">${sr.driver_name || sr.assigned_staff || "Đội xe MORIOO"}</strong></div>
+                ${sr.license_plate ? `<div><span style="color:#64748b; font-size:11px;">Biển số xe chuyên dụng:</span><br><strong style="color:#1e293b; font-family:monospace;">${sr.license_plate}</strong></div>` : ""}
+                ${sr.installation_worker ? `<div><span style="color:#64748b; font-size:11px;">Thợ mộc đi cùng ráp:</span><br><strong style="color:#1e293b;">${sr.installation_worker}</strong></div>` : ""}
+                ${sr.delivery_timeslot ? `<div><span style="color:#64748b; font-size:11px;">Khung giờ giao cam kết:</span><br><strong style="color:#7c3aed;">${sr.delivery_timeslot}</strong></div>` : ""}
+                ${sr.delivery_fee ? `<div><span style="color:#64748b; font-size:11px;">Cước vận chuyển:</span><br><strong style="color:#15803d;">${sr.delivery_fee}</strong></div>` : ""}
+            </div>
+        `;
+    } else if (type === "bao-tri") {
+        specificHtml = `
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-bottom:12px;">
+                <div><span style="color:#64748b; font-size:11px;">Kỹ thuật viên phụ trách:</span><br><strong style="color:#1e293b;">${sr.assigned_staff || "KTV MORIOO"}</strong></div>
+                ${sr.appointment_time ? `<div><span style="color:#64748b; font-size:11px;">Lịch thợ đến nhà:</span><br><strong style="color:#0284c7;">${sr.appointment_time}</strong></div>` : ""}
+                ${sr.service_cost ? `<div><span style="color:#64748b; font-size:11px;">Chi phí bảo dưỡng:</span><br><strong style="color:#15803d;">${sr.service_cost}</strong></div>` : ""}
+                ${sr.materials ? `<div><span style="color:#64748b; font-size:11px;">Dầu dưỡng & vật tư:</span><br><strong style="color:#1e293b;">${sr.materials}</strong></div>` : ""}
+            </div>
+            ${sr.diagnosis ? `
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:10px 14px; margin-bottom:12px;">
+                    <span style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase;">🛠️ Chẩn Đoán & Phương Án Kỹ Thuật:</span>
+                    <div style="margin-top:4px; color:#1e293b; line-height:1.5; font-size:12px;">${sr.diagnosis}</div>
+                </div>
+            ` : ""}
+        `;
+    } else if (type === "thiet-ke-khong-gian") {
+        specificHtml = `
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-bottom:12px;">
+                <div><span style="color:#64748b; font-size:11px;">Kiến trúc sư chủ trì:</span><br><strong style="color:#1e293b;">${sr.assigned_staff || "KTS MORIOO"}</strong></div>
+                ${sr.estimated_budget ? `<div><span style="color:#64748b; font-size:11px;">Dự toán tổng kinh phí:</span><br><strong style="color:#15803d; font-size:14px; font-family:monospace;">${sr.estimated_budget}</strong></div>` : ""}
+                ${sr.lead_time ? `<div><span style="color:#64748b; font-size:11px;">Thời gian thi công:</span><br><strong style="color:#0284c7;">${sr.lead_time}</strong></div>` : ""}
+            </div>
+            ${sr.design_analysis ? `
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:10px 14px; margin-bottom:12px;">
+                    <span style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase;">📐 Đánh Giá Luồng Đi & Ánh Sáng:</span>
+                    <div style="margin-top:4px; color:#1e293b; line-height:1.5; font-size:12px;">${sr.design_analysis}</div>
+                </div>
+            ` : ""}
+            ${sr.render_url ? `
+                <div style="margin-bottom:12px;">
+                    <a href="${sr.render_url}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:700; text-decoration:none;">
+                        🎨 Xem Hồ Sơ Phối Cảnh 3D & Bản Vẽ →
+                    </a>
+                </div>
+            ` : ""}
+        `;
+    }
+
+    const staffPhone = sr.staff_phone || "097 114 1140";
+
+    return `
+        <div style="margin-top:18px; background:linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border:1.5px solid #86efac; border-radius:10px; padding:16px 18px; box-shadow:0 2px 8px rgba(34,197,94,0.08);">
+            <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; border-bottom:1px solid #bbf7d0; padding-bottom:10px; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:20px;">🛎️</span>
+                    <div>
+                        <h5 style="margin:0; font-size:13.5px; font-weight:800; color:#166534;">
+                            PHẢN HỒI CHÍNH THỨC TỪ ĐỘI NGŨ MORIOO
+                        </h5>
+                        <span style="font-size:11px; color:#15803d;">Cập nhật lúc: ${sr.replied_at ? new Date(sr.replied_at).toLocaleString("vi-VN") : "Hôm nay"}</span>
+                    </div>
+                </div>
+                ${staffPhone ? `
+                    <a href="tel:${staffPhone.replace(/\\s+/g, '')}" style="display:inline-flex; align-items:center; gap:6px; background:#166534; color:#fff; text-decoration:none; padding:5px 12px; border-radius:20px; font-size:11.5px; font-weight:700; box-shadow:0 2px 4px rgba(22,101,52,0.2);">
+                        📞 Hotline: ${staffPhone}
+                    </a>
+                ` : ""}
+            </div>
+
+            ${specificHtml}
+
+            ${sr.staff_message ? `
+                <div style="background:#fff; border-left:4px solid #16a34a; border-radius:0 6px 6px 0; padding:10px 14px; margin-top:8px;">
+                    <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">💬 Lời Nhắn Gửi Quý Khách:</span>
+                    <p style="margin:4px 0 0; color:#1e293b; font-size:12.5px; line-height:1.6; white-space:pre-line;">${sr.staff_message}</p>
+                </div>
+            ` : ""}
         </div>
     `;
 }
