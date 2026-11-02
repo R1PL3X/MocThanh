@@ -4,12 +4,24 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
       "source": "/admin/:match*",
       "destination": "/admin.html"
     },
     {
+      "source": "/staff",
+      "destination": "/staff.html"
+    },
+    {
       "source": "/staff/:match*",
       "destination": "/staff.html"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
     }
   ],
   "headers": [

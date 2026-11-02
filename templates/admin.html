@@ -101,7 +101,7 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
     
     <!-- 5 CORE METRICS CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
       
       <!-- Card 1: Doanh thu tích lũy -->
       <div 
@@ -175,6 +175,21 @@
         <div id="subtextAccounts" class="text-[11px] text-gray-400 mt-1">Bấm để quản lý phân quyền &rarr;</div>
       </div>
 
+      <!-- Card 6: Chatbot & Gemini AI -->
+      <div 
+        id="cardStatChatbot"
+        onclick="switchAdminTab('chatbot')" 
+        class="cursor-pointer bg-white dark:bg-zinc-900 p-5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm hover:border-rose-500/50 hover:shadow-md transition transform hover:-translate-y-0.5"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">6. Hỏi Đáp & Gemini AI</span>
+          <span class="text-lg">🤖</span>
+        </div>
+        <div id="statChatbot" class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-2 font-mono">0 câu</div>
+        <div id="subtextChatbot" class="text-[11px] text-gray-400 mt-1">Cấu hình & xem câu hỏi &rarr;</div>
+      </div>
+
+
     </div>
 
     <!-- 4 TABS NAVIGATION -->
@@ -227,6 +242,16 @@
         <span>👥 Quản Lý Tài Khoản</span>
         <span id="accountsCountBadge" class="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
       </button>
+      <button 
+        type="button" 
+        id="tabChatbotBtn" 
+        onclick="switchAdminTab('chatbot')" 
+        class="pb-3 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2 whitespace-nowrap"
+      >
+        <span>🤖 Gemini AI & Hỏi Đáp Chatbot</span>
+        <span id="chatbotCountBadge" class="bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+      </button>
+
     </div>
 
     <!-- ========================================================================= -->
@@ -771,6 +796,183 @@
       </div>
     </div>
 
+      <!-- ========================================================================= -->
+    <!-- TAB 6: HỎI ĐÁP CHATBOT & CẤU HÌNH GOOGLE GEMINI AI -->
+    <!-- ========================================================================= -->
+    <div id="tabChatbotContent" class="space-y-6 hidden">
+
+      <!-- AI STATUS & QUICK STATS -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Stat 1: AI Engine -->
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center justify-between">
+            <span>Trí Tuệ Nhân Tạo Chatbot</span>
+            <span id="geminiStatusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          </div>
+          <div id="geminiStatusTitle" class="text-base font-bold text-gray-900 dark:text-white mt-1 flex items-center gap-2">
+            <span>Google Gemini 3.8 Flash</span>
+          </div>
+          <div id="geminiStatusDesc" class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
+            ✅ Mô hình mới nhất • Sẵn sàng tư vấn 24/7
+          </div>
+        </div>
+
+        <!-- Stat 2: Total Questions in DB -->
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            Câu Hỏi Khách Hàng Trong Database
+          </div>
+          <div id="statTotalChatQuestions" class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1 font-mono">
+            0
+          </div>
+          <div class="text-[11px] text-gray-400 mt-1">Đồng bộ từ bảng chat_messages (morioo_store.db)</div>
+        </div>
+
+        <!-- Stat 3: Total Sessions -->
+        <div class="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <div class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            Phiên Hội Thoại Khách Hàng
+          </div>
+          <div id="statTotalChatSessions" class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1 font-mono">
+            0
+          </div>
+          <div class="text-[11px] text-gray-400 mt-1">Lưu trữ đầy đủ lịch sử tư vấn</div>
+        </div>
+      </div>
+
+      <!-- CARD 1: CẤU HÌNH GOOGLE GEMINI AI KEY -->
+      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 p-5 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 dark:border-zinc-800 pb-4 mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span>⚡ Cấu Hình API Key Google Gemini (Mô hình: gemini-3.8-flash)</span>
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Cung cấp API Key từ Google AI Studio để chatbot chuyển từ chế độ tự động cơ bản sang siêu trí tuệ Gemini 3.8 Flash.
+            </p>
+          </div>
+          <a 
+            href="https://aistudio.google.com/app/apikey" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 hover:bg-amber-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-zinc-700 flex items-center gap-1.5 self-start sm:self-auto"
+          >
+            <span>🔑 Lấy Gemini API Key Miễn Phí Tại Google AI Studio</span>
+            <span>&nearr;</span>
+          </a>
+        </div>
+
+        <form id="geminiConfigForm" onsubmit="handleSaveGeminiKey(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+            <div class="sm:col-span-2 space-y-1">
+              <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                Gemini API Key (Bắt đầu bằng <code class="bg-gray-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-rose-600">AIzaSy...</code>)
+              </label>
+              <div class="relative flex items-center">
+                <input 
+                  type="password" 
+                  id="geminiApiKeyInput" 
+                  placeholder="Dán mã Gemini API Key của bạn vào đây..." 
+                  class="w-full px-3.5 py-2.5 text-xs rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white font-mono focus:outline-none focus:border-amber-600 pr-20"
+                />
+                <button 
+                  type="button" 
+                  onclick="toggleGeminiKeyVisibility()" 
+                  class="absolute right-2 px-2 py-1 text-[11px] font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 bg-gray-100 dark:bg-zinc-700 rounded"
+                >
+                  <span id="geminiKeyToggleText">Hiện</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button 
+                type="submit" 
+                id="btnSaveGeminiKey" 
+                class="flex-1 px-4 py-2.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-sm flex items-center justify-center gap-1.5 transition"
+              >
+                <span>💾 Lưu API Key</span>
+              </button>
+              <button 
+                type="button" 
+                id="btnTestGeminiKey" 
+                onclick="handleTestGeminiKey()" 
+                class="px-4 py-2.5 rounded-lg text-xs font-bold bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-zinc-200 border border-gray-300 dark:border-zinc-700 flex items-center justify-center gap-1.5 transition"
+              >
+                <span>⚡ Test Kết Nối</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="geminiTestAlert" class="hidden p-3 rounded-lg text-xs"></div>
+
+          <div class="p-3 bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 rounded-lg text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
+            <span class="text-base">💡</span>
+            <div>
+              <strong>3 cách cấu hình Gemini API cực kỳ đơn giản:</strong><br>
+              1. Dán API Key vào ô trên rồi bấm nút <strong>"Lưu API Key"</strong>.<br>
+              2. Hoặc mở khung chat tư vấn ngoài trang chủ, gõ: <code>/key AIzaSy...</code>.<br>
+              3. Hoặc mở file <code>.env</code> trong thư mục dự án và thêm dòng: <code>GEMINI_API_KEY=AIzaSy...</code>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- CARD 2: DANH SÁCH CÂU HỎI KHÁCH HÀNG TRONG DATABASE -->
+      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm">
+        <div class="p-4 border-b border-gray-100 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-50/50 dark:bg-zinc-800/50">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span>💬 Câu Hỏi Của Khách Hàng Gửi Đến Chatbot (Database SQLite)</span>
+              <span id="badgeChatQuestionsCount" class="bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Toàn bộ thắc mắc của khách được ghi nhận tự động vào bảng <code>chat_messages</code> trong <code>morioo_store.db</code>.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <div class="relative">
+              <input 
+                type="text" 
+                id="searchChatQuestionsInput" 
+                oninput="handleSearchChatQuestions(this.value)" 
+                placeholder="Tìm câu hỏi, tên khách..." 
+                class="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-amber-600 w-48 sm:w-64"
+              />
+              <span class="absolute left-2.5 top-2 text-gray-400 text-xs">🔍</span>
+            </div>
+            <button 
+              type="button" 
+              onclick="loadChatbotQuestions()" 
+              class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 flex items-center gap-1 shadow-sm"
+            >
+              <span>🔄 Tải Lại</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 dark:bg-zinc-800/60 uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+              <tr>
+                <th class="p-3.5">Thời Gian</th>
+                <th class="p-3.5">Khách Hàng</th>
+                <th class="p-3.5">Mã Hội Thoại</th>
+                <th class="p-3.5">Nội Dung Câu Hỏi Của Khách</th>
+                <th class="p-3.5">Phản Hồi Gần Nhất Của Bot</th>
+                <th class="p-3.5 text-right">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="adminChatQuestionsTableBody" class="divide-y divide-gray-100 dark:divide-zinc-800">
+              <!-- Loaded via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
   <!-- ========================================================================= -->
@@ -1045,7 +1247,7 @@
         if (rawSvcs) {
           const list = JSON.parse(rawSvcs);
           if (Array.isArray(list)) {
-            const clean = list.filter(s => s.code && !s.code.startsWith('DV-TV-8') && !s.code.startsWith('DV-DD-3') && !s.code.startsWith('DV-VC-5') && !s.code.startsWith('DV-BT-7') && !s.code.startsWith('DV-KG-9'));
+            const clean = list.filter(s => s && (s.code || s.id));
             localStorage.setItem('morioo_service_requests', JSON.stringify(clean));
           }
         }
@@ -1057,12 +1259,12 @@
 
     // Image Presets for Quick Fill
     const IMAGE_PRESETS = {
-      giuong: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=800&q=80",
-      sofa: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80",
-      bantra: "https://images.unsplash.com/photo-1533090161767-e6ffed986b88?auto=format&fit=crop&w=800&q=80",
-      banan: "https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=800&q=80",
-      banlamviec: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80",
-      tuke: "https://images.unsplash.com/photo-1558997519-83ea9252def8?auto=format&fit=crop&w=800&q=80"
+      giuong: "assets/images/products/giuong-tatami.jpg",
+      sofa: "assets/images/products/sofa-thu-gian.jpg",
+      bantra: "assets/images/products/ban-tra-nhat.jpg",
+      banan: "assets/images/products/bo-ban-an-4-ghe.jpg",
+      banlamviec: "assets/images/products/ban-lam-viec.jpg",
+      tuke: "assets/images/products/ke-tivi-go-soi.jpg"
     };
 
     // =========================================================================
@@ -1431,16 +1633,60 @@
         console.warn('[Supabase Cloud] Không tải được đơn hàng online:', err);
       }
 
-      // 3. Fetch service requests & B2B from Supabase Cloud
+      // 3. Fetch service requests & B2B from both Backend SQLite & Supabase Cloud
       try {
-        const cloudSvcs = await supabaseFetch('service_requests?select=*&order=created_at.desc');
-        if (cloudSvcs && Array.isArray(cloudSvcs)) {
-          ALL_SERVICES = cloudSvcs;
-          localStorage.setItem('morioo_service_requests', JSON.stringify(ALL_SERVICES));
-          console.log('[Supabase Cloud] Đã tải thành công', ALL_SERVICES.length, 'yêu cầu dịch vụ từ Cloud!');
+        const mergedMap = new Map();
+
+        // A. Nạp từ LocalStorage
+        try {
+          const localSvcs = JSON.parse(localStorage.getItem('morioo_service_requests') || '[]');
+          if (Array.isArray(localSvcs)) {
+            localSvcs.forEach(s => { const k = s.code || s.id; if (k) mergedMap.set(k, s); });
+          }
+        } catch(e) {}
+
+        // B. Nạp từ Flask Backend (/api/services -> SQLite morioo_store.db)
+        const apiCandidates = ['/api/services', 'http://localhost:5000/api/services', 'http://127.0.0.1:5000/api/services'];
+        for (const ep of apiCandidates) {
+          try {
+            const apiRes = await fetch(ep, { cache: 'no-store' });
+            if (apiRes.ok) {
+              const apiData = await apiRes.json();
+              if (Array.isArray(apiData)) {
+                apiData.forEach(s => {
+                  const k = s.code || s.id;
+                  if (k) {
+                    const ex = mergedMap.get(k);
+                    mergedMap.set(k, ex ? { ...ex, ...s } : s);
+                  }
+                });
+                break;
+              }
+            }
+          } catch(e) {}
         }
+
+        // C. Nạp từ Supabase Cloud
+        try {
+          const cloudSvcs = await supabaseFetch('service_requests?select=*&order=created_at.desc');
+          if (cloudSvcs && Array.isArray(cloudSvcs)) {
+            cloudSvcs.forEach(s => {
+              const k = s.code || s.id;
+              if (k) {
+                const ex = mergedMap.get(k);
+                mergedMap.set(k, ex ? { ...ex, ...s } : s);
+              }
+            });
+          }
+        } catch (err) {
+          console.warn('[Supabase Cloud] Không tải được dịch vụ online:', err.message);
+        }
+
+        ALL_SERVICES = Array.from(mergedMap.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        localStorage.setItem('morioo_service_requests', JSON.stringify(ALL_SERVICES));
+        console.log('[Dịch vụ] Đã nạp thành công', ALL_SERVICES.length, 'yêu cầu dịch vụ vào Admin!');
       } catch (err) {
-        console.warn('[Supabase Cloud] Không tải được dịch vụ online:', err);
+        console.warn('[Admin] Lỗi nạp dịch vụ:', err);
       }
 
       // 4. Fetch accounts from Supabase Cloud (Admin, Staff, Customer)
@@ -1457,6 +1703,8 @@
 
       updateCloudStatusPill('connected');
       renderAllData();
+      loadChatbotQuestions();
+      loadGeminiConfig();
       showToast('☁️ Đã đồng bộ toàn bộ dữ liệu mới nhất từ Database Cloud!', 'success');
     }
 
@@ -1527,7 +1775,7 @@
       if (tab === 'orders') tab = 'revenue';
       CURRENT_TAB = tab;
 
-      const tabs = ['revenue', 'kpi', 'products', 'quotes', 'accounts'];
+      const tabs = ['revenue', 'kpi', 'products', 'quotes', 'accounts', 'chatbot'];
       tabs.forEach(t => {
         const content = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Content`);
         const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
@@ -2614,8 +2862,10 @@
         } else if (item.type === 'van-chuyen') {
           detailsText = `
             <div><strong>Đơn hàng:</strong> <code class="text-sky-600 font-bold">${d.order_code || 'Chưa có'}</code></div>
-            <div><strong>Hẹn:</strong> ${d.preferred_date || ''} (${d.preferred_time || ''})</div>
-            <div class="text-xs text-purple-700 dark:text-purple-400">${d.installation_service || ''}</div>
+            <div><strong>Hẹn:</strong> ${d.preferred_date || item.preferred_date || ''} (${d.preferred_time || item.preferred_time || ''})</div>
+            <div><strong>Địa hình:</strong> ${d.house_type || 'Chung cư có thang máy'}</div>
+            <div class="text-xs text-purple-700 dark:text-purple-400 font-semibold">${d.installation_service || ''}</div>
+            ${d.delivery_notes ? `<div class="text-[11px] text-amber-700 dark:text-amber-400 italic mt-0.5">📝 "${d.delivery_notes}"</div>` : ''}
           `;
         } else if (item.type === 'bao-tri') {
           detailsText = `
@@ -2716,6 +2966,15 @@
           console.warn('[Supabase Cloud] Lỗi cập nhật dịch vụ:', e.message);
         }
 
+        // Cập nhật lên Backend Flask API (/api/services)
+        try {
+          await fetch(`/api/services/${encodeURIComponent(code)}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: next })
+          });
+        } catch(e) {}
+
         try {
           const bc = new BroadcastChannel('morioo_sync_channel');
           bc.postMessage({ type: 'SERVICE_REQUEST_STATUS_CHANGED', code: code, status: next });
@@ -2747,6 +3006,15 @@
           console.warn('[Supabase Cloud] Lỗi phân công:', e.message);
         }
 
+        // Cập nhật lên Backend Flask API (/api/services)
+        try {
+          await fetch(`/api/services/${encodeURIComponent(code)}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ assigned_staff: chosen, status: item.status })
+          });
+        } catch(e) {}
+
         try {
           const bc = new BroadcastChannel('morioo_sync_channel');
           bc.postMessage({ type: 'SERVICE_REQUEST_STATUS_CHANGED', code: code, assigned_staff: chosen });
@@ -2767,6 +3035,11 @@
       } catch(e) {
         console.warn('[Supabase Cloud] Lỗi xóa dịch vụ:', e.message);
       }
+
+      // Xóa khỏi Backend Flask API (/api/services)
+      try {
+        await fetch(`/api/services/${encodeURIComponent(code)}`, { method: 'DELETE' });
+      } catch(e) {}
     }
 
     function openAdminLightboxImage(url) {
@@ -3129,6 +3402,24 @@
             persistOrders();
             renderAllData();
           }
+        } else if (event.data.type === 'NEW_SERVICE_REQUEST' && event.data.request) {
+          const req = event.data.request;
+          const exists = ALL_SERVICES.some(s => s.code === req.code || (req.id && s.id === req.id));
+          if (!exists) {
+            ALL_SERVICES.unshift(req);
+            localStorage.setItem('morioo_service_requests', JSON.stringify(ALL_SERVICES));
+            renderAllData();
+            showToast(`🛎️ YÊU CẦU DỊCH VỤ MỚI: #${req.code} - ${req.customer_name} (${req.service_type})`, 'info');
+            playOrderChime();
+          }
+        } else if (event.data.type === 'SERVICE_REQUEST_STATUS_CHANGED') {
+          const item = ALL_SERVICES.find(s => s.code === event.data.code);
+          if (item) {
+            if (event.data.status) item.status = event.data.status;
+            if (event.data.assigned_staff) item.assigned_staff = event.data.assigned_staff;
+            localStorage.setItem('morioo_service_requests', JSON.stringify(ALL_SERVICES));
+            renderAllData();
+          }
         } else if (event.data.type === 'PRODUCT_ADDED' || event.data.type === 'PRODUCT_UPDATED' || event.data.type === 'PRODUCT_DELETED' || event.data.type === 'STOCK_UPDATED') {
           console.log('[Admin Sync] Nhận tín hiệu đồng bộ sản phẩm từ Staff/Web:', event.data.type);
           loadProductsFromSupabase();
@@ -3162,6 +3453,69 @@
               renderAllData();
               if (newestOrder) {
                 showToast(`🔔 Đơn hàng mới: #${newestOrder.order_code} - ${newestOrder.customer_name}`, 'success');
+                playOrderChime();
+              }
+            }
+          }
+        } catch(e) {}
+
+        // Đồng bộ Yêu cầu dịch vụ mới (cả Supabase Cloud lẫn Backend SQLite)
+        try {
+          const syncMap = new Map();
+
+          const apiCandidates = ['/api/services', 'http://localhost:5000/api/services', 'http://127.0.0.1:5000/api/services'];
+          for (const ep of apiCandidates) {
+            try {
+              const apiRes = await fetch(ep, { cache: 'no-store' });
+              if (apiRes.ok) {
+                const apiData = await apiRes.json();
+                if (Array.isArray(apiData)) {
+                  apiData.forEach(s => { const k = s.code || s.id; if (k) syncMap.set(k, s); });
+                  break;
+                }
+              }
+            } catch(e) {}
+          }
+
+          try {
+            const cloudSvcs = await supabaseFetch('service_requests?select=*&order=created_at.desc');
+            if (cloudSvcs && Array.isArray(cloudSvcs)) {
+              cloudSvcs.forEach(s => {
+                const k = s.code || s.id;
+                if (k) {
+                  const ex = syncMap.get(k);
+                  syncMap.set(k, ex ? { ...ex, ...s } : s);
+                }
+              });
+            }
+          } catch(e) {}
+
+          const latestSvcs = Array.from(syncMap.values());
+
+          if (latestSvcs && Array.isArray(latestSvcs) && latestSvcs.length > 0) {
+            let hasNewSvc = false;
+            let newestSvc = null;
+
+            latestSvcs.forEach(cs => {
+              const idx = ALL_SERVICES.findIndex(s => (s.code && s.code === cs.code) || (s.id && s.id === cs.id));
+              if (idx === -1) {
+                hasNewSvc = true;
+                ALL_SERVICES.unshift(cs);
+                newestSvc = cs;
+              } else {
+                if (ALL_SERVICES[idx].status !== cs.status || ALL_SERVICES[idx].assigned_staff !== cs.assigned_staff) {
+                  ALL_SERVICES[idx] = { ...ALL_SERVICES[idx], ...cs };
+                  hasNewSvc = true;
+                }
+              }
+            });
+
+            if (hasNewSvc) {
+              ALL_SERVICES.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+              localStorage.setItem('morioo_service_requests', JSON.stringify(ALL_SERVICES));
+              renderAllData();
+              if (newestSvc) {
+                showToast(`🛎️ YÊU CẦU DỊCH VỤ MỚI: #${newestSvc.code} - ${newestSvc.customer_name} (${newestSvc.service_type})`, 'info');
                 playOrderChime();
               }
             }
@@ -3220,6 +3574,397 @@
       // Start Real-Time background sync
       startAdminAutoSync();
     });
+  
+    // =========================================================================
+    // TAB 6: CHATBOT QUESTIONS & GEMINI AI MANAGEMENT
+    // =========================================================================
+    let ALL_QUESTIONS = [];
+
+    async function loadChatbotQuestions() {
+      const apiCandidates = ['/api/chat/questions', 'http://localhost:5000/api/chat/questions', 'http://127.0.0.1:5000/api/chat/questions'];
+      for (const ep of apiCandidates) {
+        try {
+          const res = await fetch(ep, { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.questions) {
+              ALL_QUESTIONS = data.questions;
+              renderAdminChatQuestionsTable(ALL_QUESTIONS);
+              updateChatStats();
+              console.log('[Admin Chatbot] Đã nạp', ALL_QUESTIONS.length, 'câu hỏi từ Database!');
+              return;
+            }
+          }
+        } catch (_) {}
+      }
+    }
+
+    function updateChatStats() {
+      const qCount = ALL_QUESTIONS.length;
+      const sIds = new Set(ALL_QUESTIONS.map(q => q.session_id)).size;
+
+      const statChatbot = document.getElementById('statChatbot');
+      if (statChatbot) statChatbot.textContent = `${qCount} câu`;
+
+      const badgeTab = document.getElementById('chatbotCountBadge');
+      if (badgeTab) badgeTab.textContent = qCount;
+
+      const badgeHeader = document.getElementById('badgeChatQuestionsCount');
+      if (badgeHeader) badgeHeader.textContent = qCount;
+
+      const statTotalQ = document.getElementById('statTotalChatQuestions');
+      if (statTotalQ) statTotalQ.textContent = qCount;
+
+      const statTotalS = document.getElementById('statTotalChatSessions');
+      if (statTotalS) statTotalS.textContent = sIds;
+    }
+
+    function renderAdminChatQuestionsTable(list) {
+      const tbody = document.getElementById('adminChatQuestionsTableBody');
+      if (!tbody) return;
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="p-8 text-center text-gray-400">
+              <div class="text-3xl mb-2">💬</div>
+              <p>Chưa có câu hỏi nào từ khách hàng trong Database!</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map((item, idx) => {
+        const timeStr = item.created_at || 'Vừa xong';
+        const cName = item.customer_name || 'Khách vãng lai';
+        const contact = item.customer_phone || item.customer_email || '—';
+        const sessId = item.session_id || '—';
+        const qText = item.question || '';
+        const botReply = item.last_message ? item.last_message.substring(0, 80) + '...' : '—';
+
+        return `
+          <tr class="hover:bg-gray-50/80 dark:hover:bg-zinc-800/50 transition">
+            <td class="p-3.5 text-gray-500 whitespace-nowrap font-mono text-[11px]">${timeStr}</td>
+            <td class="p-3.5">
+              <div class="font-bold text-gray-900 dark:text-white">${cName}</div>
+              <div class="text-[11px] text-gray-400">${contact}</div>
+            </td>
+            <td class="p-3.5 font-mono text-[11px] text-gray-500">${sessId}</td>
+            <td class="p-3.5 max-w-xs">
+              <div class="font-semibold text-rose-700 dark:text-rose-400">${escapeHtml(qText)}</div>
+            </td>
+            <td class="p-3.5 max-w-xs text-gray-600 dark:text-gray-400 text-[11px]">
+              ${escapeHtml(botReply)}
+            </td>
+            <td class="p-3.5 text-right whitespace-nowrap space-x-2">
+              <button 
+                onclick="openAdminChatModal('${sessId}', '${encodeURIComponent(cName)}', '${encodeURIComponent(contact)}')" 
+                class="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 inline-flex items-center gap-1"
+                title="Xem toàn bộ hội thoại và gửi trả lời"
+              >
+                <span>💬 Xem & Trả Lời</span>
+              </button>
+              <button 
+                onclick="handleDeleteChatSession('${sessId}')" 
+                class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-zinc-800 transition"
+                title="Xóa đoạn chat này"
+              >
+                🗑️
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function handleSearchChatQuestions(query) {
+      const q = (query || '').toLowerCase().trim();
+      if (!q) {
+        renderAdminChatQuestionsTable(ALL_QUESTIONS);
+        return;
+      }
+      const filtered = ALL_QUESTIONS.filter(it => 
+        (it.question || '').toLowerCase().includes(q) ||
+        (it.customer_name || '').toLowerCase().includes(q) ||
+        (it.customer_phone || '').toLowerCase().includes(q) ||
+        (it.session_id || '').toLowerCase().includes(q)
+      );
+      renderAdminChatQuestionsTable(filtered);
+    }
+
+    async function loadGeminiConfig() {
+      const apiCandidates = ['/api/admin/gemini-config', 'http://localhost:5000/api/admin/gemini-config', 'http://127.0.0.1:5000/api/admin/gemini-config'];
+      for (const ep of apiCandidates) {
+        try {
+          const res = await fetch(ep, { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            const input = document.getElementById('geminiApiKeyInput');
+            const dot = document.getElementById('geminiStatusDot');
+            const title = document.getElementById('geminiStatusTitle');
+            const desc = document.getElementById('geminiStatusDesc');
+
+            if (data.is_configured) {
+              if (input && !input.value) input.value = data.api_key_preview || '';
+              if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+              if (title) title.innerHTML = `<span>Google Gemini 3.8 Flash</span> <span class="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full">ACTIVE</span>`;
+              if (desc) desc.textContent = '✅ Đã kích hoạt siêu trí tuệ Gemini 3.8 Flash • Phản hồi sâu sắc';
+            } else {
+              if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500';
+              if (title) title.innerHTML = `<span>Tự Động (Rule-Based Fallback)</span> <span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-0.5 rounded-full">STANDBY</span>`;
+              if (desc) desc.textContent = '⚠️ Chưa cấu hình Gemini Key • Đang dùng bộ quy tắc nội bộ';
+            }
+            return;
+          }
+        } catch (_) {}
+      }
+    }
+
+    function toggleGeminiKeyVisibility() {
+      const input = document.getElementById('geminiApiKeyInput');
+      const text = document.getElementById('geminiKeyToggleText');
+      if (!input || !text) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        text.textContent = 'Ẩn';
+      } else {
+        input.type = 'password';
+        text.textContent = 'Hiện';
+      }
+    }
+
+    async function handleSaveGeminiKey(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('geminiApiKeyInput');
+      const key = (input ? input.value : '').trim();
+      if (!key) {
+        alert('Vui lòng nhập API Key!');
+        return;
+      }
+
+      const alertBox = document.getElementById('geminiTestAlert');
+      const btn = document.getElementById('btnSaveGeminiKey');
+      if (btn) btn.disabled = true;
+
+      const apiCandidates = ['/api/admin/gemini-config', 'http://localhost:5000/api/admin/gemini-config', 'http://127.0.0.1:5000/api/admin/gemini-config'];
+      for (const ep of apiCandidates) {
+        try {
+          const res = await fetch(ep, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gemini_api_key: key })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            if (alertBox) {
+              alertBox.className = 'p-3 rounded-lg text-xs bg-emerald-50 text-emerald-800 border border-emerald-200';
+              alertBox.innerHTML = `🎉 <strong>Thành công:</strong> ${data.message}`;
+              alertBox.classList.remove('hidden');
+            }
+            showToast('✅ Đã lưu cấu hình Gemini API Key thành công!', 'success');
+            loadGeminiConfig();
+            break;
+          } else {
+            throw new Error(data.error || 'Lỗi lưu cấu hình');
+          }
+        } catch (err) {
+          if (alertBox) {
+            alertBox.className = 'p-3 rounded-lg text-xs bg-red-50 text-red-800 border border-red-200';
+            alertBox.innerHTML = `⚠️ <strong>Lỗi:</strong> ${err.message}`;
+            alertBox.classList.remove('hidden');
+          }
+        }
+      }
+      if (btn) btn.disabled = false;
+    }
+
+    async function handleTestGeminiKey() {
+      const input = document.getElementById('geminiApiKeyInput');
+      const key = (input ? input.value : '').trim();
+      const alertBox = document.getElementById('geminiTestAlert');
+      const btn = document.getElementById('btnTestGeminiKey');
+
+      if (alertBox) {
+        alertBox.className = 'p-3 rounded-lg text-xs bg-sky-50 text-sky-800 border border-sky-200 flex items-center gap-2';
+        alertBox.innerHTML = `<span>⏳ Đang kiểm tra kết nối tới Google Gemini 3.8 Flash...</span>`;
+        alertBox.classList.remove('hidden');
+      }
+      if (btn) btn.disabled = true;
+
+      const apiCandidates = ['/api/admin/gemini-config/test', 'http://localhost:5000/api/admin/gemini-config/test', 'http://127.0.0.1:5000/api/admin/gemini-config/test'];
+      for (const ep of apiCandidates) {
+        try {
+          const res = await fetch(ep, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gemini_api_key: key })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            if (alertBox) {
+              alertBox.className = 'p-3 rounded-lg text-xs bg-emerald-50 text-emerald-800 border border-emerald-200';
+              alertBox.innerHTML = `🎉 <strong>Kết nối thành công:</strong> ${data.message}<br><small class="text-emerald-700">Test AI Reply: "${data.reply_sample}"</small>`;
+            }
+            showToast('⚡ Kết nối Gemini 3.8 Flash hoàn hảo!', 'success');
+            break;
+          } else {
+            throw new Error(data.error || 'Kiểm tra thất bại');
+          }
+        } catch (err) {
+          if (alertBox) {
+            alertBox.className = 'p-3 rounded-lg text-xs bg-red-50 text-red-800 border border-red-200';
+            alertBox.innerHTML = `⚠️ <strong>Kết nối thất bại:</strong> ${err.message}`;
+          }
+        }
+      }
+      if (btn) btn.disabled = false;
+    }
+
+    async function openAdminChatModal(sessionId, customerName, contact) {
+      const modal = document.getElementById('modalAdminChatDetail');
+      const sessLabel = document.getElementById('modalAdminChatSessionId');
+      const custInfo = document.getElementById('modalAdminChatCustomerInfo');
+      const hiddenInput = document.getElementById('modalAdminChatActiveSessionId');
+      const msgList = document.getElementById('modalAdminChatMessagesList');
+
+      if (!modal) return;
+      if (sessLabel) sessLabel.textContent = sessionId;
+      if (custInfo) custInfo.textContent = `Khách hàng: ${decodeURIComponent(customerName || '')} • Liên hệ: ${decodeURIComponent(contact || '')}`;
+      if (hiddenInput) hiddenInput.value = sessionId;
+      if (msgList) msgList.innerHTML = `<div class="p-4 text-center text-gray-400">Đang tải lịch sử hội thoại...</div>`;
+      modal.classList.remove('hidden');
+
+      const apiCandidates = [
+        `/api/chat/sessions/${encodeURIComponent(sessionId)}`,
+        `http://localhost:5000/api/chat/sessions/${encodeURIComponent(sessionId)}`,
+        `http://127.0.0.1:5000/api/chat/sessions/${encodeURIComponent(sessionId)}`
+      ];
+
+      for (const ep of apiCandidates) {
+        try {
+          const res = await fetch(ep, { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            const msgs = data.messages || [];
+            if (msgList) {
+              if (msgs.length === 0) {
+                msgList.innerHTML = `<div class="p-4 text-center text-gray-400">Không có tin nhắn nào trong phiên này.</div>`;
+              } else {
+                msgList.innerHTML = msgs.map(m => {
+                  const isCust = m.sender === 'customer';
+                  return `
+                    <div class="flex ${isCust ? 'justify-start' : 'justify-end'}">
+                      <div class="max-w-[80%] rounded-xl px-3 py-2 ${isCust ? 'bg-white border border-gray-200 text-gray-800' : 'bg-rose-600 text-white'}">
+                        <div class="text-[10px] font-bold opacity-75 mb-0.5">${isCust ? 'Khách hàng' : 'Nhân viên / AI'} • ${m.created_at || ''}</div>
+                        <div class="whitespace-pre-wrap">${escapeHtml(m.message)}</div>
+                      </div>
+                    </div>
+                  `;
+                }).join('');
+                msgList.scrollTop = msgList.scrollHeight;
+              }
+            }
+            break;
+          }
+        } catch (_) {}
+      }
+    }
+
+    function closeAdminChatModal() {
+      document.getElementById('modalAdminChatDetail')?.classList.add('hidden');
+    }
+
+    async function handleSendAdminChatReply(e) {
+      if (e) e.preventDefault();
+      const sessId = document.getElementById('modalAdminChatActiveSessionId')?.value;
+      const input = document.getElementById('modalAdminChatReplyInput');
+      const text = (input ? input.value : '').trim();
+      if (!sessId || !text) return;
+
+      input.value = '';
+      const apiCandidates = ['/api/chat/reply', 'http://localhost:5000/api/chat/reply', 'http://127.0.0.1:5000/api/chat/reply'];
+      for (const ep of apiCandidates) {
+        try {
+          const res = await fetch(ep, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: sessId,
+              message: text,
+              responder_name: 'Quản trị viên MORIOO'
+            })
+          });
+          if (res.ok) {
+            showToast('✅ Đã gửi phản hồi đến khách hàng!', 'success');
+            openAdminChatModal(sessId, '', '');
+            loadChatbotQuestions();
+            break;
+          }
+        } catch (_) {}
+      }
+    }
+
+    async function handleDeleteChatSession(sessionId) {
+      if (!confirm(`Bạn có chắc muốn xóa phiên chat ${sessionId}?`)) return;
+      const apiCandidates = [
+        `/api/chat/sessions/${encodeURIComponent(sessionId)}`,
+        `http://localhost:5000/api/chat/sessions/${encodeURIComponent(sessionId)}`,
+        `http://127.0.0.1:5000/api/chat/sessions/${encodeURIComponent(sessionId)}`
+      ];
+      for (const ep of apiCandidates) {
+        try {
+          const res = await fetch(ep, { method: 'DELETE' });
+          if (res.ok) {
+            showToast('Đã xóa phiên chat!', 'success');
+            loadChatbotQuestions();
+            break;
+          }
+        } catch (_) {}
+      }
+    }
+
   </script>
+  <!-- ========================================================================= -->
+  <!-- MODAL: XEM ĐOẠN HỘI THOẠI & PHẢN HỒI KHÁCH HÀNG -->
+  <!-- ========================================================================= -->
+  <div id="modalAdminChatDetail" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-zinc-900 w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50/50 dark:bg-zinc-800/50">
+        <div>
+          <h3 id="modalAdminChatTitle" class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <span>💬</span> Chi Tiết Hội Thoại: <span id="modalAdminChatSessionId" class="font-mono text-rose-600"></span>
+          </h3>
+          <p id="modalAdminChatCustomerInfo" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"></p>
+        </div>
+        <button type="button" onclick="closeAdminChatModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg font-bold p-1">✕</button>
+      </div>
+
+      <!-- Messages list -->
+      <div id="modalAdminChatMessagesList" class="p-4 overflow-y-auto space-y-3 flex-1 bg-stone-50/50 dark:bg-zinc-950/40 text-xs min-h-[300px] max-h-[420px]">
+        <!-- Loaded via JS -->
+      </div>
+
+      <!-- Reply Box -->
+      <form onsubmit="handleSendAdminChatReply(event)" class="p-3 border-t border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center gap-2">
+        <input type="hidden" id="modalAdminChatActiveSessionId" />
+        <input 
+          type="text" 
+          id="modalAdminChatReplyInput" 
+          placeholder="Nhập câu trả lời trực tiếp của Quản trị viên/Nhân viên..." 
+          class="flex-1 px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:outline-none focus:border-rose-600"
+          required
+        />
+        <button 
+          type="submit" 
+          class="px-4 py-2 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition flex items-center gap-1.5"
+        >
+          <span>Gửi Phản Hồi</span>
+          <span>&rarr;</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>

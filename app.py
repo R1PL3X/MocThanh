@@ -30,8 +30,20 @@ app = Flask(
 )
 app.secret_key = os.environ.get('SECRET_KEY', 'morioo-vietnam-natural-wood-secret-key-2026')
 
+@app.before_request
+def handle_options_preflight():
+    if request.method == 'OPTIONS':
+        resp = app.make_default_options_response()
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, apikey'
+        return resp
+
 @app.after_request
 def add_header(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, apikey'
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
@@ -63,9 +75,11 @@ class VercelPathFixMiddleware:
                 pass
 
         if not custom_path:
-            matched = environ.get('HTTP_X_MATCHED_PATH') or environ.get('HTTP_X_VERCEL_MATCHED_PATH')
-            if matched and not matched.startswith('/api/index'):
-                custom_path = matched.split('?')[0]
+            for hdr in ('HTTP_X_MATCHED_PATH', 'HTTP_X_VERCEL_MATCHED_PATH', 'REQUEST_URI', 'HTTP_X_FORWARDED_URI'):
+                val = environ.get(hdr)
+                if val and not val.startswith('/api/index'):
+                    custom_path = val.split('?')[0]
+                    break
 
         if custom_path:
             environ['PATH_INFO'] = custom_path
@@ -247,18 +261,23 @@ def get_ai_status():
     """Returns current Gemini AI status and model info"""
     return jsonify(chat_advisor.get_ai_info())
 
-@app.route('/api/admin/gemini-config', methods=['POST'])
+@app.route('/api/admin/gemini-config', methods=['GET', 'POST'])
 def save_gemini_config():
-    """Validate and configure Google Gemini AI API key"""
+    """Get status or validate and configure Google Gemini AI API key"""
+    if request.method == 'GET':
+        info = chat_advisor.get_ai_info()
+        return jsonify({
+            'success': True,
+            'is_configured': info.get('gemini_configured', False),
+            'model': info.get('model', 'gemini-3.8-flash'),
+            'api_key_preview': info.get('api_key_preview', '')
+        })
+
     data = request.get_json() or {}
     key = (data.get('gemini_api_key') or '').strip()
 
     if not key:
         return jsonify({'success': False, 'error': 'Vui lòng nhập Gemini API Key!'}), 400
-
-    ok, msg = chat_advisor.test_gemini_key(key)
-    if not ok:
-        return jsonify({'success': False, 'error': msg}), 400
 
     chat_advisor.configure_gemini(key)
 
@@ -282,13 +301,48 @@ def save_gemini_config():
 
         with open(env_path, 'w', encoding='utf-8') as f:
             f.writelines(new_lines)
+
+        # Lưu đồng thời vào db_config.json
+        cfg_path = os.path.join(ROOT_DIR, 'db_config.json')
+        cfg = {}
+        if os.path.exists(cfg_path):
+            try:
+                import json
+                with open(cfg_path, 'r', encoding='utf-8') as f:
+                    cfg = json.load(f)
+            except Exception:
+                cfg = {}
+        cfg['gemini_api_key'] = key
+        with open(cfg_path, 'w', encoding='utf-8') as f:
+            import json
+            json.dump(cfg, f, indent=2)
     except Exception as e:
-        logger.warning(f"Could not write .env file: {e}")
+        logger.warning(f"Could not write .env or db_config file: {e}")
 
     return jsonify({
         'success': True,
-        'message': 'Đã kết nối Google Gemini AI thành công! Trợ lý ảo tư vấn đã sẵn sàng.',
+        'message': 'Đã kết nối Google Gemini AI thành công! Trợ lý ảo tư vấn đã sẵn sàng (Mô hình: gemini-3.8-flash).',
         'ai_info': chat_advisor.get_ai_info()
+    })
+
+@app.route('/api/admin/gemini-config/test', methods=['POST'])
+def test_gemini_config():
+    data = request.get_json() or {}
+    key = (data.get('gemini_api_key') or '').strip()
+    if not key:
+        key = os.environ.get('GEMINI_API_KEY', '')
+
+    if not key:
+        return jsonify({'success': False, 'error': 'Chưa cung cấp Gemini API Key để kiểm tra'}), 400
+
+    ok, msg = chat_advisor.test_gemini_key(key)
+    if not ok:
+        return jsonify({'success': False, 'error': msg}), 400
+
+    return jsonify({
+        'success': True,
+        'message': f'Kết nối Google Gemini thành công: {msg}',
+        'reply_sample': 'MORIOO AI sẵn sàng tư vấn nội thất gỗ sồi cao cấp!'
     })
 
 # --- API ENDPOINTS ---
@@ -332,9 +386,27 @@ def create_product():
     if not title or not category or price is None:
         return jsonify({'error': 'Vui lòng điền đủ tên, danh mục và giá sản phẩm'}), 400
 
+    # Nếu có ảnh Base64 tải từ máy, lưu trực tiếp thành file trong assets/images/products/
+    image_val = data.get('image') or data.get('image_url')
+    if image_val and 'base64,' in image_val:
+        try:
+            import base64
+            import uuid
+            header, b64_str = image_val.split('base64,')
+            ext = 'png' if 'png' in header else 'jpg'
+            clean_name = f"prod-{uuid.uuid4().hex[:8]}.{ext}"
+            save_path = os.path.join(BASE_DIR, 'assets', 'images', 'products', clean_name)
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            with open(save_path, 'wb') as f:
+                f.write(base64.b64decode(b64_str))
+            data['image'] = f'assets/images/products/{clean_name}'
+            data['image_url'] = f'assets/images/products/{clean_name}'
+        except Exception as ex:
+            logger.warning(f"Failed to save base64 product image to disk: {ex}")
+
     try:
         new_id = db_adapter.create_product(data)
-        return jsonify({'success': True, 'id': new_id, 'message': 'Thêm sản phẩm thành công'}), 201
+        return jsonify({'success': True, 'id': new_id, 'message': 'Thêm sản phẩm thành công', 'image_url': data.get('image_url')}), 201
     except Exception as e:
         return jsonify({'error': f'Lỗi khi thêm sản phẩm: {str(e)}'}), 500
 
@@ -349,11 +421,59 @@ def delete_product(product_id):
 @app.route('/api/products/<string:product_id>', methods=['PUT', 'PATCH'])
 def update_product(product_id):
     data = request.get_json() or {}
+    image_val = data.get('image') or data.get('image_url')
+    if image_val and 'base64,' in image_val:
+        try:
+            import base64
+            import uuid
+            header, b64_str = image_val.split('base64,')
+            ext = 'png' if 'png' in header else 'jpg'
+            clean_name = f"prod-{uuid.uuid4().hex[:8]}.{ext}"
+            save_path = os.path.join(BASE_DIR, 'assets', 'images', 'products', clean_name)
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            with open(save_path, 'wb') as f:
+                f.write(base64.b64decode(b64_str))
+            data['image'] = f'assets/images/products/{clean_name}'
+            data['image_url'] = f'assets/images/products/{clean_name}'
+        except Exception as ex:
+            logger.warning(f"Failed to save base64 product image to disk: {ex}")
+
     try:
         db_adapter.update_product(product_id, data)
-        return jsonify({'success': True, 'message': 'Cập nhật sản phẩm thành công'})
+        return jsonify({'success': True, 'message': 'Cập nhật sản phẩm thành công', 'image_url': data.get('image_url')})
     except Exception as e:
         return jsonify({'error': f'Lỗi khi cập nhật sản phẩm: {str(e)}'}), 500
+
+@app.route('/api/upload-image', methods=['POST'])
+def upload_image():
+    try:
+        if 'file' in request.files:
+            file = request.files['file']
+            if file and file.filename:
+                import werkzeug.utils
+                clean_name = werkzeug.utils.secure_filename(file.filename)
+                save_path = os.path.join(BASE_DIR, 'assets', 'images', 'products', clean_name)
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                file.save(save_path)
+                return jsonify({'success': True, 'url': f'assets/images/products/{clean_name}'})
+
+        data = request.get_json() or {}
+        image_data = data.get('image') or data.get('image_url') or ''
+        if image_data and 'base64,' in image_data:
+            import base64
+            import uuid
+            header, b64_str = image_data.split('base64,')
+            ext = 'png' if 'png' in header else 'jpg'
+            clean_name = f"upload-{uuid.uuid4().hex[:8]}.{ext}"
+            save_path = os.path.join(BASE_DIR, 'assets', 'images', 'products', clean_name)
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            with open(save_path, 'wb') as f:
+                f.write(base64.b64decode(b64_str))
+            return jsonify({'success': True, 'url': f'assets/images/products/{clean_name}'})
+
+        return jsonify({'error': 'Không có dữ liệu ảnh hợp lệ'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/products/sync-sold', methods=['POST'])
 def sync_sold_endpoint():
@@ -519,6 +639,14 @@ def update_service_status(code):
     except Exception as e:
         return jsonify({'error': f'Lỗi cập nhật dịch vụ: {str(e)}'}), 500
 
+@app.route('/api/services/<string:code>', methods=['DELETE'])
+def delete_service(code):
+    try:
+        db_adapter.delete_service_request(code)
+        return jsonify({'success': True, 'message': 'Đã xóa yêu cầu dịch vụ thành công'})
+    except Exception as e:
+        return jsonify({'error': f'Lỗi xóa dịch vụ: {str(e)}'}), 500
+
 # --- AUTH ENDPOINTS ---
 @app.route('/api/auth/register', methods=['POST'])
 def register():
@@ -623,12 +751,26 @@ def send_chat_message():
         'messages': messages
     })
 
-# --- ADMIN CHAT MANAGEMENT ---
+# --- CHAT MANAGEMENT & DATABASE QUESTIONS ENDPOINTS ---
+@app.route('/api/chat/questions', methods=['GET'])
+@app.route('/api/admin/chat/questions', methods=['GET'])
+def get_chat_questions():
+    """Lấy danh sách tất cả câu hỏi của khách hàng đã hỏi Chatbot từ Database"""
+    limit = request.args.get('limit', 100, type=int)
+    questions = db_adapter.get_all_customer_questions(limit=limit)
+    return jsonify({
+        'success': True,
+        'count': len(questions),
+        'questions': questions
+    })
+
+@app.route('/api/chat/sessions', methods=['GET'])
 @app.route('/api/admin/chat/sessions', methods=['GET'])
 def admin_get_chat_sessions():
     sessions = db_adapter.get_chat_sessions()
     return jsonify(sessions)
 
+@app.route('/api/chat/sessions/<string:session_id>', methods=['GET'])
 @app.route('/api/admin/chat/sessions/<string:session_id>', methods=['GET'])
 def admin_get_chat_history(session_id):
     db_adapter.mark_chat_read(session_id)
@@ -638,11 +780,13 @@ def admin_get_chat_history(session_id):
         'messages': messages
     })
 
+@app.route('/api/chat/reply', methods=['POST'])
 @app.route('/api/admin/chat/reply', methods=['POST'])
 def admin_chat_reply():
     data = request.get_json() or {}
     session_id = data.get('session_id')
     message = (data.get('message') or '').strip()
+    responder = (data.get('responder_name') or 'Tư vấn viên MORIOO').strip()
 
     if not session_id or not message:
         return jsonify({'error': 'Thiếu session_id hoặc tin nhắn'}), 400
@@ -651,7 +795,7 @@ def admin_chat_reply():
         session_id=session_id,
         sender='advisor',
         message=message,
-        customer_name='Quản trị viên'
+        customer_name=responder
     )
     db_adapter.mark_chat_read(session_id)
 
@@ -662,6 +806,7 @@ def admin_chat_reply():
         'messages': messages
     })
 
+@app.route('/api/chat/sessions/<string:session_id>', methods=['DELETE'])
 @app.route('/api/admin/chat/sessions/<string:session_id>', methods=['DELETE'])
 def admin_delete_chat_session(session_id):
     db_adapter.delete_chat_session(session_id)

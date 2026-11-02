@@ -33,7 +33,7 @@ export const INITIAL_PRODUCTS = [
         is_new: false,
         is_bestseller: true,
         hotspot: { x: 18, y: 45, label: "Giường gầm thấp gỗ sồi" },
-        image_url: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/giuong-tatami.jpg",
         secondary_images: [
             "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1000&q=80",
             "https://images.unsplash.com/photo-1540518614846-7ede433c4ef4?auto=format&fit=crop&w=1000&q=80"
@@ -58,7 +58,7 @@ export const INITIAL_PRODUCTS = [
         is_new: true,
         is_bestseller: true,
         hotspot: { x: 38, y: 46, label: "Ghế thư giãn điều chỉnh" },
-        image_url: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/sofa-thu-gian.jpg",
         secondary_images: [
             "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&w=1000&q=80"
         ]
@@ -82,7 +82,7 @@ export const INITIAL_PRODUCTS = [
         is_new: false,
         is_bestseller: true,
         hotspot: { x: 44, y: 76, label: "Đôn gối lười hạt xốp" },
-        image_url: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/sofa-thu-gian.jpg",
         secondary_images: []
     },
     {
@@ -104,7 +104,7 @@ export const INITIAL_PRODUCTS = [
         is_new: false,
         is_bestseller: true,
         hotspot: { x: 67, y: 64, label: "Bàn trà thấp gỗ sồi" },
-        image_url: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/ban-tra-nhat.jpg",
         secondary_images: [
             "https://images.unsplash.com/photo-1532372576444-dda954194ad0?auto=format&fit=crop&w=1000&q=80"
         ]
@@ -128,7 +128,7 @@ export const INITIAL_PRODUCTS = [
         is_new: false,
         is_bestseller: false,
         hotspot: { x: 88, y: 60, label: "Kệ Tivi gỗ sồi tối giản" },
-        image_url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/ke-tivi-go-soi.jpg",
         secondary_images: []
     },
     {
@@ -149,7 +149,7 @@ export const INITIAL_PRODUCTS = [
         is_featured: false,
         is_new: true,
         is_bestseller: true,
-        image_url: "https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/bo-ban-an-4-ghe.jpg",
         secondary_images: []
     },
     {
@@ -170,7 +170,7 @@ export const INITIAL_PRODUCTS = [
         is_featured: false,
         is_new: false,
         is_bestseller: false,
-        image_url: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/ban-lam-viec.jpg",
         secondary_images: []
     },
     {
@@ -191,7 +191,7 @@ export const INITIAL_PRODUCTS = [
         is_featured: false,
         is_new: false,
         is_bestseller: true,
-        image_url: "https://images.unsplash.com/photo-1594671581654-27d5303d3d45?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/ke-sach-4-tang.jpg",
         secondary_images: []
     },
     {
@@ -212,7 +212,7 @@ export const INITIAL_PRODUCTS = [
         is_featured: false,
         is_new: true,
         is_bestseller: false,
-        image_url: "https://images.unsplash.com/photo-1558997519-83ea9252def8?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/tu-quan-ao-cua-lua.jpg",
         secondary_images: []
     },
     {
@@ -234,7 +234,7 @@ export const INITIAL_PRODUCTS = [
         is_new: false,
         is_bestseller: true,
         hotspot: { x: 69, y: 62, label: "Bộ ấm trà gốm sứ" },
-        image_url: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/am-chen-tra.jpg",
         secondary_images: []
     },
     {
@@ -255,7 +255,7 @@ export const INITIAL_PRODUCTS = [
         is_featured: false,
         is_new: false,
         is_bestseller: false,
-        image_url: "https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/tu-dau-giuong.jpg",
         secondary_images: []
     },
     {
@@ -276,7 +276,7 @@ export const INITIAL_PRODUCTS = [
         is_featured: false,
         is_new: false,
         is_bestseller: false,
-        image_url: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/den-dung-linen.jpg",
         secondary_images: []
     },
     {
@@ -297,7 +297,7 @@ export const INITIAL_PRODUCTS = [
         is_featured: true,
         is_new: true,
         is_bestseller: true,
-        image_url: "https://images.unsplash.com/photo-1595514535415-dae89835e5a6?auto=format&fit=crop&w=1000&q=80",
+        image_url: "assets/images/products/tu-giay-3-canh.jpg",
         secondary_images: []
     }
 ];

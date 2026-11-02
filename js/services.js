@@ -7,7 +7,7 @@
  * 5. Dịch vụ thiết kế không gian (Kích thước phòng & tải bản vẽ)
  */
 
-import { db } from "./supabase-client.js?v=3.5";
+import { db } from "./supabase-client.js?v=3.7";
 
 let UPLOADED_MAINT_IMG = "";
 let UPLOADED_SPACE_IMG = "";

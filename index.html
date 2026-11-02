@@ -1518,8 +1518,276 @@
          ============================================================================== -->
     <div id="toastNotification" class="toast-msg"></div>
 
+    <!-- Fallback & Standalone Bridge for Customer Services (Works on both http:// and file:///) -->
+    <script>
+      (function() {
+        const SUPABASE_URL = "https://vkhgbegximfhecwgfyow.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZraGdiZWd4aW1maGVjd2dmeW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyNTI2MzgsImV4cCI6MjEwODgyODYzOH0.2I9pGf1a1NoCoaxnJElWSCO41NGoP6MNMDWLoOHaaJo";
+
+        if (!window.openServiceModal) {
+          window.openServiceModal = function(serviceType = "tu-van") {
+            const modal = document.getElementById("serviceModal");
+            if (!modal) return;
+            modal.classList.add("active");
+            modal.style.display = "flex";
+            modal.style.opacity = "1";
+            modal.style.visibility = "visible";
+            modal.style.pointerEvents = "auto";
+            document.body.style.overflow = "hidden";
+            const typeToTab = {
+              "tu-van": "svcTabConsult",
+              "dat-dong": "svcTabCustom",
+              "van-chuyen": "svcTabDelivery",
+              "bao-tri": "svcTabMaint",
+              "thiet-ke-khong-gian": "svcTabSpace"
+            };
+            window.switchServiceModalTab(typeToTab[serviceType] || "svcTabConsult");
+          };
+        }
+
+        if (!window.closeServiceModal) {
+          window.closeServiceModal = function() {
+            const modal = document.getElementById("serviceModal");
+            if (modal) {
+              modal.classList.remove("active");
+              modal.style.display = "none";
+              modal.style.opacity = "0";
+              modal.style.visibility = "hidden";
+              modal.style.pointerEvents = "none";
+              document.body.style.overflow = "";
+            }
+          };
+        }
+
+        if (!window.switchServiceModalTab) {
+          window.switchServiceModalTab = function(tabId) {
+            document.querySelectorAll(".svc-tab-btn").forEach(btn => {
+              const isActive = btn.dataset.tab === tabId;
+              btn.classList.toggle("active", isActive);
+              btn.style.fontWeight = isActive ? "700" : "600";
+              btn.style.color = isActive ? "#18181b" : "#71717a";
+              btn.style.borderBottom = isActive ? "3px solid #7f1d1d" : "3px solid transparent";
+            });
+            document.querySelectorAll(".svc-tab-pane").forEach(pane => {
+              pane.style.display = pane.id === tabId ? "block" : "none";
+            });
+          };
+        }
+
+        const existingHandler = window.handleServiceFormSubmit;
+        window.handleServiceFormSubmit = async function(e, serviceType) {
+          if (existingHandler && typeof existingHandler === 'function') {
+            try {
+              await existingHandler(e, serviceType);
+              return;
+            } catch(ex) {
+              console.warn("Fallback to core submit:", ex);
+            }
+          }
+
+          e.preventDefault();
+          const form = e.target;
+          const formData = new FormData(form);
+          const details = {};
+          for (let [k, v] of formData.entries()) {
+            details[k] = v;
+          }
+
+          const prefixMap = {
+            'tu-van': 'DV-TV',
+            'dat-dong': 'DV-DD',
+            'van-chuyen': 'DV-VC',
+            'bao-tri': 'DV-BT',
+            'thiet-ke-khong-gian': 'DV-KG'
+          };
+          const prefix = prefixMap[serviceType] || 'DV-KH';
+          const code = prefix + '-' + Math.floor(100000 + Math.random() * 900000);
+
+          const payload = {
+            code: code,
+            service_type: serviceType,
+            customer_name: (details.customer_name || 'Khách hàng MORIOO').trim(),
+            customer_phone: (details.customer_phone || '').trim(),
+            customer_email: (details.customer_email || '').trim(),
+            address: details.shipping_address || details.support_address || details.project_address || '',
+            preferred_date: details.preferred_date || '',
+            preferred_time: details.preferred_time || '',
+            details: details,
+            image_url: '',
+            status: 'pending',
+            created_at: new Date().toISOString()
+          };
+
+          const submitBtn = form.querySelector('button[type="submit"]');
+          const originalText = submitBtn ? submitBtn.innerText : "Gửi";
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = "⏳ Đang ghi nhận...";
+          }
+
+          // 1. Gửi trực tiếp lên Supabase Cloud
+          try {
+            await fetch(`${SUPABASE_URL}/rest/v1/service_requests`, {
+              method: 'POST',
+              headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+              },
+              body: JSON.stringify(payload)
+            });
+            console.log("[Core Bridge] Đã lưu Supabase Cloud:", code);
+          } catch(e) {
+            console.warn("[Core Bridge] Supabase Cloud error:", e);
+          }
+
+          // 2. Gửi trực tiếp tới Flask Backend (/api/services -> SQLite morioo_store.db)
+          const apiEndpoints = ['/api/services', 'http://localhost:5000/api/services', 'http://127.0.0.1:5000/api/services'];
+          for (const ep of apiEndpoints) {
+            try {
+              const res = await fetch(ep, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              if (res.ok) {
+                console.log("[Core Bridge] Đã lưu Backend SQLite qua " + ep + ":", code);
+                break;
+              }
+            } catch(e) {}
+          }
+
+          // 3. Lưu vào LocalStorage
+          try {
+            const currentSvcs = JSON.parse(localStorage.getItem('morioo_service_requests') || '[]');
+            currentSvcs.unshift(payload);
+            localStorage.setItem('morioo_service_requests', JSON.stringify(currentSvcs));
+          } catch(e) {}
+
+          // 4. Nếu là vận chuyển, đính kèm vào đơn hàng
+          if (serviceType === 'van-chuyen') {
+            const ordCode = (details.order_code || '').trim();
+            const houseType = details.house_type || 'Tiêu chuẩn';
+            const installSvc = details.installation_service || 'Giao & Lắp đặt';
+            const delivNotes = details.delivery_notes || '';
+            const delivTag = `[Lịch Giao: ${payload.preferred_date} (${payload.preferred_time}) | ${houseType} | ${installSvc} | Mã DV: ${code}]${delivNotes ? ' [Ghi chú: ' + delivNotes + ']' : ''}`;
+
+            try {
+              const localOrders = JSON.parse(localStorage.getItem('morioo_orders') || '[]');
+              let matched = false;
+              localOrders.forEach(o => {
+                if ((ordCode && o.order_code === ordCode) || (payload.customer_phone && o.customer_phone === payload.customer_phone)) {
+                  matched = true;
+                  o.delivery_schedule = details;
+                  o.note = (o.note ? o.note.replace(/\[Lịch Giao:[^\]]+\]/g, '').trim() + ' ' : '') + delivTag;
+                }
+              });
+              if (!matched && ordCode && !['chưa có', 'chua co', 'none', '', 'null'].includes(ordCode.toLowerCase())) {
+                localOrders.unshift({
+                  id: 'ord-' + Date.now(),
+                  order_code: ordCode,
+                  customer_name: payload.customer_name,
+                  customer_phone: payload.customer_phone,
+                  customer_address: payload.address,
+                  shipping_address: payload.address,
+                  total_amount: 0,
+                  status: 'pending',
+                  note: delivTag,
+                  delivery_schedule: details,
+                  items: [],
+                  created_at: new Date().toISOString()
+                });
+              }
+              localStorage.setItem('morioo_orders', JSON.stringify(localOrders));
+
+              const ordBc = new BroadcastChannel('morioo_sync_channel');
+              ordBc.postMessage({ type: 'ORDER_UPDATED', order_code: ordCode, delivery: details, timestamp: Date.now() });
+              ordBc.postMessage({ type: 'ORDERS_CHANGED', timestamp: Date.now() });
+              setTimeout(() => ordBc.close(), 1000);
+            } catch(e) {}
+
+            if (ordCode && !['chưa có', 'chua co', 'none', '', 'null'].includes(ordCode.toLowerCase())) {
+              try {
+                await fetch(`${SUPABASE_URL}/rest/v1/orders?order_code=eq.${encodeURIComponent(ordCode)}`, {
+                  method: 'PATCH',
+                  headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ note: delivTag })
+                });
+              } catch(e) {}
+            }
+          }
+
+          try {
+            const bc = new BroadcastChannel('morioo_sync_channel');
+            bc.postMessage({ type: 'NEW_SERVICE_REQUEST', request: payload, timestamp: Date.now() });
+            setTimeout(() => bc.close(), 1000);
+          } catch(e) {}
+
+          form.reset();
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalText;
+          }
+          window.closeServiceModal();
+
+          const typeTitles = {
+            'tu-van': 'Tư Vấn Nội Thất MORIOO',
+            'dat-dong': 'Đặt Đóng Theo Yêu Cầu',
+            'van-chuyen': 'Lịch Giao Hàng & Lắp Đặt',
+            'bao-tri': 'Bảo Trì & Sửa Chữa Đồ Gỗ',
+            'thiet-ke-khong-gian': 'Hồ Sơ Thiết Kế Không Gian'
+          };
+          const typeHandlers = {
+            'tu-van': 'Chuyên viên thiết kế MORIOO',
+            'dat-dong': 'Kỹ sư xưởng may đo MORIOO',
+            'van-chuyen': 'Đội Vận Chuyển & Điều Phối MORIOO',
+            'bao-tri': 'Kỹ thuật viên mộc MORIOO',
+            'thiet-ke-khong-gian': 'Kiến trúc sư không gian MORIOO'
+          };
+          const svcTitle = typeTitles[serviceType] || 'Dịch Vụ Khách Hàng';
+          const svcHandler = typeHandlers[serviceType] || 'Chuyên viên MORIOO';
+
+          const successDiv = document.createElement("div");
+          successDiv.innerHTML = `
+            <div id="serviceSuccessModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:10000; display:flex; align-items:center; justify-content:center; padding:20px;">
+              <div style="background:#fff; border-radius:14px; max-width:480px; width:100%; padding:28px 24px; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.3);">
+                <div style="width:64px; height:64px; background:#dcfce7; color:#15803d; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px;">✓</div>
+                <h3 style="font-size:20px; font-weight:800; color:#18181b; margin:0 0 8px;">Đã Tiếp Nhận Thành Công!</h3>
+                <p style="font-size:13px; color:#52525b; line-height:1.6; margin:0 0 16px;">
+                  Cảm ơn quý khách <strong>${payload.customer_name}</strong>. MORIOO đã tiếp nhận yêu cầu <strong>${svcTitle}</strong> của bạn.
+                </p>
+                <div style="background:#faf5ff; border:1px solid #e9d5ff; border-radius:8px; padding:12px 16px; margin-bottom:18px;">
+                  <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:#6b21a8;">Mã Tra Cứu Dịch Vụ Của Bạn:</span>
+                  <div style="font-size:22px; font-weight:900; color:#7e22ce; font-family:monospace; margin-top:4px;">${code}</div>
+                  <div style="font-size:11.5px; color:#71717a; margin-top:4px;">Lưu lại mã này để tra cứu tiến độ thực hiện bất kỳ lúc nào.</div>
+                </div>
+                <div style="background:#f4f4f5; border-radius:8px; padding:12px; font-size:12px; color:#3f3f46; text-align:left; margin-bottom:20px; line-height:1.6;">
+                  ⏱️ <strong>${svcHandler}</strong> sẽ liên hệ đến SĐT <strong>${payload.customer_phone}</strong> trong vòng <strong>30 - 60 phút</strong>.<br>
+                  • Hotline hỗ trợ trực tiếp 24/7: <strong style="color:#b91c1c;">1900 255 579</strong>
+                </div>
+                <div style="display:flex; gap:10px;">
+                  <button type="button" onclick="navigator.clipboard.writeText('${code}'); alert('Đã sao chép mã dịch vụ: ${code}');" style="flex:1; padding:10px; border:1px solid #d4d4d8; background:#fff; border-radius:6px; font-size:12.5px; font-weight:700; cursor:pointer;">
+                    📋 Sao Chép Mã
+                  </button>
+                  <button type="button" onclick="document.getElementById('serviceSuccessModal').remove();" class="btn-brand-primary" style="flex:1; padding:10px; border-radius:6px; font-size:12.5px; font-weight:700; background:#7f1d1d; color:#fff; border:none; cursor:pointer;">
+                    Hoàn Tất
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(successDiv.firstElementChild);
+        };
+      })();
+    </script>
+
     <!-- Application Script (ES Module) -->
-    <script type="module" src="js/app.js?v=3.6"></script>
+    <script type="module" src="js/app.js?v=3.8"></script>
     <!-- AI Consultation Chat Widget -->
     <script src="js/chat.js"></script>
 </body>

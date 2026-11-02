@@ -7,3 +7,5 @@ __pycache__/
 Thumbs.db
 .vscode/
 .idea/
+scratch/
+patch_chat_advisor.py

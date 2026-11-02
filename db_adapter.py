@@ -13,6 +13,7 @@ import json
 import logging
 import uuid
 import re
+import datetime
 from database import get_db_connection, init_db
 
 try:
@@ -560,14 +561,14 @@ def create_order(payload):
                     supabase_client.table('order_items').insert(item_rows).execute()
                 except Exception as ex:
                     logger.warning(f"Could not insert order_items: {ex}")
-            return order_code
         except Exception as e:
             logger.error(f"Supabase create_order error: {e}")
 
+    # Luôn lưu vào SQLite morioo_store.db để đảm bảo dữ liệu hiển thị ở cả 2 nơi
     init_db()
     conn = get_db_connection()
     conn.execute('''
-        INSERT INTO orders (
+        INSERT OR REPLACE INTO orders (
             id, order_code, customer_name, customer_phone, customer_email,
             shipping_address, customer_address, payment_method, total_amount, note, items, status
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
@@ -577,12 +578,27 @@ def create_order(payload):
     return order_code
 
 def get_orders():
+    orders_map = {}
+
+    # 1. Nạp từ SQLite máy chủ trước
+    try:
+        init_db()
+        conn = get_db_connection()
+        rows = conn.execute('SELECT * FROM orders ORDER BY created_at DESC').fetchall()
+        conn.close()
+        for r in rows:
+            fmt = format_order_dict(r)
+            k = fmt.get('order_code') or fmt.get('id')
+            if k:
+                orders_map[k] = fmt
+    except Exception as e:
+        logger.error(f"SQLite get_orders error: {e}")
+
+    # 2. Nạp từ Supabase Cloud và gộp
     if is_supabase_enabled():
         try:
             res = supabase_client.table('orders').select('*').order('created_at', desc=True).execute()
             orders = res.data or []
-            
-            # Try to populate items from order_items
             try:
                 for o in orders:
                     items_res = supabase_client.table('order_items').select('*').eq('order_id', o['id']).execute()
@@ -590,16 +606,19 @@ def get_orders():
                         o['items'] = items_res.data
             except Exception:
                 pass
-                
-            return [format_order_dict(o) for o in orders]
+
+            for o in orders:
+                fmt = format_order_dict(o)
+                k = fmt.get('order_code') or fmt.get('id')
+                if k:
+                    existing = orders_map.get(k)
+                    orders_map[k] = {**existing, **fmt} if existing else fmt
         except Exception as e:
             logger.error(f"Supabase get_orders error: {e}")
 
-    init_db()
-    conn = get_db_connection()
-    rows = conn.execute('SELECT * FROM orders ORDER BY created_at DESC').fetchall()
-    conn.close()
-    return [format_order_dict(r) for r in rows]
+    final_list = list(orders_map.values())
+    final_list.sort(key=lambda x: str(x.get('created_at', '')), reverse=True)
+    return final_list
 
 def get_user_orders(user_id):
     # Returns orders matching user_id or all if none
@@ -674,12 +693,15 @@ def create_service_request(data):
     customer_name = (data.get('customer_name') or '').strip()
     customer_phone = (data.get('customer_phone') or '').strip()
     customer_email = (data.get('customer_email') or '').strip()
-    address = data.get('address', '')
+    address = data.get('address', '') or (data.get('details') or {}).get('shipping_address', '')
     details = data.get('details') or {}
     image_url = data.get('image_url', '')
     preferred_date = data.get('preferred_date', '')
     preferred_time = data.get('preferred_time', '')
-    req_id = str(uuid.uuid4())
+    raw_id = data.get('id', '')
+    req_id = raw_id if (raw_id and len(raw_id) == 36 and '-' in raw_id) else str(uuid.uuid4())
+    status = data.get('status', 'pending')
+    created_at = data.get('created_at') or datetime.datetime.now().isoformat()
 
     if is_supabase_enabled():
         try:
@@ -695,43 +717,125 @@ def create_service_request(data):
                 'image_url': image_url,
                 'preferred_date': preferred_date,
                 'preferred_time': preferred_time,
-                'status': 'pending'
+                'status': status
             }
-            res = supabase_client.table('service_requests').insert(payload).execute()
-            return code
+            supabase_client.table('service_requests').upsert(payload, on_conflict='code').execute()
         except Exception as e:
             logger.error(f"Supabase create_service_request error: {e}")
 
-    init_db()
-    conn = get_db_connection()
-    conn.execute('''
-        INSERT INTO service_requests (
-            id, code, service_type, customer_name, customer_phone, customer_email,
-            address, details, image_url, preferred_date, preferred_time, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
-    ''', (req_id, code, service_type, customer_name, customer_phone, customer_email, address, json.dumps(details, ensure_ascii=False), image_url, preferred_date, preferred_time))
-    conn.commit()
-    conn.close()
+    # Luôn ghi nhận vào SQLite (morioo_store.db) để đảm bảo dữ liệu máy chủ luôn hiển thị
+    try:
+        init_db()
+        conn = get_db_connection()
+        conn.execute('''
+            INSERT OR REPLACE INTO service_requests (
+                id, code, service_type, customer_name, customer_phone, customer_email,
+                address, details, image_url, preferred_date, preferred_time, status, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (req_id, code, service_type, customer_name, customer_phone, customer_email, address, json.dumps(details, ensure_ascii=False), image_url, preferred_date, preferred_time, status, created_at))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.error(f"SQLite create_service_request error: {e}")
+
+    # Nếu là yêu cầu vận chuyển & lắp đặt và có mã đơn hàng, liên kết thông tin vào đơn hàng
+    if service_type == 'van-chuyen':
+        order_code = (details.get('order_code') or '').strip()
+        house_type = details.get('house_type') or 'Tiêu chuẩn'
+        install_svc = details.get('installation_service') or 'Giao & Lắp'
+        notes_str = details.get('delivery_notes') or ''
+        deliv_tag = f"[Lịch Giao: {preferred_date} ({preferred_time}) | {house_type} | {install_svc} | Mã DV: {code}]"
+        if notes_str:
+            deliv_tag += f" [Ghi chú: {notes_str}]"
+
+        try:
+            init_db()
+            conn = get_db_connection()
+            matched_orders = []
+            if order_code and order_code.lower() not in ['chưa có', 'chua co', 'none', '', 'null']:
+                matched_orders = conn.execute('SELECT order_code, note FROM orders WHERE order_code = ?', (order_code,)).fetchall()
+            elif customer_phone:
+                matched_orders = conn.execute('SELECT order_code, note FROM orders WHERE customer_phone = ? ORDER BY created_at DESC LIMIT 1', (customer_phone,)).fetchall()
+
+            if matched_orders:
+                for row in matched_orders:
+                    oc = row['order_code']
+                    existing_note = row['note'] or ''
+                    clean_note = re.sub(r'\[Lịch Giao:[^\]]+\]', '', existing_note).strip()
+                    new_note = (clean_note + ' ' + deliv_tag).strip()
+                    conn.execute('UPDATE orders SET note = ? WHERE order_code = ?', (new_note, oc))
+                    conn.commit()
+                    if is_supabase_enabled():
+                        try:
+                            supabase_client.table('orders').update({'note': new_note}).eq('order_code', oc).execute()
+                        except Exception:
+                            pass
+            elif order_code and order_code.lower() not in ['chưa có', 'chua co', 'none', '', 'null']:
+                # Nếu khách điền mã đơn hàng chưa có trong SQLite, tạo mới để nhân viên thấy ngay trên tab Xác Nhận Đơn Hàng
+                new_ord_id = str(uuid.uuid4())
+                conn.execute('''
+                    INSERT OR REPLACE INTO orders (
+                        id, order_code, customer_name, customer_phone, customer_email,
+                        shipping_address, customer_address, payment_method, total_amount, status, note, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'COD', 0, 'pending', ?, CURRENT_TIMESTAMP)
+                ''', (new_ord_id, order_code, customer_name or 'Khách Hàng', customer_phone, customer_email, address, address, deliv_tag))
+                conn.commit()
+                if is_supabase_enabled():
+                    try:
+                        supabase_client.table('orders').insert({
+                            'id': new_ord_id,
+                            'order_code': order_code,
+                            'customer_name': customer_name or 'Khách Hàng',
+                            'customer_phone': customer_phone,
+                            'customer_email': customer_email,
+                            'shipping_address': address,
+                            'payment_method': 'COD',
+                            'total_amount': 0,
+                            'status': 'pending',
+                            'note': deliv_tag
+                        }).execute()
+                    except Exception:
+                        pass
+            conn.close()
+        except Exception as err:
+            logger.warning(f"Error cross-linking delivery to orders: {err}")
+
     return code
 
 def get_service_requests():
+    results_map = {}
+
+    # 1. Nạp từ SQLite máy chủ trước
+    try:
+        init_db()
+        conn = get_db_connection()
+        rows = conn.execute('SELECT * FROM service_requests ORDER BY created_at DESC').fetchall()
+        conn.close()
+        for r in rows:
+            d = dict(r)
+            d['details'] = normalize_json_field(d.get('details'))
+            k = d.get('code') or d.get('id')
+            if k:
+                results_map[k] = d
+    except Exception as e:
+        logger.error(f"SQLite get_service_requests error: {e}")
+
+    # 2. Nạp từ Supabase Cloud và gộp lại
     if is_supabase_enabled():
         try:
             res = supabase_client.table('service_requests').select('*').order('created_at', desc=True).execute()
-            return res.data or []
+            if res.data:
+                for row in res.data:
+                    k = row.get('code') or row.get('id')
+                    if k:
+                        row['details'] = normalize_json_field(row.get('details'))
+                        results_map[k] = row
         except Exception as e:
             logger.error(f"Supabase get_service_requests error: {e}")
 
-    init_db()
-    conn = get_db_connection()
-    rows = conn.execute('SELECT * FROM service_requests ORDER BY created_at DESC').fetchall()
-    conn.close()
-    result = []
-    for r in rows:
-        d = dict(r)
-        d['details'] = normalize_json_field(d.get('details'))
-        result.append(d)
-    return result
+    final_list = list(results_map.values())
+    final_list.sort(key=lambda x: str(x.get('created_at', '')), reverse=True)
+    return final_list
 
 def update_service_status(code, new_status, staff_notes=None, assigned_staff=None, details=None):
     if is_supabase_enabled():
@@ -741,7 +845,6 @@ def update_service_status(code, new_status, staff_notes=None, assigned_staff=Non
             if assigned_staff is not None: up['assigned_staff'] = assigned_staff
             if details is not None: up['details'] = details
             supabase_client.table('service_requests').update(up).eq('code', code).execute()
-            return True
         except Exception as e:
             logger.error(f"Supabase update_service_status error: {e}")
 
@@ -755,6 +858,23 @@ def update_service_status(code, new_status, staff_notes=None, assigned_staff=Non
         conn.execute('UPDATE service_requests SET status = ?, staff_notes = COALESCE(?, staff_notes), assigned_staff = COALESCE(?, assigned_staff) WHERE code = ?', (new_status, staff_notes, assigned_staff, code))
     conn.commit()
     conn.close()
+    return True
+
+def delete_service_request(code):
+    if is_supabase_enabled():
+        try:
+            supabase_client.table('service_requests').delete().eq('code', code).execute()
+        except Exception as e:
+            logger.error(f"Supabase delete_service_request error: {e}")
+
+    try:
+        init_db()
+        conn = get_db_connection()
+        conn.execute('DELETE FROM service_requests WHERE code = ? OR id = ?', (code, code))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.error(f"SQLite delete_service_request error: {e}")
     return True
 
 # ==============================================================================
@@ -866,6 +986,22 @@ def delete_chat_session(session_id):
     conn.commit()
     conn.close()
     return True
+
+def get_all_customer_questions(limit=100):
+    """Lấy danh sách tất cả câu hỏi của khách hàng đã gửi cho Chatbot lưu trong Database"""
+    init_db()
+    conn = get_db_connection()
+    rows = conn.execute('''
+        SELECT m.id, m.session_id, m.customer_name, m.message AS question, m.created_at,
+               s.customer_phone, s.customer_email, s.last_message, s.unread_count
+        FROM chat_messages m
+        LEFT JOIN chat_sessions s ON m.session_id = s.session_id
+        WHERE m.sender = 'customer'
+        ORDER BY m.id DESC
+        LIMIT ?
+    ''', (limit,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 # ==============================================================================
 # STATS

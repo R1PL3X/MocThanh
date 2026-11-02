@@ -591,7 +591,7 @@ class SupabaseDataService {
     // =========================================================================
 
     /**
-     * Lấy danh sách toàn bộ yêu cầu dịch vụ
+     * Lấy danh sách toàn bộ yêu cầu dịch vụ (Hợp nhất Cloud, API Database và LocalStorage)
      */
     async getServiceRequests() {
         let cloudList = [];
@@ -601,33 +601,49 @@ class SupabaseDataService {
                 cloudList = res;
             }
         } catch (e) {
-            // Service requests table not created yet in cloud
+            console.warn("[Supabase] Lỗi tải service_requests:", e);
         }
+
+        // Thử tải từ /api/services (Flask / SQLite) nếu có máy chủ backend
+        let apiList = [];
+        try {
+            const apiRes = await fetch('/api/services');
+            if (apiRes.ok) {
+                const data = await apiRes.json();
+                if (Array.isArray(data)) apiList = data;
+            }
+        } catch(e) {}
 
         const localList = this.loadLocalServiceRequests();
         const map = new Map();
-        localList.forEach(item => map.set(item.code || item.id, item));
-        cloudList.forEach(item => {
-            const code = item.code || item.id;
-            if (!map.has(code)) {
-                map.set(code, item);
-            } else {
-                const existing = map.get(code);
-                // Merge cloud and local details / staff_response
-                const mergedDetails = { ...(existing.details || {}), ...(item.details || {}) };
-                const mergedStaffResponse = item.staff_response || existing.staff_response || mergedDetails.staff_response;
-                map.set(code, {
-                    ...existing,
-                    ...item,
-                    details: mergedDetails,
-                    staff_response: mergedStaffResponse,
-                    status: item.status || existing.status,
-                    assigned_staff: item.assigned_staff || existing.assigned_staff,
-                    staff_notes: item.staff_notes || existing.staff_notes
-                });
+
+        // 1. Nạp local trước
+        localList.forEach(item => {
+            const k = item.code || item.id;
+            if (k) map.set(k, item);
+        });
+
+        // 2. Nạp apiList vào
+        apiList.forEach(item => {
+            const k = item.code || item.id;
+            if (k) {
+                const existing = map.get(k);
+                map.set(k, existing ? { ...existing, ...item } : item);
             }
         });
-        return Array.from(map.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+        // 3. Nạp cloudList vào
+        cloudList.forEach(item => {
+            const k = item.code || item.id;
+            if (k) {
+                const existing = map.get(k);
+                map.set(k, existing ? { ...existing, ...item } : item);
+            }
+        });
+
+        const merged = Array.from(map.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        this.saveLocalServiceRequests(merged);
+        return merged;
     }
 
     loadLocalServiceRequests() {
@@ -645,7 +661,7 @@ class SupabaseDataService {
     }
 
     /**
-     * Tạo yêu cầu dịch vụ khách hàng mới (Đồng bộ Realtime BroadcastChannel & Cloud)
+     * Tạo yêu cầu dịch vụ khách hàng mới (Đồng bộ Realtime Supabase Cloud, Backend Database & Local)
      */
     async createServiceRequest(payload) {
         const prefixMap = {
@@ -676,27 +692,131 @@ class SupabaseDataService {
             created_at: new Date().toISOString()
         };
 
-        // 1. Lưu LocalStorage
-        const currentList = this.loadLocalServiceRequests();
-        currentList.unshift(newReq);
-        this.saveLocalServiceRequests(currentList);
+        // 1. Chuẩn bị dữ liệu gửi lên Supabase Cloud (bỏ id tạm để Supabase tự sinh UUID chuẩn PostgreSQL)
+        const cloudPayload = {
+            code: newReq.code,
+            service_type: newReq.service_type,
+            customer_name: newReq.customer_name,
+            customer_phone: newReq.customer_phone,
+            customer_email: newReq.customer_email || null,
+            address: newReq.address || null,
+            details: newReq.details || {},
+            image_url: newReq.image_url || null,
+            preferred_date: newReq.preferred_date || null,
+            preferred_time: newReq.preferred_time || null,
+            status: 'pending'
+        };
 
-        // 2. BroadcastChannel tức thì cho Admin & Nhân viên
-        try {
-            const bc = new BroadcastChannel('morioo_sync_channel');
-            bc.postMessage({ type: 'NEW_SERVICE_REQUEST', request: newReq, timestamp: Date.now() });
-            bc.close();
-        } catch (e) {}
-
-        // 3. Thử lưu lên Supabase Cloud
         let cloudSaved = false;
         try {
             const res = await this.restFetch("service_requests", {
                 method: "POST",
-                body: JSON.stringify(newReq)
+                body: JSON.stringify(cloudPayload),
+                prefer: "return=representation"
             });
-            if (res && res.length > 0) cloudSaved = true;
+            if (res && res.length > 0) {
+                cloudSaved = true;
+                if (res[0].id) newReq.id = res[0].id;
+                if (res[0].created_at) newReq.created_at = res[0].created_at;
+                console.log("[Supabase Cloud] Lưu thành công yêu cầu dịch vụ:", newReq.code);
+            }
+        } catch (e) {
+            console.warn("[Supabase Cloud] Lỗi lưu service_requests:", e);
+        }
+
+        // 2. Lưu trực tiếp vào Database máy chủ Flask (/api/services -> morioo_store.db)
+        const apiCandidates = [
+            '/api/services',
+            'http://localhost:5000/api/services',
+            'http://127.0.0.1:5000/api/services'
+        ];
+        for (const ep of apiCandidates) {
+            try {
+                const apiRes = await fetch(ep, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newReq)
+                });
+                if (apiRes.ok) {
+                    console.log(`[Backend API] Đã lưu yêu cầu vào database máy chủ qua ${ep}:`, newReq.code);
+                    break;
+                }
+            } catch (apiErr) {}
+        }
+
+        // 3. Nếu là dịch vụ Vận chuyển & Lắp đặt, tự động đính kèm lịch giao vào Đơn hàng tương ứng
+        if (newReq.service_type === 'van-chuyen') {
+            const d = newReq.details || {};
+            const ordCode = (d.order_code || '').trim();
+            const houseType = d.house_type || 'Chung cư có thang máy';
+            const installSvc = d.installation_service || 'Giao & Lắp đặt';
+            const delivNotes = d.delivery_notes || '';
+            const delivTag = `[Lịch Giao: ${newReq.preferred_date || ''} (${newReq.preferred_time || ''}) | ${houseType} | ${installSvc} | Mã DV: ${newReq.code}]${delivNotes ? ' [Ghi chú: ' + delivNotes + ']' : ''}`;
+
+            try {
+                const localOrders = this.loadLocalOrders();
+                let matched = false;
+                localOrders.forEach(o => {
+                    if ((ordCode && o.order_code === ordCode) || (newReq.customer_phone && o.customer_phone === newReq.customer_phone)) {
+                        matched = true;
+                        o.delivery_schedule = d;
+                        o.note = (o.note ? o.note.replace(/\[Lịch Giao:[^\]]+\]/g, '').trim() + ' ' : '') + delivTag;
+                    }
+                });
+                if (!matched && ordCode && !['chưa có', 'chua co', 'none', '', 'null'].includes(ordCode.toLowerCase())) {
+                    localOrders.unshift({
+                        id: 'ord-' + Date.now(),
+                        order_code: ordCode,
+                        customer_name: newReq.customer_name,
+                        customer_phone: newReq.customer_phone,
+                        customer_address: newReq.address,
+                        shipping_address: newReq.address,
+                        total_amount: 0,
+                        status: 'pending',
+                        note: delivTag,
+                        delivery_schedule: d,
+                        items: [],
+                        created_at: new Date().toISOString()
+                    });
+                }
+                this.saveLocalOrders(localOrders);
+
+                // Gửi tín hiệu đồng bộ đơn hàng
+                const ordBc = new BroadcastChannel('morioo_sync_channel');
+                ordBc.postMessage({ type: 'ORDER_UPDATED', order_code: ordCode, delivery: d, timestamp: Date.now() });
+                ordBc.postMessage({ type: 'ORDERS_CHANGED', timestamp: Date.now() });
+                setTimeout(() => ordBc.close(), 1000);
+            } catch(e) {}
+
+            // Cập nhật note lên Supabase Cloud nếu có mã đơn
+            if (ordCode && !['chưa có', 'chua co', 'none', '', 'null'].includes(ordCode.toLowerCase())) {
+                try {
+                    await this.restFetch(`orders?order_code=eq.${encodeURIComponent(ordCode)}`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({ note: delivTag })
+                    });
+                } catch(e) {}
+            }
+        }
+
+        // 4. Lưu vào LocalStorage
+        const currentList = this.loadLocalServiceRequests();
+        const existingIdx = currentList.findIndex(r => r.code === newReq.code);
+        if (existingIdx >= 0) {
+            currentList[existingIdx] = newReq;
+        } else {
+            currentList.unshift(newReq);
+        }
+        this.saveLocalServiceRequests(currentList);
+
+        // 4. Phát tín hiệu thời gian thực (BroadcastChannel & Event) cho cổng Nhân viên và Quản trị
+        try {
+            const bc = new BroadcastChannel('morioo_sync_channel');
+            bc.postMessage({ type: 'NEW_SERVICE_REQUEST', request: newReq, timestamp: Date.now() });
+            setTimeout(() => bc.close(), 1000);
         } catch (e) {}
+
+        window.dispatchEvent(new CustomEvent('service-request-created', { detail: newReq }));
 
         return {
             success: true,
@@ -712,6 +832,7 @@ class SupabaseDataService {
     async updateServiceRequestStatus(idOrCode, status, staffName = '', notes = '') {
         const list = this.loadLocalServiceRequests();
         const item = list.find(r => r.id === idOrCode || r.code === idOrCode);
+        const targetCode = item ? item.code : idOrCode;
         if (item) {
             item.status = status;
             if (staffName) item.assigned_staff = staffName;
@@ -722,14 +843,28 @@ class SupabaseDataService {
             try {
                 const bc = new BroadcastChannel('morioo_sync_channel');
                 bc.postMessage({ type: 'SERVICE_REQUEST_STATUS_CHANGED', code: item.code, status, assigned_staff: staffName, notes });
-                bc.close();
+                setTimeout(() => bc.close(), 1000);
             } catch (e) {}
         }
 
         try {
-            await this.restFetch(`service_requests?code=eq.${encodeURIComponent(idOrCode)}`, {
+            await this.restFetch(`service_requests?code=eq.${encodeURIComponent(targetCode)}`, {
                 method: "PATCH",
                 body: JSON.stringify({ status, assigned_staff: staffName, staff_notes: notes, updated_at: new Date().toISOString() })
+            });
+        } catch (e) {}
+
+        // Đồng thời cập nhật lên Flask /api/services nếu có
+        try {
+            await fetch(`/api/services/${encodeURIComponent(targetCode)}/status`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    status: status,
+                    assigned_staff: staffName,
+                    staff_notes: notes,
+                    details: item ? item.details : undefined
+                })
             });
         } catch (e) {}
 

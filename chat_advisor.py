@@ -49,7 +49,7 @@ def get_ai_info():
     return {
         'enabled': has_key,
         'provider': 'Google Gemini AI',
-        'model': 'gemini-2.5-flash / gemini-3.8-flash',
+        'model': 'gemini-3.8-flash (Chính) / gemini-3.5-flash-lite',
         'status': 'connected' if has_key else 'rule_fallback',
         'key_preview': masked if has_key else None,
         'description': 'Google Gemini AI đang hoạt động (Tư vấn viên thông minh MORIOO)' if has_key else 'Đang dùng bộ tư vấn quy tắc chuẩn MORIOO (chưa cấu hình GEMINI_API_KEY)'
@@ -87,24 +87,45 @@ def test_gemini_key(api_key):
     key = (api_key or '').strip()
     if not key:
         return False, "API Key không được để trống"
+
+    # 1. Thử dùng SDK google-genai chuẩn Google
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
-        payload = {
-            "contents": [{"parts": [{"text": "Xin chào"}]}],
-            "generationConfig": {"maxOutputTokens": 10}
-        }
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode('utf-8'),
-            headers={'Content-Type': 'application/json'}
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode('utf-8'))
-            if 'candidates' in data:
-                return True, "Kết nối Google Gemini AI thành công!"
-            return False, "Phản hồi từ Gemini không hợp lệ"
-    except Exception as e:
-        return False, f"Lỗi xác thực Gemini API: {str(e)}"
+        from google import genai
+        client = genai.Client(api_key=key)
+        for model_name in ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']:
+            try:
+                resp = client.models.generate_content(
+                    model=model_name,
+                    contents="Xin chào"
+                )
+                if resp and resp.text:
+                    return True, f"Kết nối Google Gemini AI ({model_name}) thành công!"
+            except Exception:
+                continue
+    except Exception:
+        pass
+
+    # 2. Thử REST API fallback với các model hiện hành
+    for model_name in ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={key}"
+            payload = {
+                "contents": [{"parts": [{"text": "Xin chào"}]}],
+                "generationConfig": {"maxOutputTokens": 15}
+            }
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode('utf-8'),
+                headers={'Content-Type': 'application/json'}
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                if 'candidates' in data:
+                    return True, f"Kết nối Google Gemini AI ({model_name}) thành công!"
+        except Exception:
+            continue
+
+    return False, "Không thể kết nối với Gemini API. Vui lòng kiểm tra lại API Key hoặc quota của bạn."
 
 def generate_advisor_reply(message, session_id=None):
     api_key = get_gemini_api_key()
@@ -162,12 +183,13 @@ QUY TẮC TRẢ LỜI CỦA BẠN:
 
     prompt_content = f"Lịch sử hội thoại trước đó:\n{past_convo}\n\nTin nhắn mới từ Khách hàng: {message}"
 
+    # 1. Gọi qua SDK google-genai với mô hình gemini-3.8-flash
     try:
         from google import genai
         from google.genai import types
         client = genai.Client(api_key=api_key)
 
-        for model_name in ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']:
+        for model_name in ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']:
             try:
                 response = client.models.generate_content(
                     model=model_name,
@@ -180,36 +202,36 @@ QUY TẮC TRẢ LỜI CỦA BẠN:
                 )
                 if response and response.text:
                     return response.text.strip()
-            except Exception:
+            except Exception as ge:
+                logger.debug(f"SDK model {model_name} failed: {ge}")
                 continue
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"google-genai SDK init error: {e}")
 
-    try:
-        for model_name in ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']:
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-                payload = {
-                    "contents": [{"parts": [{"text": prompt_content}]}],
-                    "systemInstruction": {"parts": [{"text": system_prompt}]},
-                    "generationConfig": {"temperature": 0.7, "maxOutputTokens": 850}
-                }
-                req = urllib.request.Request(
-                    url,
-                    data=json.dumps(payload).encode('utf-8'),
-                    headers={'Content-Type': 'application/json'}
-                )
-                with urllib.request.urlopen(req, timeout=10) as resp:
-                    data = json.loads(resp.read().decode('utf-8'))
-                    candidates = data.get('candidates', [])
-                    if candidates:
-                        parts = candidates[0].get('content', {}).get('parts', [])
-                        if parts and 'text' in parts[0]:
-                            return parts[0]['text'].strip()
-            except Exception:
-                continue
-    except Exception:
-        pass
+    # 2. Gọi qua REST API fallback với mô hình gemini-3.8-flash
+    for model_name in ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt_content}]}],
+                "systemInstruction": {"parts": [{"text": system_prompt}]},
+                "generationConfig": {"temperature": 0.7, "maxOutputTokens": 850}
+            }
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode('utf-8'),
+                headers={'Content-Type': 'application/json'}
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                candidates = data.get('candidates', [])
+                if candidates:
+                    parts = candidates[0].get('content', {}).get('parts', [])
+                    if parts and 'text' in parts[0]:
+                        return parts[0]['text'].strip()
+        except Exception as re_err:
+            logger.debug(f"REST model {model_name} failed: {re_err}")
+            continue
 
     return None
 
