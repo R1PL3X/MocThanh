@@ -224,8 +224,7 @@
             </div>
             <div style="background:#fff; color:#333; padding:10px 12px; border-radius:14px; border-top-left-radius:2px; box-shadow:0 2px 6px rgba(0,0,0,0.04); border:1px solid #ece7df; line-height:1.5;">
               Dạ MORIOO xin chào Quý khách! 👋<br><br>
-              Em có thể hỗ trợ tư vấn về <strong>Nội thất gỗ sồi tự nhiên, Tủ & Kệ, 5 Gói dịch vụ khách hàng</strong>, hoặc tra cứu tiến độ đơn hàng cho Quý khách ngay bây giờ ạ!<br><br>
-              <em style="color:#777; font-size:11px;">(Mẹo: Bạn có thể nhập <strong>/key &lt;gemini_key&gt;</strong> để kích hoạt Google Gemini 3.8 Flash)</em>
+              Em có thể hỗ trợ tư vấn về <strong>Nội thất gỗ sồi tự nhiên, Tủ & Kệ, 5 Gói dịch vụ khách hàng</strong>, hoặc tra cứu tiến độ đơn hàng cho Quý khách ngay bây giờ ạ!
             </div>
           </div>
         </div>
